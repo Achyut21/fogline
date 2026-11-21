@@ -1,7 +1,7 @@
 export const system = {
   offline: {
     title: "You're offline",
-    body: "Fogline doesn't work offline yet. Reconnect, then try again.",
+    body: "This page isn't saved for offline use. Reconnect, then try again.",
     retry: "Try again",
   },
   error: {

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test.skip(!process.env.PLAYWRIGHT_BASE_URL, "runs only against a Vercel deployment");
-test.skip(({ browserName }) => browserName !== "chromium", "one browserless check is enough");
 
-test("health reports the database and TimescaleDB up", async ({ page }) => {
+test("health reports the database and TimescaleDB up", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chrome", "one check per deployment is enough");
   const response = await page.request.get("/api/health");
   expect(response.status()).toBe(200);
   expect(response.headers()["cache-control"]).toContain("no-store");

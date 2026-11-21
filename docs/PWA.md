@@ -42,7 +42,7 @@ Fogline must install and feel native on Android (Chrome) and iOS (Safari). The t
 - **Runtime caching:**
   - map tiles cache-first, with a size cap and expiry;
   - Wikimedia images stale-while-revalidate, with a cap;
-  - `/api/mbta/*` network-first with a short timeout, falling back to the last response, labeled with its age in the UI;
+  - `/api/*` is network-only for now (D-040), so `/api/health` can't report a stale success. When Phase 3 adds the `/api/mbta/*` fallback (network-first with a short timeout, falling back to the last response, labeled with its age in the UI), its rule must come before the `/api/*` network-only rule in `src/app/sw.ts`, because Serwist uses the first matching rule;
   - Server Actions never cached.
 - **Offline:** the map shows cached tiles and your uncovered cells, saved plans open read-only, and the OfflineBanner says what still works. Check-ins and guesses made offline are queued and sent when the connection returns (IndexedDB).
 - **Updates:** when a new service worker is waiting, show the "Update ready" toast with a Refresh action. Never reload the page without asking.

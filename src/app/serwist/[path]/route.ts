@@ -11,7 +11,7 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
     additionalPrecacheEntries: [{ url: "/offline", revision }],
     globPatterns: [
       ".next/static/**/*.{js,css,html,ico,png,svg,webp,json,webmanifest}",
-      ".next/static/media/*.p.*.woff2",
+      ".next/static/**/media/*.p.*.woff2",
       "public/icons/*.png",
     ],
   },

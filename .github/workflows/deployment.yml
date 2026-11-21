@@ -1,7 +1,7 @@
 name: Deployment checks
 
-# Vercel sends this event after every successful deployment. GitHub runs repository_dispatch
-# workflows from the default branch, so this file takes effect once it is on main.
+# Vercel's repository_dispatch event is meant to start this after each deployment, but it hasn't
+# arrived for this repo yet (D-043). Until it does, start it by hand with workflow_dispatch.
 on:
   repository_dispatch:
     types: [vercel.deployment.success]
@@ -10,14 +10,15 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: Deployment URL
+        description: The deployment's own URL (fogline-<hash>-achyut-katiyars-projects.vercel.app), not a branch or production alias
         required: true
       sha:
-        description: Commit the deployment was built from
+        description: Commit that deployment was built from
         required: true
       environment:
-        description: preview or production
-        required: true
+        description: Deployment environment
+        type: choice
+        options: [preview, production]
         default: preview
 
 permissions:
@@ -45,7 +46,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           count=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/branches-where-head" --jq length)
-          echo "run=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          if [ "$count" -gt 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "::error::$SHA is not the head of a branch in this repository, so nothing was tested."
+            exit 1
+          else
+            echo "::notice::Skipped $SHA: not the head of a branch in this repository (a fork or an older commit)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Mark the deployed commit pending
         if: steps.owned.outputs.run == 'true'
         env:
@@ -75,6 +84,7 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: ${{ github.event.client_payload.url || inputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          DEPLOYMENT_ENVIRONMENT: ${{ github.event.client_payload.environment || inputs.environment }}
         run: pnpm test:e2e:deployment
       - name: Report the result on the deployed commit
         if: always() && steps.owned.outputs.run == 'true'

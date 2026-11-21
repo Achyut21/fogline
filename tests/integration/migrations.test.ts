@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -6,6 +7,9 @@ import { timescaleVersion } from "@/server/db/health";
 import { createScratchDatabase } from "./scratch-database";
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
+const journal: { entries: unknown[] } = JSON.parse(
+  readFileSync("drizzle/meta/_journal.json", "utf8"),
+);
 
 describe.skipIf(testUrl === "")("migrations on a fresh database", () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
@@ -31,6 +35,6 @@ describe.skipIf(testUrl === "")("migrations on a fresh database", () => {
     const applied = await db.execute<{ count: number }>(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     );
-    expect(applied[0]?.count).toBe(1);
+    expect(applied[0]?.count).toBe(journal.entries.length);
   });
 });

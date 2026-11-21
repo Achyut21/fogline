@@ -3,6 +3,12 @@ import { expect, test, type Page } from "@playwright/test";
 import type { MetadataRoute } from "next";
 import { app, system } from "@/copy";
 
+// Behind Vercel's preview protection the service worker never activates, even with the bypass
+// cookie (D-043). Production deployments and CI still run these tests.
+const protectedPreview =
+  Boolean(process.env.VERCEL_AUTOMATION_BYPASS_SECRET) &&
+  process.env.DEPLOYMENT_ENVIRONMENT === "preview";
+
 function pngSize(bytes: Buffer) {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
@@ -12,24 +18,27 @@ async function expectNoSeriousAxeViolations(page: Page) {
   expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical")).toEqual([]);
 }
 
-async function waitForServiceWorker(page: Page) {
-  return page.evaluate(async () => {
-    const registration = await navigator.serviceWorker.ready;
-    if (!navigator.serviceWorker.controller) {
-      await new Promise((resolve) =>
-        navigator.serviceWorker.addEventListener("controllerchange", resolve, { once: true }),
-      );
-    }
-    return registration.active?.scriptURL ?? "";
-  });
+async function installabilityErrors(page: Page) {
+  const cdp = await page.context().newCDPSession(page);
+  const { installabilityErrors: errors } = await cdp.send("Page.getInstallabilityErrors");
+  // Playwright contexts are incognito, which Chrome always reports; it says nothing about the app.
+  return errors.map((error) => error.errorId).filter((id) => id !== "in-incognito");
 }
 
-test.describe("manifest", () => {
-  test.skip(({ browserName }) => browserName !== "chromium", "served the same to every browser");
+async function waitForServiceWorker(page: Page) {
+  await expect
+    .poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? ""), {
+      message: "the service worker never took control of the page",
+      timeout: 15_000,
+    })
+    .toContain("/serwist/sw.js");
+}
+
+test.describe("manifest and installability", () => {
+  test.skip(({ browserName }) => browserName !== "chromium", "Chromium-only checks");
 
   test("has the install fields and icons that load at their stated sizes", async ({ page }) => {
-    const request = page.request;
-    const response = await request.get("/manifest.webmanifest");
+    const response = await page.request.get("/manifest.webmanifest");
     expect(response.ok()).toBe(true);
     const manifest: MetadataRoute.Manifest = await response.json();
     expect(manifest).toMatchObject({
@@ -49,15 +58,32 @@ test.describe("manifest", () => {
     expect(icons.map((icon) => icon.purpose)).toEqual(expect.arrayContaining(["any", "maskable"]));
 
     for (const icon of icons) {
-      const file = await request.get(icon.src);
+      const file = await page.request.get(icon.src);
       expect(file.headers()["content-type"]).toBe("image/png");
       const { width, height } = pngSize(await file.body());
       expect(`${width}x${height}`).toBe(icon.sizes);
     }
   });
+
+  test("Chrome reports the home page installable", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
+      "href",
+      "/manifest.webmanifest",
+    );
+    expect(await installabilityErrors(page)).toEqual([]);
+  });
+
+  test("the installability check fails a page with no manifest", async ({ page }) => {
+    await page.route("**/installability-probe", (route) =>
+      route.fulfill({ contentType: "text/html", body: "<!doctype html><title>probe</title>" }),
+    );
+    await page.goto("/installability-probe");
+    expect(await installabilityErrors(page)).toContain("no-manifest");
+  });
 });
 
-test("home page carries the iOS install tags", async ({ page }) => {
+test("home page carries the iOS install tags and a 180 px touch icon", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
     "content",
@@ -79,6 +105,9 @@ test("home page carries the iOS install tags", async ({ page }) => {
     "content",
     "yes",
   );
+  const icon = await page.request.get("/icons/apple-touch-icon.png");
+  expect(icon.headers()["content-type"]).toBe("image/png");
+  expect(pngSize(await icon.body())).toEqual({ width: 180, height: 180 });
 });
 
 test("offline page has no serious or critical axe violations", async ({ page }) => {
@@ -109,10 +138,12 @@ test.describe("service worker", () => {
     ({ browserName }) => browserName !== "chromium",
     "Playwright WebKit has no service workers",
   );
+  test.skip(protectedPreview, "the service worker doesn't activate behind preview protection");
+  test.use({ serviceWorkers: "allow" });
 
   test("registers and takes control of the page", async ({ page }) => {
     await page.goto("/");
-    expect(await waitForServiceWorker(page)).toContain("/serwist/sw.js");
+    await waitForServiceWorker(page);
   });
 
   test("shows the offline page for a new address, and Try again reloads that address", async ({
@@ -133,22 +164,44 @@ test.describe("service worker", () => {
     expect(new URL(page.url()).pathname).toBe("/never-visited");
   });
 
+  test("opens a page it loaded before while offline", async ({ page, context }) => {
+    await page.goto("/");
+    await waitForServiceWorker(page);
+    await page.reload();
+    await context.setOffline(true);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+  });
+
+  // The one allowed wait for something that must not happen (TESTING.md): a reload would start
+  // within milliseconds of the online event, so a 2 s window around it is a wide margin.
   test("does not reload the page when the connection comes back", async ({ page, context }) => {
     await page.goto("/");
     await waitForServiceWorker(page);
+    await page.evaluate(() =>
+      addEventListener("online", () => document.documentElement.setAttribute("data-online", ""), {
+        once: true,
+      }),
+    );
+    await context.setOffline(true);
     const reloaded = page.waitForEvent("framenavigated", { timeout: 2_000 }).then(
       () => true,
       () => false,
     );
-    await context.setOffline(true);
     await context.setOffline(false);
+    // The mark is set by the online event in this document; a reload would have wiped it.
+    await expect(page.locator("html")).toHaveAttribute("data-online", "");
     expect(await reloaded).toBe(false);
   });
 
   test("never answers /api requests from the cache", async ({ page, context }) => {
     await page.goto("/");
     await waitForServiceWorker(page);
-    await page.evaluate(() => fetch("/api/health").catch(() => null));
+    const warmup = await page.evaluate(() => fetch("/api/health").then((r) => r.status));
+    if (!process.env.CI) {
+      test.skip(warmup !== 200, "needs a database, so /api/health answers 200 and could be cached");
+    }
+    expect(warmup, "CI's TimescaleDB service must answer /api/health with 200").toBe(200);
     await context.setOffline(true);
     const outcome = await page.evaluate(() =>
       fetch("/api/health").then(
@@ -173,13 +226,5 @@ test.describe("service worker", () => {
     expect(urls.some((url) => url.endsWith(".woff2"))).toBe(true);
     expect(urls.some((url) => url.includes("/icons/icon-192.png"))).toBe(true);
     expect(urls.some((url) => url.includes("/icons/icon.svg"))).toBe(false);
-  });
-
-  test("Chrome reports no installability errors", async ({ page }) => {
-    await page.goto("/");
-    await waitForServiceWorker(page);
-    const cdp = await page.context().newCDPSession(page);
-    const { installabilityErrors } = await cdp.send("Page.getInstallabilityErrors");
-    expect(installabilityErrors).toEqual([]);
   });
 });

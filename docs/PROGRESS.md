@@ -6,9 +6,9 @@ This is the shared status board for both builders. Update it after every finishe
 
 | Phase | Status | Owner(s) |
 |---|---|---|
-| 0 Foundations | In progress (plan waiting for A's yes) | A |
-| 1 Design | Not started | A (both approve) |
-| 2 Data and domain logic | Not started | B |
+| 0 Foundations | Gate running (second pass after fixes) | A |
+| 1 Design | Next, after the Phase 0 gate | A (both approve) |
+| 2 Data and domain logic | Ready to start (needs the Phase 0 scaffold, now on `main`) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
 | 5 Daily puzzle and demo mode | Not started | B + A |
@@ -20,61 +20,25 @@ This is the shared status board for both builders. Update it after every finishe
 ## Board
 
 ### Builder A
-- **Now:** Phase 0 Foundations. The plan below is waiting for A's yes. Builder B reviews each PR.
-  Phase 0 has no PRD criteria, so its tests are named after the gate check they prove. Every item ends with code-critic before each commit, copy-critic on new strings, a look in the Browser pane at 390×844 in both color schemes and with reduced motion, a PR, and a squash-merge after CI passes. After item 6, `/phase-gate 0`.
-  1. **Scaffold, tooling, shadcn, lib helpers (items 1, 2, 3, 10) · branch `a/scaffold` · merged (#2).** Actual: shadcn uses the Radix base with the `nova` preset (`new-york` is gone from the CLI). The test scripts arrive with item 2. D-036 and D-037 record the choices.
-     - Run `pnpm create next-app@latest .scaffold` with TypeScript, Tailwind, ESLint, App Router, `--src-dir`, the `@/*` alias and pnpm. Move it into the repo root without touching `docs/`, `.claude/`, `CLAUDE.md`, `MASTER_PROMPT.md` or `.env.example`, merge `.gitignore`, and delete `.scaffold/`.
-     - Turn Cache Components off. create-next-app 16.4 enables it by default, and no doc plans for it. Log this as a decision.
-     - Add Prettier and the ESLint flat config. Next 16 removed `next lint`, so `pnpm lint` runs `eslint .`.
-     - Pin `.nvmrc` to 24 and set `packageManager` to pnpm 10.33.
-     - Add the scripts `dev`, `build`, `start`, `typecheck`, `lint`, `format`, `test`, `test:watch`, `test:e2e` and `test:e2e:ui`, plus `data:*` scripts that exit 1 with a message that they arrive in Phase 2.
-     - Run `shadcn init` (new-york style, Tailwind v4 CSS variables) and add Button, Drawer, Sonner, Input and Tabs. They stay unstyled until Phase 1.
-     - Add `src/lib/log.ts` (a server logger that adds context), `src/lib/flags.ts` (env-driven feature flags), `src/copy/index.ts`, and a home stub page whose strings live in `src/copy/`.
-     - Add the first CI workflow (typecheck, lint, build) on PRs and pushes to `main`, so every later PR runs CI.
-  2. **Test harness (item 4) · `a/test-harness` · merged (#3).** Change from the approved plan: the integration smoke test and the CI TimescaleDB container move to item 3, because they need the Postgres driver, and an integration test that only skips asserts nothing. The phone projects run at 390×844.
-     - Set up Vitest with jsdom, React Testing Library and MSW. Pin `TZ=America/New_York` and require 90% line coverage on `src/lib/**`.
-     - Add Playwright projects `desktop-chrome`, `iphone` (WebKit, iPhone 15) and `pixel` (Chromium, Pixel 7), with `timezoneId` pinned and `@axe-core/playwright`.
-     - Smoke tests:
-       - unit: `log` and `flags`;
-       - component: the home stub's heading, found by role;
-       - integration: skips without `DATABASE_URL_TEST`;
-       - e2e: the home page at 390×844 in every project, with zero serious or critical axe violations.
-     - CI gains the unit, component and integration tests (against a TimescaleDB service container) and Playwright on Chromium and WebKit, uploading reports and traces.
-  3. **Database (item 5) · `a/db` · merged (#4).** Actual: `src/server/db/schema.ts` exists but is empty, because drizzle-kit won't run without a schema file; B adds the tables there. CI runs a `timescale/timescaledb:2.32.1-pg18` service, the same versions as `fogline-db` (Postgres 18.7, TimescaleDB 2.32.1).
-     - Add a Drizzle client in `src/server/db/client.ts` using the `postgres` driver for Tiger's pooled string (`prepare: false`, small pool), plus `drizzle.config.ts`.
-     - Create the first migration with `drizzle-kit generate --custom`. It creates no tables, because B owns the schema in Phase 2. It only runs `create extension if not exists timescaledb`.
-     - Wrap the TimescaleDB check in a read-only test that skips without `DATABASE_URL`, and add `/api/health` returning `{ db, timescaledb }` booleans.
-     - Verify: run the check against `fogline-db` locally, and the migration against a local TimescaleDB container.
-  4. **PWA skeleton (item 6) · `a/pwa` · built, in review.** D-040 records the choices: Serwist through Turbopack, no reload on reconnect, network-only `/api/*`, update toast deferred to Phase 9, a `browserslist` override, shortcuts and screenshots deferred, 44 px `lg` buttons.
-     - Add `app/manifest.ts` following PWA.md, the `viewport` export (`viewport-fit=cover`, light and dark `theme-color`) and `appleWebApp` metadata. Shortcuts and screenshots arrive with their routes, because `/ride`, `/daily` and `/plans/new` don't exist yet.
-     - Generate placeholder icons (192, 512, maskable 512, apple-touch 180) with a `sharp` script. ImageMagick isn't installed on this machine.
-     - Use Serwist for the service worker if its Turbopack setup works with Next 16.4 (check its `next-turbo-basic` example first). Otherwise, write the worker by hand following the Next.js PWA guide. It precaches the shell and the offline page.
-     - Add `app/offline/page.tsx`, plus a root `error.tsx` and `not-found.tsx`, with their copy in `src/copy/` (code-critic found Next's default English error text outside `src/copy/`).
-     - Tests:
-       - manifest e2e: fields are present and the icons resolve;
-       - the service worker registers in a production build;
-       - offline navigation shows the offline page;
-       - installability: no errors from `Page.getInstallabilityErrors` on Chromium.
-  5. **GitHub and Vercel (items 7, 8) · `a/ci-vercel` · built, in review.** As built (D-041):
-     - CI runs on PRs and pushes to `main`, with a pnpm cache and every suite. `vercel.json` sets `iad1` and the framework, and has no crons (merged in #2–#4).
-     - Vercel sends no GitHub Deployments, so `.github/workflows/deployment.yml` runs on its `vercel.deployment.success` `repository_dispatch` event. It runs only the read-only specs (`pnpm test:e2e:deployment`: smoke, PWA, `/api/health`) and posts an `e2e on <environment>` status.
-     - A global setup trades the bypass secret for Vercel's bypass cookie and masks it. No report is uploaded. Fork commits are skipped. The workflow takes effect once it's on `main`.
-     - Branch protection on `main` (A approved 2026-11-21): PR required, the `check` and Vercel checks required, linear history, no force-push or deletion, admins can override.
-  6. **Claude Code hooks (item 9) · `a/claude-hooks` · built, in review.** As built (D-042): two Node scripts in `.claude/hooks/`, wired up in `.claude/settings.json`.
-     - Use the `update-config` skill to add two hooks: Prettier formats each file after an Edit or Write, and at Stop a reminder fires when code changed without a `docs/PROGRESS.md` change.
-     - Keep the `.env` deny rules. Confirm `.claude/agents` and `.claude/commands` load.
-     - Trigger each hook once to prove it works.
+- **Now:** Phase 0 gate. Everything Phase 0 needed is on `main`:
+  - #1 kickoff docs;
+  - #2 scaffold (PHASES items 1, 2, 3, 10);
+  - #3 test harness (item 4);
+  - #4 database and `/api/health` (item 5);
+  - #5 PWA skeleton (item 6);
+  - #6 deployment check and branch protection (items 7, 8);
+  - #7 manual deployment trigger;
+  - #8 Claude Code hooks (item 9).
+  The first gate pass failed code-critic and test-auditor (D-043). Their fixes are on `a/phase0-gate-fixes`, and the gate re-runs on them.
 - **Waiting on A (human):**
-  - Done 2026-11-21: Vercel project `fogline` connected to the repo (production at `fogline-mu.vercel.app`), env vars added, bypass secret stored as `VERCEL_AUTOMATION_BYPASS_SECRET` in GitHub.
-  - In Vercel, set `NEXT_PUBLIC_APP_URL` to `https://fogline-mu.vercel.app` for Production, remove it from Preview, and mark the secrets Sensitive.
-  - Done 2026-11-21: A edited `.env.example` (`SESSION_SECRET`, `NEXT_PUBLIC_FLAGS`, the `DATABASE_URL_TEST` comment). Claude can't read the file, so A commits it.
-  - Done 2026-11-21: `NEXT_PUBLIC_APP_URL` (Production) and `NEXT_PUBLIC_MAP_STYLE_URL` (Production, Preview) recreated as Config through the Vercel CLI.
-- **Next:** Phase 1 Design.
-- **Blocked:** none yet. Item 5 needs the Vercel steps above.
+  - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
+  - Optional: `scratchpad/mutant` from the test audit can be deleted by hand.
+- **Next:** Phase 1 Design, once the Phase 0 gate passes.
+- **Blocked:** none.
 
 ### Builder B
 - **Now:**
-- **Next:** Phase 2 data scripts, once `a/scaffold`, `a/test-harness` and `a/db` merge (they bring `package.json`, Vitest and the Drizzle client). It can overlap Phase 1. First read D-013 to D-035 in DECISIONS.md and confirm or object here.
+- **Next:** Phase 2 data scripts. `main` has the scaffold, Vitest, Drizzle and the CI TimescaleDB container. First read D-013 to D-043 in DECISIONS.md and confirm or object here, especially the PRD and PHASES changes in D-014 to D-033.
 - **Blocked:**
 
 ## Open questions
@@ -83,11 +47,18 @@ This is the shared status board for both builders. Update it after every finishe
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
 - Does either builder have a mid-range Android phone for the Phase 1 fog frame-rate check? Chrome's CPU throttle doesn't slow the GPU, and the fog runs mostly on the GPU.
-- B: confirm the PRD and PHASES changes in D-014 to D-033, or object here.
-- **For Builder B** (from A's kickoff review):
+- Why doesn't the service worker activate on protected previews (D-043)? Investigate in Phase 9's PWA polish.
+- Branch protection doesn't require branches to be up to date before merging. #7 and #8 merged a minute apart without being tested together. Turn on "require up to date" if that keeps happening (A's call: it adds a rebase before each merge).
+- **For Builder B** (from A's kickoff review and the Phase 0 gate):
   - `places` stores only the nearest station. A spot 300 m from Park Street but closer to Downtown Crossing never shows up for Park Street. Store every station within 600 m walking.
   - Drizzle runs all pending migrations in one transaction (confirmed in `drizzle-orm/pg-core/dialect.js`, 0.45), and creating a continuous aggregate `WITH DATA` fails inside a transaction. Use `WITH NO DATA` plus a refresh policy.
-  - Your tables go in `src/server/db/schema.ts`, which is empty for now. Use `pnpm db:generate` for schema changes and `pnpm db:generate --custom --name=<name>` for hypertable SQL. Integration tests run against `DATABASE_URL_TEST`: a TimescaleDB container in CI, or locally `docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18` with `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres`.
+  - Drizzle decides what's pending by migration timestamp only, not content. Never edit a migration that has been applied anywhere shared; add a new one.
+  - Your tables go in `src/server/db/schema.ts`, which is empty for now.
+    - `pnpm db:generate` for schema changes.
+    - `pnpm db:generate --custom --name=<name>` for hypertable SQL.
+    - `MIGRATE_DATABASE_URL=<target> pnpm db:migrate` applies migrations. Keep that key out of `.env`, because drizzle-kit loads `.env` (D-043, TEAM.md git flow).
+    - Integration tests run against `DATABASE_URL_TEST`: a TimescaleDB container in CI, or locally `docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18` with `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres`.
+    - Your first table test needs migrations applied to the test database first, for example a Vitest `globalSetup` for the integration project that runs `migrate()`.
   - Unique indexes on hypertables must include `ts`, so a unique constraint on `checkins` can't stop duplicate check-ins.
   - The schema has nowhere to store friend status (F6.1) or "I'm on the train" taps (Closest Call, last trains caught).
   - The recorder samples once a minute, so trains move several stops between samples. "Passed" should cover every stop between two observed stop sequences (F3.3, F3.5). A and B agree on this before Phase 3.
@@ -117,6 +88,26 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 18:01 ET · Builder A · Phase 0 gate, first pass, plus fixes on `a/phase0-gate-fixes` (D-043):
+  - Standing checks passed on the final `main` content: typecheck, lint, format, 24 Vitest, 32 e2e, build, and 0 token-grep matches. The fresh clone ran the gate's exact sequence.
+  - copy-critic: PASS. It noted Serwist caches visited pages, so the offline copy and D-040 were corrected.
+  - code-critic: FAIL. Blocking: the service worker never activates on protected previews (manual run 44958512304); Vercel's dispatch event has never fired, though the docs said it runs every time. Plus 8 SHOULD FIX items.
+  - test-auditor: FAIL. The installability and `/api` cache tests couldn't fail.
+  - Fixes:
+    - full Chromium for installability, with a negative control;
+    - the e2e server on the test database, with a mutant `sw.ts` now caught;
+    - service workers blocked by default;
+    - service-worker specs skipped on protected previews;
+    - a manual trigger with a URL allowlist;
+    - `db:migrate` needs an explicit target;
+    - an offline-visited-page test;
+    - the reload test proves the `online` event fired;
+    - the 180 px icon checked;
+    - browser time zone asserted;
+    - the MSW guard uses `.invalid`;
+    - the migration count read from the journal;
+    - docs (ARCHITECTURE, TESTING, PWA, TEAM, DECISIONS, PROGRESS).
+  - #7 (manual deployment trigger) and #8 (hooks) merged.
 - 2026-11-21 17:39 ET · Builder A · Phase 0 hooks (PHASES item 9) built on `a/claude-hooks`:
   - Prettier formats each edited file.
   - A once-per-stop reminder fires when code changed without a PROGRESS.md change.
