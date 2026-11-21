@@ -97,18 +97,18 @@ Priority tiers: **Core** = the demo loop. **Should** = expected in the submitted
 
 **Story:** As a new user, I'm set up in under 30 seconds without making an account.
 
-**Flow:** Welcome (fog hero) → display name → school → home station → age band (under 21 / 21+) → map. Permission primers appear only when a feature needs them. The install prompt appears after the first completed action.
+**Flow:** Welcome (fog hero with the display name field) → school → home station (suggested from the school) → age band (under 21 / 21+) → map, where the fog burns off around the home station. Welcome also has a "Restore profile" link that takes a profile code. Permission primers appear only when a feature needs them. The install prompt appears after the first completed action.
 
 Schools list: Boston University, Northeastern, Harvard, MIT, Tufts, Boston College, Emerson, Suffolk, Berklee, UMass Boston, Simmons, Wentworth, MassArt, Other.
 
 **Acceptance criteria**
 - **F1.1** A new visitor creates a profile (name, school, home station, age band) in four screens or fewer, with no email or password.
-- **F1.2** The profile persists across reloads (httpOnly cookie holding the profile ID, row in `profiles`).
+- **F1.2** The profile persists across reloads: a row in `profiles`, plus an httpOnly cookie holding the profile ID signed with `SESSION_SECRET` (HMAC). A cookie with a missing or bad signature counts as no profile.
 - **F1.3** The Me screen shows a profile code (8 characters, no ambiguous letters). Entering it on another device, or in the installed PWA, restores the same profile. (iOS keeps Safari and installed-PWA storage separate, so this is required.)
 - **F1.4** Location and microphone are never requested on first load. Each request is preceded by a primer that says why it's needed and what is stored.
 - **F1.5** Under-21 profiles never see bars, pubs or nightclubs anywhere: plans, crawls, stop cards, weekly plans, search.
-- **F1.6** Android Chrome shows a custom Install button driven by `beforeinstallprompt`. iOS Safari, when not standalone, shows an Add to Home Screen instruction sheet. Neither appears before the first completed action, and a dismissal is remembered for 7 days.
-- **F1.7** Settings let a user delete their data: profile, check-ins, rides, readings and badges, after a confirmation.
+- **F1.6** Android Chrome shows a custom Install button driven by `beforeinstallprompt`. iOS Safari, when not standalone, shows an Add to Home Screen instruction sheet. Neither appears before the first completed action (the first finished puzzle, created plan or ended ride; finishing onboarding doesn't count), and a dismissal is remembered for 7 days.
+- **F1.7** Settings let a user delete their data after a confirmation: profile, check-ins, rides, readings, badges, revealed cells and puzzle results. In plans shared with others, the person shows as "Former member" with no name or station. Plans they organized stay for the other participants.
 
 ### F2. Fog map
 
@@ -157,7 +157,8 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 - **F4.5** Spots are within 600 m walking distance (straight line × 1.25) of the option's station and match category, budget, minimum grade and the age rule (F1.5).
 - **F4.6** When no option exists, the UI names the constraint that blocked it and offers to relax it.
 - **F4.7** The Mastra planner agent may write the one-line description and choose among valid options. Every number shown comes from the solver, and an eval rejects agent text whose numbers don't match.
-- **F4.8** Creating a plan returns an invite link `/p/[id]`. Opening it shows the plan and a Join button. The link preview (Open Graph image) shows title, time, spot and number of people.
+- **F4.8** Creating a plan returns an invite link `/p/[planId]?t=[invite_token]`. Viewing the plan, its Open Graph image or its recap needs the participant cookie or a valid token. The join page shows the plan, participants' names and count (no home stations) and a Join button. The link preview (Open Graph image) shows title, time, spot and number of people.
+- **F4.9** Bar and club categories are unavailable once any joined participant is under 21. A plan with a bar or club stop is 21+: an under-21 profile opening its link sees "This plan is 21+" with no venue and can't join, and its Open Graph image shows "21+" instead of the spot. Placeholder friends don't affect the age rule.
 
 ### F5. Last train
 
@@ -171,19 +172,20 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 - **F5.5** For crawls, leave-by uses the last stop's station.
 - **F5.6** If MBTA alerts report a disruption on a participant's route home, the plan shows the alert text. When the effect on the last train can't be determined, it says "Check MBTA alerts" instead of guessing.
 - **F5.7** When no train home exists, the plan shows the walking time and suggests a rideshare neutrally. It never presents a long late-night walk as the default.
+- **F5.8** A "Remind me" button on the plan saves a calendar event (.ics) with alarms 20 and 5 minutes before that participant's leave-by, so the reminder fires with the app closed and the phone locked.
 
 ### F6. Live night and check-ins
 
 **Acceptance criteria**
 - **F6.1** "Go" switches the plan to live mode: directions to the station (line, direction, stops), a countdown to the start time, and each friend's status (not left, on the way, here).
-- **F6.2** A check-in is accepted only when the device reports a position within 150 m of the spot with accuracy of 100 m or better. Otherwise the app explains and offers a retry.
+- **F6.2** A check-in is accepted only when the device reports a position within 150 m of the spot with accuracy of 100 m or better, between 30 minutes before the plan's start and the plan's end (`docs/DATA.md` section 3.9). Otherwise the app explains and offers a retry.
 - **F6.3** A valid check-in writes a `checkins` row, marks `gridDisk(k=2)` cells around the spot as visited, and updates the arrival order for everyone within 10 s.
-- **F6.4** The plan ends when the organizer taps End, or 2 hours after the last stop's last check-in, and then opens the recap.
+- **F6.4** The plan ends when the organizer taps End, 2 hours after the last check-in at the last stop, or 4 hours after the last stop's scheduled time when nobody checked in there. A cron job applies the automatic rules every 15 minutes. When the plan ends, the recap opens.
 
 ### F7. Daily puzzle
 
 **Acceptance criteria**
-- **F7.1** One 5-letter puzzle per `America/New_York` date. Everyone gets the same answer. It resets at midnight Eastern.
+- **F7.1** One 5-letter puzzle per `America/New_York` date. Everyone gets the same answer, so the linked event is at an all-ages venue. It resets at midnight Eastern.
 - **F7.2** Six guesses. Only words in the valid-guess list are accepted. Each letter gets correct, present or absent feedback shown by color and by a second cue (shape or label).
 - **F7.3** Solving reveals the linked real event (title, venue, date and time, nearest station, T minutes from home, source link), pins it on the map, and marks `gridDisk(k=1)` cells around the venue as seen.
 - **F7.4** "Plan it" opens the plan builder with the event as the destination and its time filled in.
@@ -217,6 +219,7 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 - **F10.3** Fairness (F4.3) applies to the first stop. The last train (F5.5) applies to the last stop.
 - **F10.4** A Vercel Cron job every Monday at 6:00 AM Eastern generates 3 plans for the week from events and crawl templates. Each passes every validity check before it's shown.
 - **F10.5** One tap invites friends to a weekly plan, creating a copy with its own invite link.
+- **F10.6** "Plan it" on a puzzle event also offers "Dinner before": a 2-stop crawl whose first stop is the fairest spot within 10 minutes of the venue and whose last stop is the event.
 
 ### F11. Grade badges
 
@@ -230,7 +233,7 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 ### F12. Squad
 
 **Acceptance criteria**
-- **F12.1** Two profiles become squad members once both have joined the same plan.
+- **F12.1** Two profiles become squad members once both have a valid check-in on the same ended plan.
 - **F12.2** The squad map shows the union of members' uncovered cells, with an option to color them by who uncovered them.
 - **F12.3** A squad streak counts consecutive weeks with at least one completed plan.
 - **F12.4** (Extra) A school leaderboard shows the percent of Boston uncovered by each school's profiles.
@@ -260,8 +263,8 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 ### F16. Demo mode
 
 **Acceptance criteria**
-- **F16.1** `/demo` loads a seeded profile, a seeded squad (Priya at Harvard, Sam at Tufts), a recorded ride replay, a completed night with its recap, and an unsolved daily puzzle.
-- **F16.2** Demo data is isolated (flagged rows, separate profile IDs) and never shows up in real users' views or stats.
+- **F16.1** `/demo` loads a seeded profile, a seeded squad (Priya at Harvard, Sam at Tufts), a recorded ride replay, a completed night with its recap, and an unsolved demo puzzle that is separate from the real daily puzzle.
+- **F16.2** Each `/demo` visit gets its own copy of the seed (flagged rows, separate profile IDs), so judges never share state. Copies are deleted after 24 hours. Demo data never shows up in real users' views or stats.
 - **F16.3** A visible "Demo" chip shows on every screen in demo mode.
 - **F16.4** The judge path in `docs/WALKTHROUGH.md` runs end to end in demo mode using cached AI outputs. Live MBTA data is used when available and replayed when not.
 
@@ -277,7 +280,7 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
   - Location is used only on user action (check-in, nearest station, starting a ride) and never in the background.
   - The microphone is used only in calm mode, after opt-in.
   - Delete-my-data really deletes (F1.7).
-- **Security:** Zod on every input, rate limits on AI routes, server-only secrets, `CRON_SECRET` on cron routes.
+- **Security:** Zod on every input, a signed session cookie, invite tokens on plan pages, rate limits on AI routes, server-only secrets, `CRON_SECRET` on cron routes.
 - **Safety and age:** no bars or clubs for under-21 profiles, no copy that encourages drinking, neutral options when no train home exists (F5.7).
 - **Attribution:** MBTA, City of Boston, OpenStreetMap contributors, Wikipedia and Wikimedia Commons authors, and OpenFreeMap are credited on the map and on `/how-it-works`.
 
@@ -292,6 +295,6 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 - **Seen / visited:** cell states. Seen comes from riding past or solving a puzzle. Visited comes from checking in.
 - **Uncovered:** seen or visited.
 - **Plan:** a meetup (one stop) or a crawl (2–4 stops) with participants.
-- **Squad:** everyone you've completed a plan with.
+- **Squad:** everyone who checked in with you on an ended plan.
 - **Leave-by:** the time a participant must leave the spot to make their last train.
 - **Service date:** the GTFS operating day. Trains after midnight belong to the previous date.

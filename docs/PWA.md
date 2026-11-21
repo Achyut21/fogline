@@ -64,4 +64,4 @@ Fogline must install and feel native on Android (Chrome) and iOS (Safari). The t
 - [ ] Safe areas are correct on a notched iPhone in portrait. Nothing sits under the home indicator.
 - [ ] Offline: the app opens, the map shows cached state, saved plans open, the banner is correct, and queued actions send on reconnect.
 - [ ] The update toast appears after a new deploy, and refresh loads the new version.
-- [ ] Lighthouse installability and PWA checks pass, and the mobile budgets in PRD section 7 hold.
+- [ ] Chrome reports no installability errors (DevTools `Page.getInstallabilityErrors`; Lighthouse 12 removed its PWA audits), and the mobile budgets in PRD section 7 hold.

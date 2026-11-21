@@ -40,7 +40,7 @@ Numbers in the UI use tabular figures.
 
 ## Patterns by element
 
-**Buttons:** Ride · Plan it · Find spots · Check in · I'm on the train · Share · Join · End night · Try again
+**Buttons:** Ride · Plan it · Find spots · Check in · I'm on the train · Remind me · Share · Join · End night · Try again
 
 **Empty states:** one line saying what's missing, then the one next step.
 - Plans: "No plans yet. Pick a night and add two friends."
@@ -55,9 +55,13 @@ Numbers in the UI use tabular figures.
 - No option found: "No spot works for everyone under $$. Try $$$ or allow grade B."
 
 **Last train:**
-- "Leave by 12:14 AM. Last Green Line E to Medford/Tufts is 12:22."
+- "Leave by 12:14 AM. Last Green Line E to Medford/Tufts is 12:22 AM."
 - "No train home for Sam after 12:31 AM."
-- "No train home after 12:50 AM. Walking takes 52 min, or split a ride."
+- "No train home after 12:50 AM. Split a ride, or walk 52 min." (The walk never comes first, F5.7.)
+
+**Plans:**
+- "This plan is 21+."
+- "Former member" (someone who deleted their data)
 
 **Ride:**
 - "Next: Kenmore · 2 min"
@@ -68,15 +72,15 @@ Numbers in the UI use tabular figures.
 
 **Puzzle:**
 - "Not in the word list."
-- "Solved in 4. Tonight: Jazz at Wally's, 9 PM, 6 min from Massachusetts Avenue."
+- "Solved in 4. Tonight: Jazz at the Boston Public Library, 7:00 PM, 3 min from Copley." (Daily events are all-ages.)
 
 ## Badges
 
 | Badge | Description |
 |---|---|
 | First In | Got there before everyone. |
-| Fashionably Late | Walked in 14 min after everyone else. (Uses the real number.) |
-| On the Dot | Arrived within two minutes of the plan. |
+| Fashionably Late | Walked in 14 min after the start. (Uses the real number.) |
+| On the Dot | Arrived within 2 min of the start. |
 | Long Haul | Longest ride of the night: 31 min. |
 | Closest Call | Made the last train with 2 min to spare. |
 | Night Owl | Still out after midnight. |
@@ -84,7 +88,7 @@ Numbers in the UI use tabular figures.
 | Planner | Got everyone in one place. |
 | First Light | First in the squad to uncover half of Allston. |
 | All Four Lines | Rode the Red, Orange, Blue and Green. |
-| 50 Stations | Fifty stations down. |
+| 50 Stations | 50 stations down. |
 | Every Green Branch | B, C, D and E. All of them. |
 
 ## Accessibility copy
