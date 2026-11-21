@@ -39,7 +39,11 @@ To change a file the other builder owns, first write a note under your Board ent
   - CI green;
   - Vercel preview checked at 390×844;
   - code-critic PASS (plus design-critic and copy-critic when relevant);
-  - the deployment check passed on the PR's preview. Until Vercel's event arrives, start it by hand: `gh workflow run deployment.yml -f url=<the preview's own URL> -f sha=<head sha> -f environment=preview`. After merging, run it on the production deployment's own URL with `environment=production`.
+  - the deployment check passed on the PR's preview. Until Vercel's event arrives, start it by hand: `gh workflow run deployment.yml -f url=<the preview's own URL> -f sha=<head sha> -f environment=preview`. After merging, run it on the production domain (D-044):
+    1. `pnpm dlx vercel ls fogline --scope achyut-katiyars-projects --meta githubCommitSha=<full 40-character merge sha>` lists the merge's production deployment (a short SHA finds nothing). Wait until it's Ready.
+    2. `pnpm dlx vercel inspect fogline-mu.vercel.app --scope achyut-katiyars-projects` must show that same deployment URL. The alias moves with every production deployment, so it is the only proof the run tests the merge.
+    3. Right away: `gh workflow run deployment.yml -f url=https://fogline-mu.vercel.app -f sha=<merge sha> -f environment=production`.
+    A production deployment's own URL is protected too, and the service-worker and installability tests fail there.
   - PROGRESS and WALKTHROUGH updated.
 
   Then squash-merge.

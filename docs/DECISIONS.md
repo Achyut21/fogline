@@ -235,3 +235,12 @@ The first gate run failed code-critic and test-auditor. These fixes come out of 
 - **The offline copy now says "This page isn't saved for offline use."** Serwist's default rules do cache visited pages for 24 hours, and an e2e test proves a visited page opens offline. This corrects D-040.
 Why: two gate tests couldn't fail. The e2e server reached `fogline-db` from laptops. Three docs described an automatic trigger that had never run.
 Consequences: the gate re-runs code-critic and test-auditor on these fixes. Making `e2e on preview` a required check waits until the automatic trigger works.
+
+**D-044 · 2026-11-21 · The production deployment check runs on the production domain.**
+- **Every generated deployment URL is protected, production ones included.** Only `fogline-mu.vercel.app` is public. The generated URL of `4b7aa05`'s production deployment answered 302.
+- **On that generated URL the production check failed 14 tests** (run 44961127767): all 12 service-worker tests ("never took control") and the installability test on both Chromium projects (`manifest-parsing-or-network-error`, `no-manifest`). The same deployment on `fogline-mu.vercel.app` passed 40 and skipped 11 (run 44961601553), font precache included. So the D-043 symptom comes from protection, not from preview builds.
+- **PR #9's protected preview passed installability** (run 44959800680). Why protection breaks installability on one protected URL and not another is unknown. It joins the Phase 9 protection item.
+- **A builder runs the production check on `https://fogline-mu.vercel.app`** with `environment=production`. Previews keep their own URL. The workflow's URL allowlist already accepts the production domain.
+- **The alias isn't tied to a commit**, so before dispatching, the builder checks that `vercel inspect fogline-mu.vercel.app` shows the deployment `vercel ls --meta githubCommitSha=<sha>` lists (TEAM.md). Without that check, a run started before the new build is live would test the old deployment and post a green status on the new commit. A check inside the run would need `/api/health` to report the commit, and that route returns only booleans by design (PHASES item 5).
+Why: the check should test what users open. The generated URL fails for a reason users never hit.
+Consequences: if Vercel's `repository_dispatch` event starts arriving, its production runs will target the generated URL and fail the same way. The workflow would then have to send production events to the production domain. This is listed under Open questions in PROGRESS.md.
