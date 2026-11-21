@@ -22,7 +22,7 @@ This is the shared status board for both builders. Update it after every finishe
 ### Builder A
 - **Now:** Phase 0 Foundations. The plan below is waiting for A's yes. Builder B reviews each PR.
   Phase 0 has no PRD criteria, so its tests are named after the gate check they prove. Every item ends with code-critic before each commit, copy-critic on new strings, a look in the Browser pane at 390×844 in both color schemes and with reduced motion, a PR, and a squash-merge after CI passes. After item 6, `/phase-gate 0`.
-  1. **Scaffold, tooling, shadcn, lib helpers (items 1, 2, 3, 10) · branch `a/scaffold`**
+  1. **Scaffold, tooling, shadcn, lib helpers (items 1, 2, 3, 10) · branch `a/scaffold` · built, in PR.** Actual: shadcn uses the Radix base with the `nova` preset (`new-york` is gone from the CLI). The test scripts arrive with item 2. D-036 and D-037 record the choices.
      - Run `pnpm create next-app@latest .scaffold` with TypeScript, Tailwind, ESLint, App Router, `--src-dir`, the `@/*` alias and pnpm. Move it into the repo root without touching `docs/`, `.claude/`, `CLAUDE.md`, `MASTER_PROMPT.md` or `.env.example`, merge `.gitignore`, and delete `.scaffold/`.
      - Turn Cache Components off. create-next-app 16.4 enables it by default, and no doc plans for it. Log this as a decision.
      - Add Prettier and the ESLint flat config. Next 16 removed `next lint`, so `pnpm lint` runs `eslint .`.
@@ -49,7 +49,7 @@ This is the shared status board for both builders. Update it after every finishe
      - Add `app/manifest.ts` following PWA.md, the `viewport` export (`viewport-fit=cover`, light and dark `theme-color`) and `appleWebApp` metadata. Shortcuts and screenshots arrive with their routes, because `/ride`, `/daily` and `/plans/new` don't exist yet.
      - Generate placeholder icons (192, 512, maskable 512, apple-touch 180) with a `sharp` script. ImageMagick isn't installed on this machine.
      - Use Serwist for the service worker if its Turbopack setup works with Next 16.4 (check its `next-turbo-basic` example first). Otherwise, write the worker by hand following the Next.js PWA guide. It precaches the shell and the offline page.
-     - Add `app/offline/page.tsx` with its copy in `src/copy/`.
+     - Add `app/offline/page.tsx`, plus a root `error.tsx` and `not-found.tsx`, with their copy in `src/copy/` (code-critic found Next's default English error text outside `src/copy/`).
      - Tests:
        - manifest e2e: fields are present and the icons resolve;
        - the service worker registers in a production build;
@@ -65,10 +65,9 @@ This is the shared status board for both builders. Update it after every finishe
      - Keep the `.env` deny rules. Confirm `.claude/agents` and `.claude/commands` load.
      - Trigger each hook once to prove it works.
 - **Waiting on A (human):**
-  - Connect the GitHub repo to a Vercel project in the dashboard. The Vercel CLI isn't installed, and signing in is yours to do.
-  - Add `DATABASE_URL` to Vercel for Production and Preview.
-  - Create the Protection Bypass for Automation secret (Vercel → Settings → Deployment Protection), then run `gh secret set VERCEL_AUTOMATION_BYPASS_SECRET` yourself.
-  - Add `SESSION_SECRET=` to `.env.example`, and change the `DATABASE_URL_TEST` comment to say it's a throwaway TimescaleDB, never `fogline-db`. Claude can't edit `.env.example`, because the global settings deny reads of `.env.*`.
+  - Done 2026-11-21: Vercel project `fogline` connected to the repo (production at `fogline-mu.vercel.app`), env vars added, bypass secret stored as `VERCEL_AUTOMATION_BYPASS_SECRET` in GitHub.
+  - In Vercel, set `NEXT_PUBLIC_APP_URL` to `https://fogline-mu.vercel.app` for Production, remove it from Preview, and mark the secrets Sensitive.
+  - Add `SESSION_SECRET=` and `NEXT_PUBLIC_FLAGS=` to `.env.example`, and change the `DATABASE_URL_TEST` comment to say it's a throwaway TimescaleDB, never `fogline-db`. Claude can't edit `.env.example`, because the global settings deny reads of `.env.*`.
 - **Next:** Phase 1 Design.
 - **Blocked:** none yet. Item 5 needs the Vercel steps above.
 
@@ -116,5 +115,13 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 16:05 ET · Builder A · Phase 0 item 1 built on `a/scaffold`:
+  - Next 16.4.6 (Turbopack, Cache Components off), React 19.3, Tailwind 4.3.
+  - Prettier and the ESLint flat config (rules for `no-console`, `no-debugger`, `eqeqeq` and `no-explicit-any`), plus `data:*` scripts that exit 1.
+  - shadcn (Radix base): Button, Drawer, Sonner, Input, Tabs.
+  - `src/lib/log.ts` (JSON lines, error causes), `src/lib/flags.ts` (`NEXT_PUBLIC_FLAGS`), `src/copy/`, the home stub, and the first CI workflow (format, typecheck, lint, build).
+  - Checks: `pnpm format:check`, `typecheck`, `lint` and `build` pass. The token grep is clean outside `src/components/ui` (D-037). code-critic PASS (both SHOULD FIX items fixed) and copy-critic PASS (both suggestions applied). Home stub seen at 390×844.
+  - Not done: one theme only, because dark mode is class-based until Phase 1. No tests yet; the harness is item 2.
+  - Next: PR, CI, Vercel preview, merge, then `a/test-harness`.
 - 2026-11-21 15:17 ET · Builder A · Kickoff review. A's answers are logged as D-013 to D-035. Updated PRD (F1.1–F1.7, F4.8–F4.9, F5.8, F6.2, F6.4, F7.1, F10.6, F12.1, F16.1–F16.2, glossary), DESIGN, ARCHITECTURE, DATA, PHASES, TESTING, PWA, COPY, TEAM (A = Achyut21, B = Anand283) and WALKTHROUGH (judge path) on branch `a/kickoff-docs`. No code. Next: A approves the Phase 0 plan.
 - 2026-11-21 · setup · Repo docs, Claude Code agents, commands and settings created. Tiger Cloud service `fogline-db` exists (credentials in each builder's local `.env` only). Vercel Pro and the Gemini key are ready. GitHub CLI logged in as Achyut21. Next: Phase 0.

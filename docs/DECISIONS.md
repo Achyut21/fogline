@@ -163,3 +163,19 @@ Consequences: PHASES, TESTING and ARCHITECTURE section 11 updated.
 - Phase 0's placeholder UI skips design-critic because there's no canvas yet. copy-critic still reviews Phase 0 strings.
 - Visual baselines are generated in Playwright's Docker image to match CI.
 - DESIGN notes T-line casings for WCAG 1.4.11, the theme-color question for Phase 1, and that the puzzle gets its own look.
+
+**D-036 · 2026-11-21 · Scaffold choices (Phase 0 item 1).**
+Decision:
+- Next.js 16.4 with Turbopack, React 19.3 and Tailwind 4.3. Tailwind loads through `@tailwindcss/turbopack`, the create-next-app default.
+- Cache Components off.
+- shadcn on the Radix base (its Drawer is built on vaul, as ARCHITECTURE says) with the `nova` preset, which Phase 1 replaces. `cn()` comes from shadcn's `cn` package.
+- Feature flags come from `NEXT_PUBLIC_FLAGS`, a comma list of feature IDs such as `F1,F2`.
+- `pnpm typecheck` runs `next typegen` first, so route types exist on a fresh clone.
+- Node 24 is pinned in `.nvmrc` and `engines`.
+Why: create-next-app 16.4 turns Cache Components on by default, but no doc plans for its caching model. Flag names that match PRD feature IDs need no separate registry.
+Consequences: turning Cache Components on later needs its own decision. Builders set `NEXT_PUBLIC_FLAGS` in `.env` and in Vercel to see unfinished features.
+
+**D-037 · 2026-11-21 · Token check exempts stock shadcn primitives until Phase 1.**
+Decision: `src/components/ui/` is exempt from the token grep until Phase 1 restyles those files with design tokens. The exemption ends at the Phase 1 gate.
+Why: the stock Button, Tabs and Drawer use px values (`p-[3px]`, `w-[100px]`, `ring-[3px]`). Picking replacements before the design direction exists would be guessing.
+Consequences: the Phase 0 gate runs the grep with `src/components/ui` excluded. The Phase 1 gate runs it without the exclusion.
