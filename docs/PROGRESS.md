@@ -31,7 +31,7 @@ This is the shared status board for both builders. Update it after every finishe
      - Run `shadcn init` (new-york style, Tailwind v4 CSS variables) and add Button, Drawer, Sonner, Input and Tabs. They stay unstyled until Phase 1.
      - Add `src/lib/log.ts` (a server logger that adds context), `src/lib/flags.ts` (env-driven feature flags), `src/copy/index.ts`, and a home stub page whose strings live in `src/copy/`.
      - Add the first CI workflow (typecheck, lint, build) on PRs and pushes to `main`, so every later PR runs CI.
-  2. **Test harness (item 4) · `a/test-harness` · built, in PR.** Change from the approved plan: the integration smoke test and the CI TimescaleDB container move to item 3, because they need the Postgres driver, and an integration test that only skips asserts nothing. The phone projects run at 390×844.
+  2. **Test harness (item 4) · `a/test-harness` · merged (#3).** Change from the approved plan: the integration smoke test and the CI TimescaleDB container move to item 3, because they need the Postgres driver, and an integration test that only skips asserts nothing. The phone projects run at 390×844.
      - Set up Vitest with jsdom, React Testing Library and MSW. Pin `TZ=America/New_York` and require 90% line coverage on `src/lib/**`.
      - Add Playwright projects `desktop-chrome`, `iphone` (WebKit, iPhone 15) and `pixel` (Chromium, Pixel 7), with `timezoneId` pinned and `@axe-core/playwright`.
      - Smoke tests:
@@ -40,7 +40,7 @@ This is the shared status board for both builders. Update it after every finishe
        - integration: skips without `DATABASE_URL_TEST`;
        - e2e: the home page at 390×844 in every project, with zero serious or critical axe violations.
      - CI gains the unit, component and integration tests (against a TimescaleDB service container) and Playwright on Chromium and WebKit, uploading reports and traces.
-  3. **Database (item 5) · `a/db`**
+  3. **Database (item 5) · `a/db` · built, in review.** Actual: `src/server/db/schema.ts` exists but is empty, because drizzle-kit won't run without a schema file; B adds the tables there. CI runs a `timescale/timescaledb:2.32.1-pg18` service, the same versions as `fogline-db` (Postgres 18.7, TimescaleDB 2.32.1).
      - Add a Drizzle client in `src/server/db/client.ts` using the `postgres` driver for Tiger's pooled string (`prepare: false`, small pool), plus `drizzle.config.ts`.
      - Create the first migration with `drizzle-kit generate --custom`. It creates no tables, because B owns the schema in Phase 2. It only runs `create extension if not exists timescaledb`.
      - Wrap the TimescaleDB check in a read-only test that skips without `DATABASE_URL`, and add `/api/health` returning `{ db, timescaledb }` booleans.
@@ -86,7 +86,8 @@ This is the shared status board for both builders. Update it after every finishe
 - B: confirm the PRD and PHASES changes in D-014 to D-033, or object here.
 - **For Builder B** (from A's kickoff review):
   - `places` stores only the nearest station. A spot 300 m from Park Street but closer to Downtown Crossing never shows up for Park Street. Store every station within 600 m walking.
-  - Drizzle runs migrations in one transaction (unconfirmed in the docs; check the migrator source), and creating a continuous aggregate `WITH DATA` fails inside a transaction. Use `WITH NO DATA` plus a refresh policy.
+  - Drizzle runs all pending migrations in one transaction (confirmed in `drizzle-orm/pg-core/dialect.js`, 0.45), and creating a continuous aggregate `WITH DATA` fails inside a transaction. Use `WITH NO DATA` plus a refresh policy.
+  - Your tables go in `src/server/db/schema.ts`, which is empty for now. Use `pnpm db:generate` for schema changes and `pnpm db:generate --custom --name=<name>` for hypertable SQL. Integration tests run against `DATABASE_URL_TEST`: a TimescaleDB container in CI, or locally `docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18` with `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres`.
   - Unique indexes on hypertables must include `ts`, so a unique constraint on `checkins` can't stop duplicate check-ins.
   - The schema has nowhere to store friend status (F6.1) or "I'm on the train" taps (Closest Call, last trains caught).
   - The recorder samples once a minute, so trains move several stops between samples. "Passed" should cover every stop between two observed stop sequences (F3.3, F3.5). A and B agree on this before Phase 3.
@@ -116,6 +117,18 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 17:45 ET · Builder A · Phase 0 item 3 built on `a/db`:
+  - Drizzle 0.45 plus the `postgres` 4.1 client (`prepare: false`, at most 3 connections, 10 s connect timeout).
+  - First migration `drizzle/0000_timescaledb.sql` (`create extension if not exists timescaledb`, no tables).
+  - `/api/health` returns `{ db, timescaledb }` with `no-store`, and 503 when the database fails.
+  - `db:generate` and `db:migrate` scripts. A TimescaleDB 2.32.1 on Postgres 18 service in CI.
+  - Tests: integration tests ran against a local TimescaleDB container.
+    - Migrations on a fresh database from `template0` install TimescaleDB and record one row, even when run twice.
+    - Health returns 200; 503 without TimescaleDB; 503 when unreachable; and 503 when `DATABASE_URL` is unset.
+    - The read-only check against `fogline-db` passed before D-038 and now needs `LIVE_DATABASE_URL`.
+  - code-critic: PASS. All 5 SHOULD FIX items fixed (D-038, D-039, the migration and health tests), plus the nits.
+  - `/api/health` in the dev server returns `{"db":true,"timescaledb":true}` from `fogline-db`.
+  - PR #3 (test harness) merged.
 - 2026-11-21 17:10 ET · Builder A · Phase 0 item 2 built on `a/test-harness`:
   - Vitest 5 projects for unit, component and integration, in `TZ=America/New_York`, with 90% line coverage required on `src/lib`.
   - MSW 3 blocks and records every unmocked request and fails the test that made it. MSW 3's own "error" strategy lets `.json` URLs through, and every MBTA feed URL ends in `.json`.

@@ -179,3 +179,13 @@ Consequences: turning Cache Components on later needs its own decision. Builders
 Decision: `src/components/ui/` is exempt from the token grep until Phase 1 restyles those files with design tokens. The exemption ends at the Phase 1 gate.
 Why: the stock Button, Tabs and Drawer use px values (`p-[3px]`, `w-[100px]`, `ring-[3px]`). Picking replacements before the design direction exists would be guessing.
 Consequences: the Phase 0 gate runs the grep with `src/components/ui` excluded. The Phase 1 gate runs it without the exclusion.
+
+**D-038 · 2026-11-21 · Tests can't reach `fogline-db` by default. Supersedes the test half of D-034.**
+Decision: Vitest gives the integration project only the test database, as both `DATABASE_URL_TEST` and `DATABASE_URL`. The read-only check against `fogline-db` runs only when the shell exports `LIVE_DATABASE_URL`.
+Why: code-critic found that loading `DATABASE_URL` from `.env` into integration tests pointed `getDb()` at production, so the first test of a Server Action would have written rows to `fogline-db` on every builder's machine.
+Consequences: PHASES Phase 0 item 5 and TESTING updated. `/api/health` on a deployment checks `fogline-db` for the gate.
+
+**D-039 · 2026-11-21 · Database client limits.**
+Decision: postgres.js runs with `prepare: false`, at most 3 connections per instance, a 10 s connect timeout and a 15 s `query_timeout`, which counts waiting for a connection too. Server notices go through `src/lib/log.ts`.
+Why: Tiger's pooler can't keep prepared statements across transactions. Without a query timeout, a stalled pooler would hang requests until the function timed out.
+Consequences: Vercel's `attachDatabasePool` doesn't support postgres.js, so a suspended instance can hold up to 3 pooler client slots until it resumes. Watch connection counts in the Tiger console after deploys.

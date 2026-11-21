@@ -15,7 +15,10 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 ## Commands
 
 - A fresh clone runs `pnpm exec playwright install` once to get the browsers.
-- `pnpm test`: unit, component and integration tests. Integration tests skip when `DATABASE_URL_TEST` is absent. It points at a throwaway TimescaleDB (a container in CI, Docker locally), never at `fogline-db`. The Phase 0 TimescaleDB check is read-only, uses `DATABASE_URL`, and skips when that's absent.
+- `pnpm test`: unit, component and integration tests. Integration tests skip when `DATABASE_URL_TEST` is absent. It points at a throwaway TimescaleDB (a container in CI, Docker locally), never at `fogline-db`.
+  - The integration project also receives that URL as `DATABASE_URL`, so code that calls `getDb()` can never reach `fogline-db` from a test.
+  - The read-only check against `fogline-db` runs only when the shell exports `LIVE_DATABASE_URL`.
+  - Local test database: `docker run -d --rm --name fogline-tsdb-test -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18`, then `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres pnpm test`.
 - `pnpm test:watch`
 - `pnpm test:e2e`: all Playwright projects. Add `--project=iphone` or `--project=pixel` to run one.
 - `pnpm test:e2e:ui`: Playwright UI mode for debugging.
