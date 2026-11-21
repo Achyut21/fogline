@@ -5,13 +5,27 @@ name: Deployment checks
 on:
   repository_dispatch:
     types: [vercel.deployment.success]
+  # Run the same checks by hand against a deployment, e.g. when Vercel's event doesn't arrive:
+  # gh workflow run deployment.yml -f url=<deployment url> -f sha=<commit> -f environment=preview
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Deployment URL
+        required: true
+      sha:
+        description: Commit the deployment was built from
+        required: true
+      environment:
+        description: preview or production
+        required: true
+        default: preview
 
 permissions:
   contents: read
   statuses: write
 
 concurrency:
-  group: deployment-${{ github.event.client_payload.environment }}-${{ github.event.client_payload.git.sha }}
+  group: deployment-${{ github.event.client_payload.environment || inputs.environment }}-${{ github.event.client_payload.git.sha || inputs.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -19,8 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      SHA: ${{ github.event.client_payload.git.sha }}
-      STATUS_CONTEXT: e2e on ${{ github.event.client_payload.environment }}
+      SHA: ${{ github.event.client_payload.git.sha || inputs.sha }}
+      STATUS_CONTEXT: e2e on ${{ github.event.client_payload.environment || inputs.environment }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       # Only commits on this repository's own branches run with the bypass secret. A fork's code
@@ -59,7 +73,7 @@ jobs:
       - id: e2e
         if: steps.owned.outputs.run == 'true'
         env:
-          PLAYWRIGHT_BASE_URL: ${{ github.event.client_payload.url }}
+          PLAYWRIGHT_BASE_URL: ${{ github.event.client_payload.url || inputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm test:e2e:deployment
       - name: Report the result on the deployed commit
