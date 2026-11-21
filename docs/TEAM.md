@@ -63,6 +63,10 @@ To change a file the other builder owns, first write a note under your Board ent
    - optionally install `frontend-design` and `superpowers` from the official marketplace (`/plugin`), and the Karpathy guidelines plugin (`/plugin marketplace add forrestchang/andrej-karpathy-skills`).
    - `impeccable` is vendored in `.claude/skills/`. Other skills named in `CLAUDE.md` (design-taste-frontend, web-design-guidelines, no-ai-slop, shadcn-component-author, next-route-handler) are optional. When one is missing, the docs' rules apply.
 7. **Check it works:** `pnpm test`, `pnpm dev`, open `http://localhost:3000` at 390×844.
+8. **Project hooks** load from `.claude/settings.json` (D-042), and they need `pnpm install` to have run.
+   - After each Edit or Write, Prettier formats the file.
+   - When Claude finishes a turn on a branch whose code changed without a `docs/PROGRESS.md` change, it's asked to update PROGRESS, at most once per turn.
+   - Hooks run code from the checked-out branch. Before reviewing a fork branch with Claude Code, set `"disableAllHooks": true` in `.claude/settings.local.json`.
 
 ## Talking to each other
 

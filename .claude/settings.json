@@ -6,5 +6,30 @@
       "Read(./.env.development.local)",
       "Read(./.env.production.local)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited-file.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/progress-reminder.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }

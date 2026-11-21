@@ -1,5 +1,5 @@
 docs/
-.claude/
+.claude/skills/
 *.md
 pnpm-lock.yaml
 data/
