@@ -39,3 +39,6 @@ pnpm-debug.log*
 
 # local Claude Code settings (shared settings.json stays in git)
 .claude/settings.local.json
+
+# Playwright bypass cookie for deployment checks
+playwright/.auth/

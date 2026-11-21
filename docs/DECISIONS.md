@@ -204,3 +204,13 @@ Decision:
 - `/serwist/[path]` is a route handler outside `app/api/`. This is a named exception to the CLAUDE.md rule, because Serwist serves the worker from that path.
 Why: `@serwist/turbopack` pins `browserslist` exactly, which made pnpm install two copies of `serwist`. Serwist attaches its offline fallback only to handlers that pass an `instanceof Strategy` check, so with two copies the fallback was silently dropped. The e2e offline test caught it. code-critic found the reload, the `/api` caching, the missing fonts and the stale revision.
 Consequences: when upgrading Serwist, re-check the override and keep the offline e2e tests. Pages are not cached for offline reading yet; Phase 3 adds the offline map and saved plans. PWA.md's manifest list is only partly done until shortcuts and screenshots land.
+
+**D-041 · 2026-11-21 · Deployment checks and branch protection (Phase 0 items 7 and 8).**
+Decision:
+- After every successful Vercel deployment, Vercel's `vercel.deployment.success` `repository_dispatch` event runs the read-only e2e specs (`pnpm test:e2e:deployment`) against it and reports an `e2e on <environment>` commit status.
+- A Playwright global setup uses the protection-bypass secret once to get Vercel's bypass cookie, and masks that cookie in the Actions log. The secret is never sent as a header on every request.
+- No test report is uploaded, because Playwright error messages contain request headers.
+- The workflow skips commits that aren't on a branch of this repo, which excludes forks.
+- `main` requires a PR, the CI `check` job and the Vercel build. History stays linear, and force-pushes and deletion are blocked. No approving review is required, and admins can override.
+Why: Vercel doesn't create GitHub Deployments for this repo, so D-033's `deployment_status` trigger would never fire. code-critic found that a per-request header would leak the secret to third-party origins and into uploaded artifacts on a public repo. Specs that write data must never run against production. Requiring an approving review would block a builder whenever the other one is away. A approved branch protection on 2026-11-21.
+Consequences: GitHub runs `repository_dispatch` workflows from `main`, so the deployment check starts with the first deployment after this lands. A spec joins `test:e2e:deployment` only if it writes nothing. The `e2e on preview` status isn't required yet; make it required once it has run reliably on a few PRs. To debug a failed deployment run, reproduce it locally with the secret.
