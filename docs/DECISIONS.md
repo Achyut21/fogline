@@ -189,3 +189,18 @@ Consequences: PHASES Phase 0 item 5 and TESTING updated. `/api/health` on a depl
 Decision: postgres.js runs with `prepare: false`, at most 3 connections per instance, a 10 s connect timeout and a 15 s `query_timeout`, which counts waiting for a connection too. Server notices go through `src/lib/log.ts`.
 Why: Tiger's pooler can't keep prepared statements across transactions. Without a query timeout, a stalled pooler would hang requests until the function timed out.
 Consequences: Vercel's `attachDatabasePool` doesn't support postgres.js, so a suspended instance can hold up to 3 pooler client slots until it resumes. Watch connection counts in the Tiger console after deploys.
+
+**D-040 · 2026-11-21 · PWA skeleton choices (Phase 0 item 6).**
+Decision:
+- Serwist through `@serwist/turbopack`. It builds the worker in a route handler at `/serwist/sw.js`, and the Next config is wrapped with `withSerwist`.
+- `skipWaiting` is off, so a new version waits until every tab closes. The "Update ready" toast that lets users apply it sooner arrives with Phase 9's PWA polish, as PHASES lists.
+- A pnpm override pins `browserslist` to 4.29.6.
+- Manifest shortcuts and screenshots wait for their routes and real screens (Phase 3 and later).
+- Placeholder icons come from `public/icons/icon.svg` through `pnpm icons`. The artwork stays inside the maskable safe zone, so one 512 file serves both purposes.
+- The Button `lg` size is 44 px tall, the touch minimum, until Phase 1 restyles the components.
+- `SerwistProvider` runs with `reloadOnOnline` and `cacheOnNavigation` off. Its defaults reload every tab when the connection returns, against PWA.md's "never reload without asking", and re-fetch the full page on every client navigation.
+- Same-origin `/api/*` is network-only. Serwist's default would answer it from a 24-hour cache, so `/api/health` could look healthy during an outage.
+- The precache holds Next's static chunks, the two preloaded Latin font files and the PNG icons. Its revision changes on every build.
+- `/serwist/[path]` is a route handler outside `app/api/`. This is a named exception to the CLAUDE.md rule, because Serwist serves the worker from that path.
+Why: `@serwist/turbopack` pins `browserslist` exactly, which made pnpm install two copies of `serwist`. Serwist attaches its offline fallback only to handlers that pass an `instanceof Strategy` check, so with two copies the fallback was silently dropped. The e2e offline test caught it. code-critic found the reload, the `/api` caching, the missing fonts and the stale revision.
+Consequences: when upgrading Serwist, re-check the override and keep the offline e2e tests. Pages are not cached for offline reading yet; Phase 3 adds the offline map and saved plans. PWA.md's manifest list is only partly done until shortcuts and screenshots land.

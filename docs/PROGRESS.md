@@ -40,12 +40,12 @@ This is the shared status board for both builders. Update it after every finishe
        - integration: skips without `DATABASE_URL_TEST`;
        - e2e: the home page at 390×844 in every project, with zero serious or critical axe violations.
      - CI gains the unit, component and integration tests (against a TimescaleDB service container) and Playwright on Chromium and WebKit, uploading reports and traces.
-  3. **Database (item 5) · `a/db` · built, in review.** Actual: `src/server/db/schema.ts` exists but is empty, because drizzle-kit won't run without a schema file; B adds the tables there. CI runs a `timescale/timescaledb:2.32.1-pg18` service, the same versions as `fogline-db` (Postgres 18.7, TimescaleDB 2.32.1).
+  3. **Database (item 5) · `a/db` · merged (#4).** Actual: `src/server/db/schema.ts` exists but is empty, because drizzle-kit won't run without a schema file; B adds the tables there. CI runs a `timescale/timescaledb:2.32.1-pg18` service, the same versions as `fogline-db` (Postgres 18.7, TimescaleDB 2.32.1).
      - Add a Drizzle client in `src/server/db/client.ts` using the `postgres` driver for Tiger's pooled string (`prepare: false`, small pool), plus `drizzle.config.ts`.
      - Create the first migration with `drizzle-kit generate --custom`. It creates no tables, because B owns the schema in Phase 2. It only runs `create extension if not exists timescaledb`.
      - Wrap the TimescaleDB check in a read-only test that skips without `DATABASE_URL`, and add `/api/health` returning `{ db, timescaledb }` booleans.
      - Verify: run the check against `fogline-db` locally, and the migration against a local TimescaleDB container.
-  4. **PWA skeleton (item 6) · `a/pwa`**
+  4. **PWA skeleton (item 6) · `a/pwa` · built, in review.** D-040 records the choices: Serwist through Turbopack, no reload on reconnect, network-only `/api/*`, update toast deferred to Phase 9, a `browserslist` override, shortcuts and screenshots deferred, 44 px `lg` buttons.
      - Add `app/manifest.ts` following PWA.md, the `viewport` export (`viewport-fit=cover`, light and dark `theme-color`) and `appleWebApp` metadata. Shortcuts and screenshots arrive with their routes, because `/ride`, `/daily` and `/plans/new` don't exist yet.
      - Generate placeholder icons (192, 512, maskable 512, apple-touch 180) with a `sharp` script. ImageMagick isn't installed on this machine.
      - Use Serwist for the service worker if its Turbopack setup works with Next 16.4 (check its `next-turbo-basic` example first). Otherwise, write the worker by hand following the Next.js PWA guide. It precaches the shell and the offline page.
@@ -117,7 +117,28 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
-- 2026-11-21 17:45 ET · Builder A · Phase 0 item 3 built on `a/db`:
+- 2026-11-21 17:20 ET · Builder A · Phase 0 PWA item (PHASES item 6) built on `a/pwa`:
+  - `app/manifest.ts`, the viewport (`viewport-fit=cover`, light and dark `theme-color`) and iOS metadata.
+  - Placeholder icons (192, 512 for any and maskable, apple-touch 180).
+  - A Serwist service worker that precaches static chunks, the preloaded fonts, the icons and `/offline`, falls back to `/offline` for documents, keeps `/api/*` network-only, and never reloads a page on its own.
+  - Offline, error, global-error (Next 16 `retry`) and 404 pages, with copy in `src/copy/system.ts`. The offline page's "Try again" reloads the same address.
+  - Tests: 22 Vitest and 32 e2e pass. 7 service-worker tests are skipped on WebKit because Playwright WebKit has no service worker support. Chromium covers:
+    - manifest fields and icons at their stated sizes;
+    - iOS tags;
+    - axe on `/offline` and the 404 page;
+    - 44 px actions;
+    - worker control;
+    - offline fallback plus a retry of the same address;
+    - no reload on reconnect (the test fails when the reload is turned back on);
+    - `/api` never served from cache;
+    - fonts and icons precached;
+    - no installability errors.
+  - Found and fixed: duplicate `serwist` copies silently dropped the offline fallback (D-040).
+  - code-critic: first pass FAIL. BLOCKING fixed: the reload on reconnect. All SHOULD FIX items fixed: navigation caching, `/api` caching, revision, fonts, copy, and axe on the 404 page.
+  - copy-critic: first pass FAIL on the offline and error wording. Rewritten, then re-reviewed.
+  - Seen at 390×844: `/offline` and the 404 page. Dark mode is unchanged until Phase 1.
+  - PR #4 (database) merged at 17:18 ET.
+- 2026-11-21 16:08 ET · Builder A · Phase 0 database item (PHASES item 5) built on `a/db`:
   - Drizzle 0.45 plus the `postgres` 4.1 client (`prepare: false`, at most 3 connections, 10 s connect timeout).
   - First migration `drizzle/0000_timescaledb.sql` (`create extension if not exists timescaledb`, no tables).
   - `/api/health` returns `{ db, timescaledb }` with `no-store`, and 503 when the database fails.
@@ -129,7 +150,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - code-critic: PASS. All 5 SHOULD FIX items fixed (D-038, D-039, the migration and health tests), plus the nits.
   - `/api/health` in the dev server returns `{"db":true,"timescaledb":true}` from `fogline-db`.
   - PR #3 (test harness) merged.
-- 2026-11-21 17:10 ET · Builder A · Phase 0 item 2 built on `a/test-harness`:
+- 2026-11-21 15:49 ET · Builder A · Phase 0 test harness (PHASES item 4) built on `a/test-harness`:
   - Vitest 5 projects for unit, component and integration, in `TZ=America/New_York`, with 90% line coverage required on `src/lib`.
   - MSW 3 blocks and records every unmocked request and fails the test that made it. MSW 3's own "error" strategy lets `.json` URLs through, and every MBTA feed URL ends in `.json`.
   - Playwright projects: desktop-chrome 1440×900, iphone (WebKit) and pixel, both at 390×844. The server runs in UTC, like Vercel. axe runs, plus a horizontal-scroll check.
@@ -137,7 +158,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Tests: 14 Vitest and 6 e2e pass. `src/lib` line coverage is 96%.
   - code-critic: FAIL on the first pass (unmocked requests became a silent 500). Fixed and proven with a throwaway failing test.
   - Also: PR #2 merged after `vercel.json` set the framework to Next.js. The Vercel project, created when the repo held only docs, had looked for a static `public` folder.
-- 2026-11-21 16:05 ET · Builder A · Phase 0 item 1 built on `a/scaffold`:
+- 2026-11-21 15:33 ET · Builder A · Phase 0 scaffold (PHASES items 1, 2, 3, 10) built on `a/scaffold`:
   - Next 16.4.6 (Turbopack, Cache Components off), React 19.3, Tailwind 4.3.
   - Prettier and the ESLint flat config (rules for `no-console`, `no-debugger`, `eqeqeq` and `no-explicit-any`), plus `data:*` scripts that exit 1.
   - shadcn (Radix base): Button, Drawer, Sonner, Input, Tabs.
