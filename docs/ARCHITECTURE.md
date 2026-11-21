@@ -184,6 +184,7 @@ See `docs/PWA.md`. In short:
 
 See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach the browser, and those are never secret.
 - `SESSION_SECRET` signs the profile cookie.
+- `NEXT_PUBLIC_FLAGS` turns on unfinished features by ID, for example `F1,F2` (`src/lib/flags.ts`).
 - `DATABASE_URL_TEST` points integration tests at a throwaway TimescaleDB (a container in CI), never at `fogline-db`.
 
 ## 12. Deployment

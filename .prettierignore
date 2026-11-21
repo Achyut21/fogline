@@ -1,0 +1,6 @@
+docs/
+.claude/
+*.md
+pnpm-lock.yaml
+data/
+public/
