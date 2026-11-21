@@ -1,9 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { bypassStatePath, deploymentURL } from "./tests/e2e/deployment-url";
 
 const port = 3100;
-const baseURL = `http://localhost:${port}`;
 const ci = Boolean(process.env.CI);
 const phone = { width: 390, height: 844 };
+const remoteURL = deploymentURL();
+const bypass = Boolean(remoteURL && process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -11,10 +13,13 @@ export default defineConfig({
   forbidOnly: ci,
   retries: ci ? 1 : 0,
   reporter: ci ? [["github"], ["html", { open: "never" }]] : "list",
+  globalSetup: "./tests/e2e/global-setup.ts",
   use: {
-    baseURL,
+    baseURL: remoteURL ?? `http://localhost:${port}`,
     timezoneId: "America/New_York",
-    trace: "retain-on-failure",
+    // Traces record request headers, so none are kept while testing a protected deployment.
+    trace: bypass ? "off" : "retain-on-failure",
+    storageState: bypass ? bypassStatePath : undefined,
   },
   projects: [
     {
@@ -24,11 +29,13 @@ export default defineConfig({
     { name: "iphone", use: { ...devices["iPhone 15"], viewport: phone } },
     { name: "pixel", use: { ...devices["Pixel 7"], viewport: phone } },
   ],
-  webServer: {
-    command: ci ? `pnpm start -p ${port}` : `pnpm build && pnpm start -p ${port}`,
-    url: baseURL,
-    reuseExistingServer: !ci,
-    timeout: 240_000,
-    env: { TZ: "UTC" },
-  },
+  webServer: remoteURL
+    ? undefined
+    : {
+        command: ci ? `pnpm start -p ${port}` : `pnpm build && pnpm start -p ${port}`,
+        url: `http://localhost:${port}`,
+        reuseExistingServer: !ci,
+        timeout: 240_000,
+        env: { TZ: "UTC" },
+      },
 });

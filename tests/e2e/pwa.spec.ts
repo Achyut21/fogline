@@ -27,7 +27,8 @@ async function waitForServiceWorker(page: Page) {
 test.describe("manifest", () => {
   test.skip(({ browserName }) => browserName !== "chromium", "served the same to every browser");
 
-  test("has the install fields and icons that load at their stated sizes", async ({ request }) => {
+  test("has the install fields and icons that load at their stated sizes", async ({ page }) => {
+    const request = page.request;
     const response = await request.get("/manifest.webmanifest");
     expect(response.ok()).toBe(true);
     const manifest: MetadataRoute.Manifest = await response.json();

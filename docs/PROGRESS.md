@@ -55,11 +55,11 @@ This is the shared status board for both builders. Update it after every finishe
        - the service worker registers in a production build;
        - offline navigation shows the offline page;
        - installability: no errors from `Page.getInstallabilityErrors` on Chromium.
-  5. **GitHub and Vercel (items 7, 8) · `a/ci-vercel`**
-     - Finish CI: PRs and pushes to `main`, pnpm cache, every suite, Playwright reports.
-     - Add `vercel.json` with `regions: ["iad1"]` and no crons.
-     - Add a CI job on Vercel's `deployment_status` event that runs the smoke, installability and `/api/health` checks against the preview, sending the protection-bypass header.
-     - Turn on branch protection for `main`, requiring CI, once A says yes.
+  5. **GitHub and Vercel (items 7, 8) · `a/ci-vercel` · built, in review.** As built (D-041):
+     - CI runs on PRs and pushes to `main`, with a pnpm cache and every suite. `vercel.json` sets `iad1` and the framework, and has no crons (merged in #2–#4).
+     - Vercel sends no GitHub Deployments, so `.github/workflows/deployment.yml` runs on its `vercel.deployment.success` `repository_dispatch` event. It runs only the read-only specs (`pnpm test:e2e:deployment`: smoke, PWA, `/api/health`) and posts an `e2e on <environment>` status.
+     - A global setup trades the bypass secret for Vercel's bypass cookie and masks it. No report is uploaded. Fork commits are skipped. The workflow takes effect once it's on `main`.
+     - Branch protection on `main` (A approved 2026-11-21): PR required, the `check` and Vercel checks required, linear history, no force-push or deletion, admins can override.
   6. **Claude Code hooks (item 9) · `a/claude-hooks`**
      - Use the `update-config` skill to add two hooks: Prettier formats each file after an Edit or Write, and at Stop a reminder fires when code changed without a `docs/PROGRESS.md` change.
      - Keep the `.env` deny rules. Confirm `.claude/agents` and `.claude/commands` load.
@@ -117,6 +117,14 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 17:36 ET · Builder A · Phase 0 GitHub and Vercel (PHASES items 7, 8) built on `a/ci-vercel`:
+  - Deployment workflow on Vercel's `repository_dispatch` event, with a bypass cookie from a global setup instead of a per-request secret header. No uploaded report, fork commits skipped, 20-minute timeout, and a cancelled run reports an error instead of leaving "pending".
+  - Read-only specs only (`test:e2e:deployment`).
+  - Branch protection on `main` turned on (A approved).
+  - PR #5 (PWA) merged.
+  - Tests: local e2e 32 pass. In remote mode against production, smoke and `/api/health` pass (8), and `/api/health` returns `{"db":true,"timescaledb":true}` from the deployed function.
+  - Not yet run: the bypass-cookie path against a protected preview. It runs for the first time on the PR after this merges.
+  - code-critic: first pass FAIL. Two BLOCKING items fixed: the secret could leak through the report artifact, and the docs claimed protection that wasn't on yet. SHOULD FIX items fixed: forks, cross-origin header, stuck pending status, full suite on production, docs. Nits: URL scheme check, empty base URL, health check run once.
 - 2026-11-21 17:20 ET · Builder A · Phase 0 PWA item (PHASES item 6) built on `a/pwa`:
   - `app/manifest.ts`, the viewport (`viewport-fit=cover`, light and dark `theme-color`) and iOS metadata.
   - Placeholder icons (192, 512 for any and maskable, apple-touch 180).

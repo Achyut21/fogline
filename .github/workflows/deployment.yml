@@ -1,0 +1,77 @@
+name: Deployment checks
+
+# Vercel sends this event after every successful deployment. GitHub runs repository_dispatch
+# workflows from the default branch, so this file takes effect once it is on main.
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: deployment-${{ github.event.client_payload.environment }}-${{ github.event.client_payload.git.sha }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHA: ${{ github.event.client_payload.git.sha }}
+      STATUS_CONTEXT: e2e on ${{ github.event.client_payload.environment }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      # Only commits on this repository's own branches run with the bypass secret. A fork's code
+      # never gets it.
+      - name: Check the commit belongs to this repository
+        id: owned
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/branches-where-head" --jq length)
+          echo "run=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Mark the deployed commit pending
+        if: steps.owned.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA"
+          -f state=pending -f context="$STATUS_CONTEXT" -f target_url="$RUN_URL"
+      - uses: actions/checkout@v7
+        if: steps.owned.outputs.run == 'true'
+        with:
+          ref: ${{ env.SHA }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        if: steps.owned.outputs.run == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.owned.outputs.run == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.owned.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.owned.outputs.run == 'true'
+        run: pnpm exec playwright install --with-deps chromium webkit
+      # No report is uploaded: Playwright error messages include request headers.
+      - id: e2e
+        if: steps.owned.outputs.run == 'true'
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ github.event.client_payload.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: pnpm test:e2e:deployment
+      - name: Report the result on the deployed commit
+        if: always() && steps.owned.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.e2e.outcome }}
+        run: |
+          case "$OUTCOME" in
+            success) state=success ;;
+            failure) state=failure ;;
+            *) state=error ;;
+          esac
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
+            -f state="$state" -f context="$STATUS_CONTEXT" -f target_url="$RUN_URL"
