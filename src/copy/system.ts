@@ -7,6 +7,7 @@ export const system = {
   error: {
     title: "This page didn't load",
     body: "Try again. If it keeps failing, go to the home page.",
+    homeBody: "Try again. If it keeps failing, close Fogline and open it again.",
     retry: "Try again",
     home: "Home page",
   },

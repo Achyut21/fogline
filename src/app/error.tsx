@@ -9,7 +9,10 @@ import { system } from "@/copy";
 export default function ErrorPage({ retry }: { error: unknown; retry: () => void }) {
   const onHomePage = usePathname() === "/";
   return (
-    <StatusPage title={system.error.title} body={system.error.body}>
+    <StatusPage
+      title={system.error.title}
+      body={onHomePage ? system.error.homeBody : system.error.body}
+    >
       <Button size="lg" onClick={retry}>
         {system.error.retry}
       </Button>

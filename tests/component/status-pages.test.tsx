@@ -45,6 +45,8 @@ describe("system pages", () => {
     pathname.current = "/";
     render(<ErrorPage error={new Error("boom")} retry={vi.fn()} />);
     expect(screen.getByRole("button", { name: system.error.retry })).toBeInTheDocument();
+    expect(screen.getByText(system.error.homeBody)).toBeInTheDocument();
+    expect(screen.queryByText(system.error.body)).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
