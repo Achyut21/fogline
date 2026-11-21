@@ -65,6 +65,9 @@ src/
       cron/cleanup-demo/route.ts
     manifest.ts
     offline/page.tsx
+    error.tsx  global-error.tsx  not-found.tsx
+    sw.ts                  # service worker source (Serwist)
+    serwist/[path]/route.ts  # builds and serves /serwist/sw.js (D-040)
   components/
     ui/        # shadcn primitives, styled with tokens
     map/  ride/  plans/  puzzle/  recap/  badges/  system/

@@ -1,3 +1,8 @@
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+
+# @serwist/turbopack pins browserslist exactly, which splits serwist into two copies whose
+# Strategy classes fail Serwist's instanceof check and silently drop the offline fallback.
+overrides:
+  browserslist: 4.29.6
