@@ -201,7 +201,7 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
   - `end-plans` every 15 minutes (Phase 4);
   - `cleanup-demo` daily (Phase 5);
   - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
-- Preview deployments are behind Vercel Authentication. Automated checks against a preview send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
+- Every generated deployment URL, preview or production, is behind Vercel Authentication. Only the production domain `fogline-mu.vercel.app` is public. Automated checks against a protected URL send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
 - After a deployment, the read-only e2e specs run against it in GitHub Actions (TESTING.md, CI). Vercel's `vercel.deployment.success` `repository_dispatch` event is meant to start that run, but it hasn't arrived for this repo yet. Until it does, a builder starts the run with `gh workflow run deployment.yml` (D-043).
 - `main` is protected: changes arrive through PRs, the CI `check` job and the Vercel build must pass, the history stays linear (squash merges), and force-pushes and deletion are blocked. Admins can override in an emergency.
 - Custom domain: the GoDaddy Registry domain is added in Vercel, with DNS records copied into GoDaddy.

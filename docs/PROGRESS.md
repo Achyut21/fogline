@@ -6,8 +6,8 @@ This is the shared status board for both builders. Update it after every finishe
 
 | Phase | Status | Owner(s) |
 |---|---|---|
-| 0 Foundations | Gate running (second pass after fixes) | A |
-| 1 Design | Next, after the Phase 0 gate | A (both approve) |
+| 0 Foundations | Passed 2026-11-21 (gate table below) | A |
+| 1 Design | Next | A (both approve) |
 | 2 Data and domain logic | Ready to start (needs the Phase 0 scaffold, now on `main`) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
@@ -20,25 +20,16 @@ This is the shared status board for both builders. Update it after every finishe
 ## Board
 
 ### Builder A
-- **Now:** Phase 0 gate. Everything Phase 0 needed is on `main`:
-  - #1 kickoff docs;
-  - #2 scaffold (PHASES items 1, 2, 3, 10);
-  - #3 test harness (item 4);
-  - #4 database and `/api/health` (item 5);
-  - #5 PWA skeleton (item 6);
-  - #6 deployment check and branch protection (items 7, 8);
-  - #7 manual deployment trigger;
-  - #8 Claude Code hooks (item 9).
-  The first gate pass failed code-critic and test-auditor (D-043). Their fixes are on `a/phase0-gate-fixes`, and the gate re-runs on them.
+- **Now:** nothing in progress. Phase 0 passed its gate on `main` at `4b7aa05`.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-  - Optional: `scratchpad/mutant` from the test audit can be deleted by hand.
-- **Next:** Phase 1 Design, once the Phase 0 gate passes.
+  - Optional: delete the local branch `gate/phase-0`; its work reached `main` through #1–#9.
+- **Next:** Phase 1 Design. Start it in a fresh session with `/phase-start 1`.
 - **Blocked:** none.
 
 ### Builder B
 - **Now:**
-- **Next:** Phase 2 data scripts. `main` has the scaffold, Vitest, Drizzle and the CI TimescaleDB container. First read D-013 to D-043 in DECISIONS.md and confirm or object here, especially the PRD and PHASES changes in D-014 to D-033.
+- **Next:** Phase 2 data scripts. `main` has the scaffold, Vitest, Drizzle and the CI TimescaleDB container. First read D-013 to D-044 in DECISIONS.md and confirm or object here, especially the PRD and PHASES changes in D-014 to D-033.
 - **Blocked:**
 
 ## Open questions
@@ -47,7 +38,8 @@ This is the shared status board for both builders. Update it after every finishe
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
 - Does either builder have a mid-range Android phone for the Phase 1 fog frame-rate check? Chrome's CPU throttle doesn't slow the GPU, and the fog runs mostly on the GPU.
-- Why doesn't the service worker activate on protected previews (D-043)? Investigate in Phase 9's PWA polish.
+- Why doesn't the service worker activate behind Vercel protection, and why did installability fail on the protected production URL but pass on a protected preview (D-043, D-044)? Investigate in Phase 9's PWA polish.
+- If Vercel's `repository_dispatch` event starts arriving, its production runs will target the protected generated URL and fail. The workflow would then have to send production events to `fogline-mu.vercel.app` (D-044). A guard in `tests/e2e/deployment-url.ts` that accepts only that domain for `production` would turn those 14 confusing failures into one clear error (code-critic NIT).
 - Branch protection doesn't require branches to be up to date before merging. #7 and #8 merged a minute apart without being tested together. Turn on "require up to date" if that keeps happening (A's call: it adds a rebase before each merge).
 - **For Builder B** (from A's kickoff review and the Phase 0 gate):
   - `places` stores only the nearest station. A spot 300 m from Park Street but closer to Downtown Crossing never shows up for Park Street. Store every station within 600 m walking.
@@ -84,9 +76,47 @@ Copy this table for each phase when its gate runs.
 | docs current | | |
 | phase-specific checks | | |
 
+### Phase 0 gate
+
+Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043 fixes.
+
+| Check | Result | Evidence |
+|---|---|---|
+| typecheck / lint / unit / e2e / build | PASS | Local, with the test database: typecheck, lint and `format:check` clean. Vitest 24 passed, 1 skipped (the live `fogline-db` check, which needs `LIVE_DATABASE_URL`); `src/lib` line coverage 96.3%. Playwright 39 passed, 12 skipped (Chromium-only specs on WebKit, deployment-only specs). Build compiled. CI on the `main` push (run 44961077823) green. |
+| token check | PASS | 8 matches, all in `src/components/ui` (shadcn, D-037). 0 anywhere else. |
+| code-critic | PASS | Third pass, on `7ba398f` and the D-044 change, with run logs and `curl` checked. No BLOCKING. The SHOULD FIX (the production alias isn't tied to a commit) is handled by the compare step in TEAM.md's merge checklist. Three of four NITs are fixed on `a/phase0-handoff`. The fourth, a production-domain guard, is under Open questions. Earlier passes: first FAIL, second PASS (D-043). |
+| test-auditor | PASS | Second pass, on the D-043 fixes. The installability test now has a negative control that sees `no-manifest`, and the `/api` cache test failed against a mutant `sw.ts`. |
+| design-critic (if UI) | N/A | Phase 0 UI is placeholder. design-critic starts in Phase 1 (PHASES.md). |
+| copy-critic (if copy) | PASS | Manifest, metadata, offline, error and 404 copy. The offline wording was corrected (D-043). |
+| axe | PASS | 0 serious or critical violations on `/`, `/offline` and the 404 page, in desktop-chrome, iphone and pixel: locally, in CI, and on production (run 44961601553). |
+| docs current | PASS | This log covers PHASES items 1–10 and both gate passes. DECISIONS has D-036 to D-044. WALKTHROUGH: Phase 0 builds no PRD feature (F1–F16), so no entry is due. DATA: no data source or algorithm yet. |
+| Fresh clone | PASS | `gh repo clone` of `main` at `4b7aa05` into an empty folder, then `pnpm install && pnpm exec playwright install && pnpm test && pnpm test:e2e && pnpm build`, exit 0. Vitest 21 passed, 4 skipped (a fresh clone has no test database). Playwright 37 passed, 14 skipped. Build compiled. |
+| CI green on a PR; preview at 390×844 on iPhone and Pixel | PASS | PR #9 `check` (run 44960796806) and the Vercel build passed. Deployment check on #9's protected preview (run 44959800680, `bdcf7f6`): 28 passed, including the smoke test at 390×844 on iphone (WebKit) and pixel. The later `7ba398f` changed no app code. |
+| Manifest valid; installable in Chrome; manual install | PASS | Manifest fields, icon sizes and `Page.getInstallabilityErrors` with no errors passed on #9's preview (run 44959800680) and on production (run 44961601553). The negative control saw `no-manifest`. A installed it by hand in desktop Chrome from `https://fogline-mu.vercel.app`, and it opened as a standalone "Fogline" window. |
+| `/api/health` returns `timescaledb: true` on a deployment | PASS | `deployment.spec.ts` on #9's preview (run 44959800680) and production (run 44961601553): 200, `no-store`, `{ db: true, timescaledb: true }`. |
+| Hooks, `/phase-start`, `.env` ignored | PASS | `.claude/settings.json` has the PostToolUse formatter, the Stop reminder (both tested in #8; the formatter ran on every edit this session) and four `.env` deny rules. `/phase-start` ran this session. `git check-ignore` matches `.env` and `.env.local` (`.gitignore` lines 15–16), and `.env.example` is the only tracked env file. |
+| Production works at phone size | PASS | Production check on `https://fogline-mu.vercel.app` (run 44961601553, `4b7aa05`): 40 passed, 11 skipped, including the smoke test at 390×844 and all 12 service-worker tests (font precache included). The same deployment's generated URL failed 14 tests behind protection (run 44961127767), so production checks now target the production domain (D-044). |
+
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 18:30 ET · Builder A · Phase 0 gate passed. Handoff:
+  - **Finished:**
+    - Phase 0 PRs on `main`: [#1](https://github.com/Achyut21/fogline/pull/1) `f3351ea`, [#2](https://github.com/Achyut21/fogline/pull/2) `fe8c9ea`, [#3](https://github.com/Achyut21/fogline/pull/3) `d2363ce`, [#4](https://github.com/Achyut21/fogline/pull/4) `f9cba34`, [#5](https://github.com/Achyut21/fogline/pull/5) `17a1f05`, [#6](https://github.com/Achyut21/fogline/pull/6) `859b85d`, [#7](https://github.com/Achyut21/fogline/pull/7) `71825a8`, [#8](https://github.com/Achyut21/fogline/pull/8) `07f3191`, [#9](https://github.com/Achyut21/fogline/pull/9) `4b7aa05` (the gate fixes).
+    - Gate second pass: every row PASS (table above).
+    - Found at the gate: the production check failed 14 tests on the production deployment's generated URL, because that URL is protected too. On `fogline-mu.vercel.app` it passed 40 and skipped 11. Production checks now target the production domain (D-044; TEAM, TESTING, ARCHITECTURE, PHASES and the workflow's input description updated).
+  - **In progress:** none. `a/phase0-handoff` holds this docs change, the workflow input description, and a comment and assertion-message change in `tests/e2e/pwa.spec.ts`.
+  - **Blocked:** none.
+  - **For Builder B:**
+    - Shared files from Phase 0: `package.json` scripts, `vitest.config.ts`, `playwright.config.ts`, `.github/workflows/ci.yml` and `deployment.yml`, `src/server/db/`, `drizzle/`, `drizzle.config.ts`, `.claude/settings.json` (hooks and deny rules).
+    - Environment variable names: `DATABASE_URL_TEST`, `LIVE_DATABASE_URL`, `MIGRATE_DATABASE_URL` (command line only, never `.env`), `NEXT_PUBLIC_FLAGS`. `VERCEL_AUTOMATION_BYPASS_SECRET` is a GitHub Actions secret only.
+    - Migrations: only `drizzle/0000_timescaledb.sql` (`create extension if not exists timescaledb`, no tables). I haven't confirmed whether it has been applied to `fogline-db`. It's safe to apply.
+    - Scripts: `db:generate`, `db:migrate`, `icons`, `format:check`, `test:e2e:deployment`. The `data:*` scripts exit 1 until Phase 2.
+    - Hooks load on your next session: Prettier on each edited file, and a Stop reminder when code changed without PROGRESS.md. Turn hooks off before reviewing a fork branch (D-042).
+    - Design tokens: none yet. Phase 1 adds them.
+  - **Tests:** all pass (gate table). WebKit skips the service-worker and installability specs, because Playwright WebKit has no service workers and no Chrome DevTools Protocol. Nothing is left unwritten for Phase 0.
+  - **Next:** Phase 1 Design in a fresh session: `/phase-start 1`.
 
 - 2026-11-21 18:01 ET · Builder A · Phase 0 gate, first pass, plus fixes on `a/phase0-gate-fixes` (D-043):
   - Standing checks passed on the final `main` content: typecheck, lint, format, 24 Vitest, 32 e2e, build, and 0 token-grep matches. The fresh clone ran the gate's exact sequence.

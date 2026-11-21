@@ -183,7 +183,7 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 ## Phase 9: Hardening and release (both)
 
 **Items**
-1. **PWA polish** from `PWA.md`: iOS splash screens, install flows on real devices, offline behavior, the update toast, and why the service worker doesn't activate on protected previews (D-043).
+1. **PWA polish** from `PWA.md`: iOS splash screens, install flows on real devices, offline behavior, the update toast, and why the service worker doesn't activate behind Vercel protection, and why installability failed on one protected URL but not another (D-043, D-044).
 2. **Performance:** Lighthouse CI budgets, bundle analysis, 3D quality tiers on a real mid-range Android.
 3. **Accessibility:** a full keyboard and screen-reader pass, axe on every route.
 4. **Security:** run the `security-review` skill and fix its findings. Rate limits verified.

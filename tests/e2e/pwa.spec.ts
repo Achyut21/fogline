@@ -3,8 +3,9 @@ import { expect, test, type Page } from "@playwright/test";
 import type { MetadataRoute } from "next";
 import { app, system } from "@/copy";
 
-// Behind Vercel's preview protection the service worker never activates, even with the bypass
-// cookie (D-043). Production deployments and CI still run these tests.
+// Behind Vercel's deployment protection the service worker never activates, even with the bypass
+// cookie. That covers every generated URL, production ones too (D-043, D-044). CI and the public
+// production domain run these tests.
 const protectedPreview =
   Boolean(process.env.VERCEL_AUTOMATION_BYPASS_SECRET) &&
   process.env.DEPLOYMENT_ENVIRONMENT === "preview";
@@ -201,7 +202,7 @@ test.describe("service worker", () => {
     if (!process.env.CI) {
       test.skip(warmup !== 200, "needs a database, so /api/health answers 200 and could be cached");
     }
-    expect(warmup, "CI's TimescaleDB service must answer /api/health with 200").toBe(200);
+    expect(warmup, "/api/health must answer 200 in CI and on deployments").toBe(200);
     await context.setOffline(true);
     const outcome = await page.evaluate(() =>
       fetch("/api/health").then(

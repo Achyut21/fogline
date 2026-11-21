@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: The deployment's own URL (fogline-<hash>-achyut-katiyars-projects.vercel.app), not a branch or production alias
+        description: A preview's own URL (fogline-<hash>-achyut-katiyars-projects.vercel.app), or https://fogline-mu.vercel.app for production (D-044)
         required: true
       sha:
         description: Commit that deployment was built from
