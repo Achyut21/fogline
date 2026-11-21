@@ -48,7 +48,8 @@ export default defineConfig({
     : {
         command: ci ? `pnpm start -p ${port}` : `pnpm build && pnpm start -p ${port}`,
         url: `http://localhost:${port}`,
-        reuseExistingServer: !ci,
+        // Never reuse a server already on the port: it may have loaded fogline-db from .env.
+        reuseExistingServer: false,
         timeout: 240_000,
         env: { TZ: "UTC", DATABASE_URL: testDatabaseURL },
       },

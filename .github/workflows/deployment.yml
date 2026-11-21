@@ -1,7 +1,7 @@
 name: Deployment checks
 
-# Vercel sends this event after every successful deployment. GitHub runs repository_dispatch
-# workflows from the default branch, so this file takes effect once it is on main.
+# Vercel's repository_dispatch event is meant to start this after each deployment, but it hasn't
+# arrived for this repo yet (D-043). Until it does, start it by hand with workflow_dispatch.
 on:
   repository_dispatch:
     types: [vercel.deployment.success]

@@ -174,7 +174,7 @@ test.describe("service worker", () => {
   });
 
   // The one allowed wait for something that must not happen (TESTING.md): a reload would start
-  // within milliseconds of the online event, so 2 s after it is a wide margin.
+  // within milliseconds of the online event, so a 2 s window around it is a wide margin.
   test("does not reload the page when the connection comes back", async ({ page, context }) => {
     await page.goto("/");
     await waitForServiceWorker(page);
@@ -198,7 +198,10 @@ test.describe("service worker", () => {
     await page.goto("/");
     await waitForServiceWorker(page);
     const warmup = await page.evaluate(() => fetch("/api/health").then((r) => r.status));
-    test.skip(warmup !== 200, "needs a database, so /api/health answers 200 and could be cached");
+    if (!process.env.CI) {
+      test.skip(warmup !== 200, "needs a database, so /api/health answers 200 and could be cached");
+    }
+    expect(warmup, "CI's TimescaleDB service must answer /api/health with 200").toBe(200);
     await context.setOffline(true);
     const outcome = await page.evaluate(() =>
       fetch("/api/health").then(

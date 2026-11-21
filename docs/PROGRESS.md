@@ -56,7 +56,7 @@ This is the shared status board for both builders. Update it after every finishe
   - Your tables go in `src/server/db/schema.ts`, which is empty for now.
     - `pnpm db:generate` for schema changes.
     - `pnpm db:generate --custom --name=<name>` for hypertable SQL.
-    - `MIGRATE_DATABASE_URL=<target> pnpm db:migrate` applies migrations. It never reads `.env` (D-043, TEAM.md git flow).
+    - `MIGRATE_DATABASE_URL=<target> pnpm db:migrate` applies migrations. Keep that key out of `.env`, because drizzle-kit loads `.env` (D-043, TEAM.md git flow).
     - Integration tests run against `DATABASE_URL_TEST`: a TimescaleDB container in CI, or locally `docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18` with `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres`.
     - Your first table test needs migrations applied to the test database first, for example a Vitest `globalSetup` for the integration project that runs `migrate()`.
   - Unique indexes on hypertables must include `ts`, so a unique constraint on `checkins` can't stop duplicate check-ins.

@@ -39,11 +39,12 @@ To change a file the other builder owns, first write a note under your Board ent
   - CI green;
   - Vercel preview checked at 390×844;
   - code-critic PASS (plus design-critic and copy-critic when relevant);
+  - the deployment check passed on the PR's preview. Until Vercel's event arrives, start it by hand: `gh workflow run deployment.yml -f url=<the preview's own URL> -f sha=<head sha> -f environment=preview`. After merging, run it on the production deployment's own URL with `environment=production`.
   - PROGRESS and WALKTHROUGH updated.
 
   Then squash-merge.
 - Database migrations go in their own PR, merged before the code that depends on them. Say so in the handoff.
-  - After the migration PR merges, the builder who merged it applies it to `fogline-db`: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`. It never reads `.env`, so it can't run against production by accident (D-043).
+  - After the migration PR merges, the builder who merged it applies it to `fogline-db`: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`. Keep `MIGRATE_DATABASE_URL` out of `.env` (drizzle-kit loads it), so the command can't run against production by accident (D-043).
   - Previews share `fogline-db`, so code that needs a new migration only works on a preview once that migration is applied.
 
 ## Session rhythm
