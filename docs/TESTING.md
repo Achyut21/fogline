@@ -66,9 +66,9 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 
 On every pull request and every push to `main`: install with pnpm cache, typecheck, lint, unit, component and integration tests (against a TimescaleDB service container), build, then Playwright on `desktop-chrome`, `iphone` and `pixel` against the built app, uploading reports and traces on failure. Lighthouse CI runs against the Vercel preview URL (with the protection-bypass secret) once Phase 3 has a real map route.
 
-After every successful Vercel deployment, `.github/workflows/deployment.yml` runs the whole Playwright suite against it.
+After every successful Vercel deployment, `.github/workflows/deployment.yml` runs the read-only e2e specs (`pnpm test:e2e:deployment`: smoke, PWA, deployment) against it. A spec joins that list only if it writes nothing, because production deployments run it too.
 - Vercel triggers it with the `vercel.deployment.success` `repository_dispatch` event. Vercel doesn't create GitHub Deployments for this project, so `deployment_status` never fires.
-- It checks out the deployed commit and sends the `VERCEL_AUTOMATION_BYPASS_SECRET` header.
+- It checks out the deployed commit. A global setup trades `VERCEL_AUTOMATION_BYPASS_SECRET` for Vercel's bypass cookie and masks it. No report or trace is uploaded, because Playwright errors contain request headers. Commits that aren't on a branch of this repo (forks) are skipped.
 - It posts an `e2e on preview` or `e2e on production` status on that commit.
 - `tests/e2e/deployment.spec.ts` runs only in this mode and checks that `/api/health` reports the database and TimescaleDB up.
-- To run it by hand: `PLAYWRIGHT_BASE_URL=<deployment url> VERCEL_AUTOMATION_BYPASS_SECRET=<secret> pnpm test:e2e`.
+- To run it by hand: `PLAYWRIGHT_BASE_URL=<deployment url> VERCEL_AUTOMATION_BYPASS_SECRET=<secret> pnpm test:e2e:deployment`.

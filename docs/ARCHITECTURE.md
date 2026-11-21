@@ -201,7 +201,7 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
   - `cleanup-demo` daily (Phase 5);
   - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
 - Preview deployments are behind Vercel Authentication. Automated checks against a preview send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
-- Each successful deployment sends a `vercel.deployment.success` `repository_dispatch` event, which runs the Playwright suite against it (TESTING.md, CI).
+- Each successful deployment sends a `vercel.deployment.success` `repository_dispatch` event, which runs the read-only e2e specs against it (TESTING.md, CI).
 - `main` is protected: changes arrive through PRs, the CI `check` job and the Vercel build must pass, the history stays linear (squash merges), and force-pushes and deletion are blocked. Admins can override in an emergency.
 - Custom domain: the GoDaddy Registry domain is added in Vercel, with DNS records copied into GoDaddy.
 
