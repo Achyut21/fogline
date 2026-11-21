@@ -60,7 +60,7 @@ This is the shared status board for both builders. Update it after every finishe
      - Vercel sends no GitHub Deployments, so `.github/workflows/deployment.yml` runs on its `vercel.deployment.success` `repository_dispatch` event. It runs only the read-only specs (`pnpm test:e2e:deployment`: smoke, PWA, `/api/health`) and posts an `e2e on <environment>` status.
      - A global setup trades the bypass secret for Vercel's bypass cookie and masks it. No report is uploaded. Fork commits are skipped. The workflow takes effect once it's on `main`.
      - Branch protection on `main` (A approved 2026-11-21): PR required, the `check` and Vercel checks required, linear history, no force-push or deletion, admins can override.
-  6. **Claude Code hooks (item 9) · `a/claude-hooks`**
+  6. **Claude Code hooks (item 9) · `a/claude-hooks` · built, in review.** As built (D-042): two Node scripts in `.claude/hooks/`, wired up in `.claude/settings.json`.
      - Use the `update-config` skill to add two hooks: Prettier formats each file after an Edit or Write, and at Stop a reminder fires when code changed without a `docs/PROGRESS.md` change.
      - Keep the `.env` deny rules. Confirm `.claude/agents` and `.claude/commands` load.
      - Trigger each hook once to prove it works.
@@ -117,6 +117,16 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 17:39 ET · Builder A · Phase 0 hooks (PHASES item 9) built on `a/claude-hooks`:
+  - Prettier formats each edited file.
+  - A once-per-stop reminder fires when code changed without a PROGRESS.md change.
+  - The deny rules are kept (D-042).
+  - Verified:
+    - Formatter: given a badly formatted file it rewrote it, and it left `docs/` untouched. In this session, an Edit to a probe file came back formatted.
+    - Reminder, in a throwaway worktree of `main`: it blocks when code changed without PROGRESS, stays quiet when PROGRESS changed too, stays quiet on a clean tree, and stays quiet when `stop_hook_active` is set. Five clean runs each after removing `process.exit`.
+    - `/phase-start` and the four critics load (used this session).
+  - code-critic: PASS. The SHOULD FIX item is fixed: Prettier failures no longer throw. Nits fixed: real-path check, non-ASCII paths, accurate wording, fork-review warning, and hook scripts now linted. Edge cases re-tested.
+  - PR #6 merged. PR #7 opened: a manual trigger for the deployment check, because Vercel's `repository_dispatch` event didn't arrive for the first production deployment.
 - 2026-11-21 17:36 ET · Builder A · Phase 0 GitHub and Vercel (PHASES items 7, 8) built on `a/ci-vercel`:
   - Deployment workflow on Vercel's `repository_dispatch` event, with a bypass cookie from a global setup instead of a per-request secret header. No uploaded report, fork commits skipped, 20-minute timeout, and a cancelled run reports an error instead of leaving "pending".
   - Read-only specs only (`test:e2e:deployment`).
