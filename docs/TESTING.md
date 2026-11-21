@@ -26,7 +26,7 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 ## Rules
 
 - **No real network** in unit, component or integration tests. Use MSW handlers and recorded fixtures (`tests/fixtures/mbta/*.json`: real feed snapshots trimmed to a few vehicles, plus a small GTFS slice).
-- **No real timers or sleeps.** Use fake timers, `expect.poll` and Playwright's auto-waiting.
+- **No real timers or sleeps.** Use fake timers, `expect.poll` and Playwright's auto-waiting. The one exception is proving something does *not* happen: wait a short, bounded time after the triggering event, as the "does not reload" PWA test does.
 - **Time zone pinned** to `America/New_York` (`process.env.TZ` in the Vitest config and Playwright `timezoneId`). Include tests on DST-change dates and for GTFS times past 24:00:00.
 - **Test behavior, not internals.** Query by role and accessible name. No assertion-free tests. No tests that only check a mock was called.
 - **Snapshots** only for visual baselines and small, stable serialized outputs. Never as the only check on logic.
@@ -45,6 +45,8 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 - **Accessibility:** run `@axe-core/playwright` on every route. Zero serious or critical violations.
 - **PWA checks:** the manifest's fields and icons, service worker registration, the offline page, installability (no errors from the DevTools command `Page.getInstallabilityErrors` in Chromium), and the `beforeinstallprompt` handling in Chromium.
 - **Multi-user flows:** use two browser contexts (organizer and friend) for invites, joins, check-ins and arrival order.
+- **Service workers are blocked** in every Playwright test except the service-worker specs, which opt back in with `test.use({ serviceWorkers: "allow" })`. A controlling worker would hide requests from `page.route` mocks.
+- **The e2e server gets the test database** as `DATABASE_URL` (from `DATABASE_URL_TEST`), never `fogline-db` from `.env`.
 - **Network control:** route MBTA proxy calls to fixtures in most tests. Keep one `@live` tagged smoke test that hits the real feeds and is excluded from CI.
 
 ## What each phase adds
@@ -67,7 +69,8 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 On every pull request and every push to `main`: install with pnpm cache, typecheck, lint, unit, component and integration tests (against a TimescaleDB service container), build, then Playwright on `desktop-chrome`, `iphone` and `pixel` against the built app, uploading reports and traces on failure. Lighthouse CI runs against the Vercel preview URL (with the protection-bypass secret) once Phase 3 has a real map route.
 
 After every successful Vercel deployment, `.github/workflows/deployment.yml` runs the read-only e2e specs (`pnpm test:e2e:deployment`: smoke, PWA, deployment) against it. A spec joins that list only if it writes nothing, because production deployments run it too.
-- Vercel triggers it with the `vercel.deployment.success` `repository_dispatch` event. Vercel doesn't create GitHub Deployments for this project, so `deployment_status` never fires.
+- Vercel's `vercel.deployment.success` `repository_dispatch` event should trigger it automatically, but that event hasn't arrived for this repo yet (D-043). Until it does, start it by hand with the command below. Vercel doesn't create GitHub Deployments for this project, so `deployment_status` never fires either.
+- Service-worker specs skip on protected previews, where the worker doesn't activate (D-043). They run on production deployments and in CI.
 - It checks out the deployed commit. A global setup trades `VERCEL_AUTOMATION_BYPASS_SECRET` for Vercel's bypass cookie and masks it. No report or trace is uploaded, because Playwright errors contain request headers. Commits that aren't on a branch of this repo (forks) are skipped.
 - It posts an `e2e on preview` or `e2e on production` status on that commit.
 - `tests/e2e/deployment.spec.ts` runs only in this mode and checks that `/api/health` reports the database and TimescaleDB up.

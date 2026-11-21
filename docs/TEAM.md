@@ -43,6 +43,8 @@ To change a file the other builder owns, first write a note under your Board ent
 
   Then squash-merge.
 - Database migrations go in their own PR, merged before the code that depends on them. Say so in the handoff.
+  - After the migration PR merges, the builder who merged it applies it to `fogline-db`: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`. It never reads `.env`, so it can't run against production by accident (D-043).
+  - Previews share `fogline-db`, so code that needs a new migration only works on a preview once that migration is applied.
 
 ## Session rhythm
 

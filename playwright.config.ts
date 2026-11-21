@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { parseEnv } from "node:util";
 import { defineConfig, devices } from "@playwright/test";
 import { bypassStatePath, deploymentURL } from "./tests/e2e/deployment-url";
 
@@ -6,6 +8,15 @@ const ci = Boolean(process.env.CI);
 const phone = { width: 390, height: 844 };
 const remoteURL = deploymentURL();
 const bypass = Boolean(remoteURL && process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
+
+// The local e2e server must never reach fogline-db: it gets the throwaway test database (empty
+// when none is configured, so /api/health answers 503) instead of DATABASE_URL from .env.
+const fileEnv = existsSync(".env") ? parseEnv(readFileSync(".env", "utf8")) : {};
+const testDatabaseURL = process.env.DATABASE_URL_TEST ?? fileEnv.DATABASE_URL_TEST ?? "";
+
+// Full Chromium instead of the headless shell: the shell reports no installability errors even
+// for a page with no manifest, so the installability test could never fail there.
+const chromium = { channel: "chromium" };
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -20,14 +31,17 @@ export default defineConfig({
     // Traces record request headers, so none are kept while testing a protected deployment.
     trace: bypass ? "off" : "retain-on-failure",
     storageState: bypass ? bypassStatePath : undefined,
+    // A controlling service worker would hide requests from page.route mocks. Only the
+    // service-worker tests turn it back on.
+    serviceWorkers: "block",
   },
   projects: [
     {
       name: "desktop-chrome",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+      use: { ...devices["Desktop Chrome"], ...chromium, viewport: { width: 1440, height: 900 } },
     },
     { name: "iphone", use: { ...devices["iPhone 15"], viewport: phone } },
-    { name: "pixel", use: { ...devices["Pixel 7"], viewport: phone } },
+    { name: "pixel", use: { ...devices["Pixel 7"], ...chromium, viewport: phone } },
   ],
   webServer: remoteURL
     ? undefined
@@ -36,6 +50,6 @@ export default defineConfig({
         url: `http://localhost:${port}`,
         reuseExistingServer: !ci,
         timeout: 240_000,
-        env: { TZ: "UTC" },
+        env: { TZ: "UTC", DATABASE_URL: testDatabaseURL },
       },
 });

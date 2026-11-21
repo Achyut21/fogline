@@ -86,7 +86,8 @@ src/
     ai/            # Gemini calls, prompts, Mastra agent and tools, eval guard
     mbta.ts        # feed fetch and parse
   styles/
-    tokens.css  globals.css
+    tokens.css  theme-color.ts   # theme-color.ts: browser-chrome colors for the manifest and meta tags
+  app/globals.css      # Tailwind and shadcn base styles (components.json points here)
 scripts/           # data pipelines (see docs/DATA.md), run with pnpm data:*
 data/              # generated JSON, committed
 drizzle/           # migrations, including custom SQL for hypertables
@@ -180,7 +181,7 @@ Keep each client-facing file small. Split by line or load lazily where needed.
 See `docs/PWA.md`. In short:
 - Manifest in `app/manifest.ts`, with iOS meta tags and splash screens.
 - The service worker precaches the app shell and the static data, and caches images and map tiles at runtime within limits.
-- Live data is network-first with a stale fallback that shows its age.
+- `/api/*` is network-only for now (D-040). Phase 3 adds a network-first rule for `/api/mbta/*` with a stale fallback that shows its age, placed before the `/api/*` rule.
 - An offline page, and an update toast when a new version is ready.
 
 ## 11. Environment variables
@@ -201,7 +202,7 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
   - `cleanup-demo` daily (Phase 5);
   - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
 - Preview deployments are behind Vercel Authentication. Automated checks against a preview send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
-- Each successful deployment sends a `vercel.deployment.success` `repository_dispatch` event, which runs the read-only e2e specs against it (TESTING.md, CI).
+- After a deployment, the read-only e2e specs run against it in GitHub Actions (TESTING.md, CI). Vercel's `vercel.deployment.success` `repository_dispatch` event is meant to start that run, but it hasn't arrived for this repo yet. Until it does, a builder starts the run with `gh workflow run deployment.yml` (D-043).
 - `main` is protected: changes arrive through PRs, the CI `check` job and the Vercel build must pass, the history stays linear (squash merges), and force-pushes and deletion are blocked. Admins can override in an emergency.
 - Custom domain: the GoDaddy Registry domain is added in Vercel, with DNS records copied into GoDaddy.
 

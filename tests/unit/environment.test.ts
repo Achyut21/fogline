@@ -7,7 +7,8 @@ it("runs tests in America/New_York", () => {
 });
 
 it("blocks and records an unmocked request instead of reaching the network", async () => {
-  const url = "https://cdn.mbta.com/realtime/VehiclePositions_enhanced.json";
+  // .invalid never resolves, so a regression fails here instead of reaching a real server.
+  const url = "https://feeds.example.invalid/realtime/VehiclePositions_enhanced.json";
   const response = await fetch(url);
   expect(response.ok).toBe(false);
   expect(unhandled.splice(0).join("\n")).toContain(url);

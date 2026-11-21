@@ -203,7 +203,7 @@ Decision:
 - The precache holds Next's static chunks, the two preloaded Latin font files and the PNG icons. Its revision changes on every build.
 - `/serwist/[path]` is a route handler outside `app/api/`. This is a named exception to the CLAUDE.md rule, because Serwist serves the worker from that path.
 Why: `@serwist/turbopack` pins `browserslist` exactly, which made pnpm install two copies of `serwist`. Serwist attaches its offline fallback only to handlers that pass an `instanceof Strategy` check, so with two copies the fallback was silently dropped. The e2e offline test caught it. code-critic found the reload, the `/api` caching, the missing fonts and the stale revision.
-Consequences: when upgrading Serwist, re-check the override and keep the offline e2e tests. Pages are not cached for offline reading yet; Phase 3 adds the offline map and saved plans. PWA.md's manifest list is only partly done until shortcuts and screenshots land.
+Consequences: when upgrading Serwist, re-check the override and keep the offline e2e tests. Serwist's default rules cache pages you've opened for 24 hours (32 entries), so they load offline. Pages you haven't opened show `/offline`. Phase 3 adds the offline map and saved plans properly. PWA.md's manifest list is only partly done until shortcuts and screenshots land.
 
 **D-041 · 2026-11-21 · Deployment checks and branch protection (Phase 0 items 7 and 8).**
 Decision:
@@ -222,3 +222,16 @@ Decision: `.claude/settings.json` runs two Node scripts from `.claude/hooks/`.
 - The `.env` deny rules stay.
 Why: Node is guaranteed on every builder's machine and `jq` isn't. Blocking once makes the reminder impossible to miss without trapping a session that has a reason to skip it.
 Consequences: on Node 24.7, an ES module that reads stdin and then calls `process.exit` can segfault (exit 139), so the hook scripts end without `process.exit`. The scripts are linted and format-checked like the rest of the repo. Both builders get the hooks on their next session after this merges. Hooks run code from the checked-out branch, so before reviewing someone else's fork branch with Claude Code, set `"disableAllHooks": true` in `.claude/settings.local.json`.
+
+**D-043 · 2026-11-21 · Phase 0 gate fixes.**
+The first gate run failed code-critic and test-auditor. These fixes come out of it:
+- **Installability is tested in full Chromium.** Both Chromium projects use `channel: "chromium"`, because the headless shell reports no installability errors even for a page with no manifest. The test ignores `in-incognito`, which every Playwright context reports, and a negative control must see `no-manifest`. It no longer waits for the service worker, because installability doesn't need one.
+- **The e2e server gets `DATABASE_URL` from `DATABASE_URL_TEST`**, never `fogline-db` from `.env`. The `/api` cache test first requires a 200 from `/api/health`, and a mutant service worker without the network-only rule now fails it.
+- **Service workers are blocked in Playwright** except in the service-worker specs, so `page.route` mocks see every request.
+- **On protected previews the service worker never activates**, even with the bypass cookie, while production passes every service-worker test. The service-worker specs skip on previews, and production deployments and CI run them. Finding the cause is an open item for Phase 9's PWA polish.
+- **Vercel's `vercel.deployment.success` `repository_dispatch` event has never arrived** for this repo. That's four deployments since D-041. Until it does, a builder runs the deployment check with `gh workflow run deployment.yml`, and A checks whether the Vercel GitHub app needs updated permissions. The manual run only accepts this project's own Vercel URLs over HTTPS, takes `environment` as a choice, and fails loudly on a commit that isn't a branch head.
+- **Migrations need an explicit target.** `pnpm db:migrate` reads only `MIGRATE_DATABASE_URL`, never `.env`. A migration PR merges first. Then the builder who merged it applies it to `fogline-db`. Then the code that needs it merges. Previews share `fogline-db`, so they only work after that.
+- **`src/styles/theme-color.ts` may hold raw hex** for the manifest and the `theme-color` meta tags, which need literal colors. This extends D-037. Phase 1 derives the values from the tokens.
+- **The offline copy now says "This page isn't saved for offline use."** Serwist's default rules do cache visited pages for 24 hours, and an e2e test proves a visited page opens offline. This corrects D-040.
+Why: two gate tests couldn't fail. The e2e server reached `fogline-db` from laptops. Three docs described an automatic trigger that had never run.
+Consequences: the gate re-runs code-critic and test-auditor on these fixes. Making `e2e on preview` a required check waits until the automatic trigger works.

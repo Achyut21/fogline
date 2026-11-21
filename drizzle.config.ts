@@ -1,11 +1,10 @@
-import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
 
-loadEnvConfig(process.cwd());
-
+// Migrations never pick up DATABASE_URL from .env: the target must be named on the command line,
+// e.g. MIGRATE_DATABASE_URL=$DATABASE_URL_TEST pnpm db:migrate (D-043).
 export default defineConfig({
   dialect: "postgresql",
   schema: "./src/server/db/schema.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL ?? "" },
+  dbCredentials: { url: process.env.MIGRATE_DATABASE_URL ?? "" },
 });

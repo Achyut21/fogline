@@ -18,3 +18,10 @@ test("home has no horizontal scroll", async ({ page }) => {
   );
   expect(overflow).toBe(0);
 });
+
+test("runs the browser in America/New_York", async ({ page }) => {
+  await page.goto("/");
+  expect(await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone)).toBe(
+    "America/New_York",
+  );
+});
