@@ -15,6 +15,21 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      timescale:
+        # Same Postgres and TimescaleDB versions as the fogline-db service on Tiger Cloud.
+        image: timescale/timescaledb:2.32.1-pg18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

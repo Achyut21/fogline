@@ -32,7 +32,7 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
    - One smoke test per layer.
 5. **Database:**
    - Drizzle with the `postgres` driver against `DATABASE_URL` (Tiger's pooled string).
-   - A first migration, plus a check query `select extversion from pg_extension where extname = 'timescaledb'`, wrapped as a read-only test that is skipped when `DATABASE_URL` is absent.
+   - A first migration, plus a check query `select extversion from pg_extension where extname = 'timescaledb'`, wrapped as a read-only test that is skipped when `LIVE_DATABASE_URL` is absent (D-038).
    - `/api/health` runs the same check and returns only `{ db, timescaledb }` booleans, so the gate can run it from a deployment.
    - Integration tests that write use `DATABASE_URL_TEST`: a TimescaleDB container in CI, never `fogline-db`.
 6. **PWA skeleton:** `app/manifest.ts`, placeholder icons (192, 512, maskable 512, apple-touch 180), a service worker setup (Serwist or a hand-written worker, see `ARCHITECTURE.md`), and an offline page.
