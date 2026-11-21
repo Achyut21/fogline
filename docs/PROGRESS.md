@@ -22,7 +22,7 @@ This is the shared status board for both builders. Update it after every finishe
 ### Builder A
 - **Now:** Phase 0 Foundations. The plan below is waiting for A's yes. Builder B reviews each PR.
   Phase 0 has no PRD criteria, so its tests are named after the gate check they prove. Every item ends with code-critic before each commit, copy-critic on new strings, a look in the Browser pane at 390×844 in both color schemes and with reduced motion, a PR, and a squash-merge after CI passes. After item 6, `/phase-gate 0`.
-  1. **Scaffold, tooling, shadcn, lib helpers (items 1, 2, 3, 10) · branch `a/scaffold` · built, in PR.** Actual: shadcn uses the Radix base with the `nova` preset (`new-york` is gone from the CLI). The test scripts arrive with item 2. D-036 and D-037 record the choices.
+  1. **Scaffold, tooling, shadcn, lib helpers (items 1, 2, 3, 10) · branch `a/scaffold` · merged (#2).** Actual: shadcn uses the Radix base with the `nova` preset (`new-york` is gone from the CLI). The test scripts arrive with item 2. D-036 and D-037 record the choices.
      - Run `pnpm create next-app@latest .scaffold` with TypeScript, Tailwind, ESLint, App Router, `--src-dir`, the `@/*` alias and pnpm. Move it into the repo root without touching `docs/`, `.claude/`, `CLAUDE.md`, `MASTER_PROMPT.md` or `.env.example`, merge `.gitignore`, and delete `.scaffold/`.
      - Turn Cache Components off. create-next-app 16.4 enables it by default, and no doc plans for it. Log this as a decision.
      - Add Prettier and the ESLint flat config. Next 16 removed `next lint`, so `pnpm lint` runs `eslint .`.
@@ -31,7 +31,7 @@ This is the shared status board for both builders. Update it after every finishe
      - Run `shadcn init` (new-york style, Tailwind v4 CSS variables) and add Button, Drawer, Sonner, Input and Tabs. They stay unstyled until Phase 1.
      - Add `src/lib/log.ts` (a server logger that adds context), `src/lib/flags.ts` (env-driven feature flags), `src/copy/index.ts`, and a home stub page whose strings live in `src/copy/`.
      - Add the first CI workflow (typecheck, lint, build) on PRs and pushes to `main`, so every later PR runs CI.
-  2. **Test harness (item 4) · `a/test-harness`**
+  2. **Test harness (item 4) · `a/test-harness` · built, in PR.** Change from the approved plan: the integration smoke test and the CI TimescaleDB container move to item 3, because they need the Postgres driver, and an integration test that only skips asserts nothing. The phone projects run at 390×844.
      - Set up Vitest with jsdom, React Testing Library and MSW. Pin `TZ=America/New_York` and require 90% line coverage on `src/lib/**`.
      - Add Playwright projects `desktop-chrome`, `iphone` (WebKit, iPhone 15) and `pixel` (Chromium, Pixel 7), with `timezoneId` pinned and `@axe-core/playwright`.
      - Smoke tests:
@@ -67,7 +67,8 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Done 2026-11-21: Vercel project `fogline` connected to the repo (production at `fogline-mu.vercel.app`), env vars added, bypass secret stored as `VERCEL_AUTOMATION_BYPASS_SECRET` in GitHub.
   - In Vercel, set `NEXT_PUBLIC_APP_URL` to `https://fogline-mu.vercel.app` for Production, remove it from Preview, and mark the secrets Sensitive.
-  - Add `SESSION_SECRET=` and `NEXT_PUBLIC_FLAGS=` to `.env.example`, and change the `DATABASE_URL_TEST` comment to say it's a throwaway TimescaleDB, never `fogline-db`. Claude can't edit `.env.example`, because the global settings deny reads of `.env.*`.
+  - Done 2026-11-21: A edited `.env.example` (`SESSION_SECRET`, `NEXT_PUBLIC_FLAGS`, the `DATABASE_URL_TEST` comment). Claude can't read the file, so A commits it.
+  - Done 2026-11-21: `NEXT_PUBLIC_APP_URL` (Production) and `NEXT_PUBLIC_MAP_STYLE_URL` (Production, Preview) recreated as Config through the Vercel CLI.
 - **Next:** Phase 1 Design.
 - **Blocked:** none yet. Item 5 needs the Vercel steps above.
 
@@ -115,6 +116,14 @@ Copy this table for each phase when its gate runs.
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 17:10 ET · Builder A · Phase 0 item 2 built on `a/test-harness`:
+  - Vitest 5 projects for unit, component and integration, in `TZ=America/New_York`, with 90% line coverage required on `src/lib`.
+  - MSW 3 blocks and records every unmocked request and fails the test that made it. MSW 3's own "error" strategy lets `.json` URLs through, and every MBTA feed URL ends in `.json`.
+  - Playwright projects: desktop-chrome 1440×900, iphone (WebKit) and pixel, both at 390×844. The server runs in UTC, like Vercel. axe runs, plus a horizontal-scroll check.
+  - CI runs the tests and Playwright, and uploads reports on any run that isn't cancelled.
+  - Tests: 14 Vitest and 6 e2e pass. `src/lib` line coverage is 96%.
+  - code-critic: FAIL on the first pass (unmocked requests became a silent 500). Fixed and proven with a throwaway failing test.
+  - Also: PR #2 merged after `vercel.json` set the framework to Next.js. The Vercel project, created when the repo held only docs, had looked for a static `public` folder.
 - 2026-11-21 16:05 ET · Builder A · Phase 0 item 1 built on `a/scaffold`:
   - Next 16.4.6 (Turbopack, Cache Components off), React 19.3, Tailwind 4.3.
   - Prettier and the ESLint flat config (rules for `no-console`, `no-debugger`, `eqeqeq` and `no-explicit-any`), plus `data:*` scripts that exit 1.
