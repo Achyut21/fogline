@@ -71,4 +71,4 @@ After every successful Vercel deployment, `.github/workflows/deployment.yml` run
 - It checks out the deployed commit. A global setup trades `VERCEL_AUTOMATION_BYPASS_SECRET` for Vercel's bypass cookie and masks it. No report or trace is uploaded, because Playwright errors contain request headers. Commits that aren't on a branch of this repo (forks) are skipped.
 - It posts an `e2e on preview` or `e2e on production` status on that commit.
 - `tests/e2e/deployment.spec.ts` runs only in this mode and checks that `/api/health` reports the database and TimescaleDB up.
-- To run it by hand: `PLAYWRIGHT_BASE_URL=<deployment url> VERCEL_AUTOMATION_BYPASS_SECRET=<secret> pnpm test:e2e:deployment`.
+- To run it in GitHub against any deployment: `gh workflow run deployment.yml -f url=<deployment url> -f sha=<commit> -f environment=preview`. Locally: `PLAYWRIGHT_BASE_URL=<deployment url> VERCEL_AUTOMATION_BYPASS_SECRET=<secret> pnpm test:e2e:deployment`.
