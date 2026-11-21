@@ -12,10 +12,11 @@ Status: Planned. An e2e test runs this whole path (Phase 5 gate).
 
 1. The judge scans the QR code at the table. It opens `/demo` on their phone, showing a fogged Boston with the Demo chip and "Boston 3% uncovered".
 2. **Daily** tab: they solve today's puzzle (the demo answer is easy). The event card appears, the map flies to the venue, the pin drops and the fog around it burns off.
-3. They tap **Plan it**. Two demo friends are already in: Priya (Harvard, Red Line) and Sam (Tufts, Green Line E). They tap **Find spots**. Three options appear, the top one with fairness bars showing 17, 18 and 19 min, and everyone's leave-by time.
-4. They choose it and open **Recap** for the demo's completed night: the podium (Priya First In, Sam Fashionably Late), the night's numbers counting up, badges, and the share card.
-5. **Ride** replay: a recorded Green Line ride. The fog lifts stop by stop with stop cards, ending with a summary of miles, stops and new cells.
-6. Close on the Me tab: lifetime stats and badges.
+3. They tap **Plan it**. The event is the destination and its time is filled in. Two demo friends are already in: Priya (Harvard, Red Line) and Sam (Tufts, Green Line E). Everyone's minutes to the venue and leave-by time show.
+4. **Plans → New plan** with the same friends, then **Find spots**. Three options appear, the top one with fairness bars (for example 17, 18 and 19 min) and everyone's leave-by time. They choose it.
+5. They open **Recap** for the demo's completed night: the podium (Priya First In, Sam Fashionably Late), the night's numbers counting up, badges, and the share card.
+6. **Ride** replay: a recorded Green Line ride. The fog lifts stop by stop with stop cards, ending with a summary of miles, stops and new cells.
+7. Close on the Me tab: lifetime stats and badges.
 
 ## Full tour (10 minutes)
 
@@ -28,8 +29,8 @@ Status: Planned. Every feature below, in order F1 → F16, using a real profile 
 Status: Planned
 - **Why:** set up in under 30 seconds without an account.
 - **Entry:** first visit to `/`.
-- **Steps:** Welcome → name → school → home station (search) → age band → map, with only the home station's area uncovered.
-- **Also:** Me → profile code → copy. In the installed app, enter the code to restore the profile. Settings → delete my data.
+- **Steps:** Welcome (name) → school → home station (suggested from the school, or search) → age band → map, where the fog burns off around the home station.
+- **Also:** Me → profile code → copy. In the installed app, Welcome → Restore profile → enter the code. Settings → delete my data.
 - **Edge cases:** location denied later; restoring with a wrong code; reload after onboarding; iOS installed app with no profile.
 - **How to demo:** onboard as yourself, then show the profile code restore in the installed app.
 - **Tests:** _(fill in criteria IDs)_
@@ -63,7 +64,7 @@ Status: Planned
 - **Why:** a spot that's fair by T time for friends at different campuses.
 - **Entry:** Plans → New plan, or Plan it from the puzzle.
 - **Steps:** when → who (invite link or placeholder with a station) → what, budget, vibe, grade → Find spots → compare options (fairness bars) → choose → share the invite link.
-- **Edge cases:** no option (constraint named); under-21 participant; one participant; a station with no service at that hour.
+- **Edge cases:** no option (constraint named); under-21 participant (bars and clubs off); under-21 profile opening a 21+ plan's link; one participant; a station with no service at that hour.
 - **How to demo:** BU + Harvard + Tufts on Friday at 7 PM.
 - **Tests:**
 - **Screenshots:**
@@ -73,7 +74,7 @@ Status: Planned
 Status: Planned
 - **Why:** everyone knows when to leave.
 - **Entry:** plan detail and live mode.
-- **Steps:** see each person's leave-by → in live mode, the countdown → alerts at 20 and 5 minutes.
+- **Steps:** see each person's leave-by → Remind me saves a calendar event with alarms → in live mode, the countdown → alerts at 20 and 5 minutes.
 - **Edge cases:** plan after the last train (warning); no train home (neutral options); after-midnight service date; an alert on the route home.
 - **How to demo:** set the plan time to 11:45 PM and show the warnings.
 - **Tests:**
@@ -128,7 +129,7 @@ Status: Planned
 Status: Planned
 - **Why:** multi-stop nights and ready-made plans each week.
 - **Entry:** Plans → New crawl; Plans → This week.
-- **Steps:** choose categories per stop → filters → build → review stops and leave-by → invite; or tap a weekly plan → invite friends.
+- **Steps:** choose categories per stop → filters → build → review stops and leave-by → invite; or tap a weekly plan → invite friends; or Plan it on a puzzle event → Dinner before.
 - **Edge cases:** a stop with unknown hours; an under-21 participant; no valid crawl.
 - **How to demo:** a 3-stop dinner, dessert and music crawl.
 - **Tests:**
@@ -195,6 +196,6 @@ Status: Planned
 - **Why:** a reliable 3-minute path for judges, with no real data mixed in.
 - **Entry:** `/demo` (QR code at the table).
 - **Steps:** the judge path above.
-- **Edge cases:** Gemini unavailable (cached output used); MBTA feed down (replay used); demo data never showing in real views.
+- **Edge cases:** Gemini unavailable (cached output used); MBTA feed down (replay used); demo data never showing in real views; two judges at once (each visit gets its own copy).
 - **Tests:**
 - **Screenshots:**

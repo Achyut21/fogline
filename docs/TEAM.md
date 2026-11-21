@@ -4,10 +4,10 @@ Two builders, each with their own Claude Code session on their own laptop. The r
 
 ## People
 
-| Letter | Name | GitHub |
-|---|---|---|
-| A | _fill in_ | _fill in_ |
-| B | _fill in_ | _fill in_ |
+| Letter | GitHub |
+|---|---|
+| A | Achyut21 |
+| B | Anand283 |
 
 ## Ownership
 
@@ -18,7 +18,7 @@ Two builders, each with their own Claude Code session on their own laptop. The r
 | App shell, PWA (manifest, service worker, install flows) | A | |
 | Onboarding and profile (F1), demo mode (F16) | A | |
 | Data pipelines (`scripts/`, `data/`) | B | |
-| Domain logic (`src/lib/solver`, `lasttrain`, `geo`, `grades.ts`, `badges.ts`, `stats.ts`, `puzzle.ts`) | B | |
+| Domain logic (`src/lib/solver`, `lasttrain`, `geo`, `time.ts`, `grades.ts`, `badges.ts`, `stats.ts`, `puzzle.ts`) | B | |
 | Database schema and migrations (`src/server/db`, `drizzle/`) | B | A asks B before changing them |
 | Plans, last train, live night (F4–F6), puzzle logic (F7) | B | A helps with UI and motion |
 | AI (`src/server/ai`, Mastra agent) | B | |
@@ -53,7 +53,7 @@ To change a file the other builder owns, first write a note under your Board ent
 
 ## Setup for each builder
 
-1. Clone: `gh repo clone Achyut21/fogline`, then `pnpm install`.
+1. Clone: `gh repo clone Achyut21/fogline`, then `pnpm install` and `pnpm exec playwright install`.
 2. **`.env`:** copy `.env.example` to `.env`. Builder A shares the values directly (a private message, never a group chat or the repo).
 3. **Tiger Cloud:** Builder A invites Builder B under Members in the Tiger console.
 4. **Vercel:** Builder A invites Builder B to the Vercel team and project.

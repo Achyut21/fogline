@@ -28,7 +28,7 @@ Two themes from the same token set:
 - **Day:** light, fog in warm off-white with grain, a muted basemap.
 - **Night:** deep blue-black, fog in cool gray, a dark basemap, line colors glow slightly.
 
-Default: follow local sunset and sunrise (computed with `suncalc` for Boston), with a manual override in Settings. Phase 1 confirms this or records another decision.
+Default: follow local sunset and sunrise (computed with `suncalc` for Boston), with a manual override in Settings. Phase 1 confirms this or records another decision. Two things to settle: the `theme-color` meta follows the OS dark setting unless it's updated at runtime, and some users need dark mode at all hours.
 
 ## 4. Tokens (starting values, finalized in Phase 1)
 
@@ -50,6 +50,7 @@ Contrast rules:
 - White text on Orange Line `#ED8B00` fails WCAG AA, so use `--ink` on orange.
 - White on red, green and blue passes; check the exact pair in Phase 1.
 - Every color pair used for text must meet WCAG 2.2 AA in both themes. The `/design` page lists each pair with its ratio.
+- T lines on the map need 3:1 against the basemap (WCAG 1.4.11). Orange on a light basemap is about 2.2:1 and Blue on a near-black one about 2:1, so lines get a casing in both themes. The line colors themselves don't change.
 
 ### Type
 
@@ -94,16 +95,16 @@ Export the same values from `src/lib/motion.ts` for Motion and for R3F animation
 
 Each screen needs default, loading (skeleton), empty, error and offline states unless marked otherwise.
 
-1. **Onboarding:** Welcome (fog hero), Name, School, Home station, Age band, Ready.
+1. **Onboarding:** Welcome (fog hero with the name field and a "Restore profile" link), School, Home station (suggested from the school), Age band, then the map's first fog reveal in place of a Ready screen. Restore: enter a profile code.
 2. **Map (home):** progress header, map with fog, Ride button, station sheet, neighborhoods sheet, list view.
 3. **Ride:** station picker, upcoming trains, riding view (3D and 2D), stop card, train-lost state, ride summary.
-4. **Daily:** puzzle, invalid-word feedback, solved with event card, failed, already played, streak.
+4. **Daily:** puzzle, invalid-word feedback, solved with event card, failed, already played, streak. The puzzle gets its own look: no tiles, colors or layout borrowed from other word games.
 5. **Plans:**
    - plans list (upcoming, this week's suggestions, past) and the builder steps;
    - options result with fairness bars and leave-by times;
-   - plan detail with invite, and the join page for invitees;
+   - plan detail with invite and Remind me, and the join page for invitees (including the 21+ state for under-21 profiles);
    - live mode, check-in states (success, too far, low accuracy, permission denied), recap.
-6. **Me:** stats, badges, profile code, settings (theme, calm mode, age band, delete my data), install.
+6. **Me:** stats, badges, profile code, settings (theme, force 2D, calm mode, age band, delete my data), install.
 7. **Squad:** squad map, members, streak.
 8. **System:** offline banner, stale-data chip, error page, 404, iOS install sheet, permission primers (location, microphone), update-available toast, demo chip.
 9. **`/design`:** the living style guide.

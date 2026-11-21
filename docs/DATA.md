@@ -43,7 +43,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
    Write `station-cards.json` with source URLs, then list the cards for the demo lines in `PROGRESS.md` for a human check.
 5. **`data:neighborhoods`.** Fill boundaries with H3 resolution-9 cells into `neighborhoods-h3.json` (Boston neighborhoods, plus Cambridge, Somerville and Brookline as regions; cells outside these go into a region called "Beyond").
-6. **`data:events`.** A curated, human-checked list of real events for the coming two weeks: title, venue, coordinates, start time, URL, source and a 5-letter puzzle word. Store facts and links only. Don't copy event descriptions.
+6. **`data:events`.** A curated, human-checked list of real events for the coming two weeks: title, venue, coordinates, start time, URL, source and a 5-letter puzzle word. All-ages venues only, because everyone shares one daily answer (F7.1) and under-21 profiles never see bars (F1.5). Store facts and links only. Don't copy event descriptions.
 7. **`data:words`.** Answers come from the event words. Valid guesses come from an openly licensed English word list (verify the license). Don't copy another game's word list.
 
 ## 3. Algorithms (the tests in `tests/unit/` follow these definitions)
@@ -56,7 +56,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 - **Headway** per (route, direction, stop, day type, hour) is the median gap between departures. **Expected wait** is half the headway.
 - **Transfer edges** use `min_transfer_time` from `transfers.txt` when present, otherwise 3 minutes, plus the expected wait of the route you transfer to.
 - `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. Precompute all pairs per day type and hour: about 125 stations, so this is small.
-- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Tufts/Medford to Park Street) must land within 3 minutes of the MBTA schedule. Record the comparison in `PROGRESS.md`.
+- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. Record the comparison in `PROGRESS.md`.
 
 ### 3.2 Fair meetup score (F4.3)
 

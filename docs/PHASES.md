@@ -19,6 +19,8 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 
 **Read:** `ARCHITECTURE.md`, `TESTING.md`, `PWA.md`, `TEAM.md`.
 
+Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` starts in Phase 1, when there's a canvas to compare against. `copy-critic` still reviews Phase 0 strings (manifest, metadata, offline page).
+
 **Items**
 1. **Scaffold** Next.js (App Router, TypeScript strict, Tailwind, ESLint, `src/` directory, pnpm).
    - `create-next-app` refuses a folder that already has files. Scaffold into a temporary folder (for example `pnpm create next-app@latest .scaffold`), move its contents into the repo root without overwriting `docs/`, `.claude/`, `CLAUDE.md`, `MASTER_PROMPT.md`, `.gitignore` or `.env.example` (merge `.gitignore`), then delete the temporary folder.
@@ -30,12 +32,14 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
    - One smoke test per layer.
 5. **Database:**
    - Drizzle with the `postgres` driver against `DATABASE_URL` (Tiger's pooled string).
-   - A first migration, plus a check query `select extversion from pg_extension where extname = 'timescaledb'`, wrapped as a test that is skipped when `DATABASE_URL` is absent.
+   - A first migration, plus a check query `select extversion from pg_extension where extname = 'timescaledb'`, wrapped as a read-only test that is skipped when `DATABASE_URL` is absent.
+   - `/api/health` runs the same check and returns only `{ db, timescaledb }` booleans, so the gate can run it from a deployment.
+   - Integration tests that write use `DATABASE_URL_TEST`: a TimescaleDB container in CI, never `fogline-db`.
 6. **PWA skeleton:** `app/manifest.ts`, placeholder icons (192, 512, maskable 512, apple-touch 180), a service worker setup (Serwist or a hand-written worker, see `ARCHITECTURE.md`), and an offline page.
 7. **GitHub:**
    - The public repo `Achyut21/fogline` with `main` as the default branch.
-   - A GitHub Actions workflow on pull requests: install, typecheck, lint, unit tests, build, and Playwright (Chromium and WebKit) with reports uploaded.
-8. **Vercel:** link the project, add env vars for Production and Preview, set the function region to `iad1`, and add a `vercel.json` with the cron entries disabled until Phase 3. Confirm preview deployments work on PRs.
+   - A GitHub Actions workflow on pull requests and pushes to `main`: install, typecheck, lint, unit tests, build, and Playwright (Chromium and WebKit) with reports uploaded.
+8. **Vercel:** link the project, add env vars for Production and Preview, and add a `vercel.json` that sets the function region to `iad1` and has no crons yet (`vercel.json` can't disable an entry, so each cron arrives with its route, starting in Phase 3). Set up Protection Bypass for Automation so CI can test previews. Confirm preview deployments work on PRs.
 9. **Claude Code project setup:**
    - Use the `update-config` skill to add hooks: format changed files after edits, and a reminder when a session stops with code changes but no `docs/PROGRESS.md` change.
    - Confirm `.claude/agents` and `.claude/commands` load (`/phase-start` shows up).
@@ -43,10 +47,10 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 10. **`src/lib/log.ts`, `src/lib/flags.ts`** (env-driven feature flags for unfinished features), and **`src/copy/`** with an index.
 
 **Gate**
-- A fresh clone runs `pnpm install && pnpm test && pnpm test:e2e && pnpm build` successfully.
+- A fresh clone runs `pnpm install && pnpm exec playwright install && pnpm test && pnpm test:e2e && pnpm build` successfully.
 - CI is green on a PR, and the PR's Vercel preview loads at 390×844 in iPhone and Pixel emulation.
-- The manifest is valid, and the preview is installable in Chrome (Lighthouse installability passes).
-- The TimescaleDB check query passes from the preview deployment's server.
+- The manifest is valid, and the preview is installable in Chrome: a Playwright test gets no errors from the DevTools command `Page.getInstallabilityErrors`, and a manual install works. (Lighthouse 12 removed its PWA audits.)
+- `/api/health` on the preview deployment returns `timescaledb: true`.
 - Hooks work, `/phase-start` is available, and `.env` is ignored by git.
 
 ---
@@ -118,8 +122,8 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 
 **Items**
 1. **F4:** plan builder, solver integration, options with fairness bars, invite links, join page, Open Graph images, Mastra planner agent with its eval guard.
-2. **F5:** leave-by times, warnings, live countdown with alerts, alert-text display, the no-train-home path.
-3. **F6:** live mode, check-ins with validity rules, arrival order, plan end.
+2. **F5:** leave-by times, warnings, live countdown with alerts, Remind me calendar reminders (F5.8), alert-text display, the no-train-home path.
+3. **F6:** live mode, check-ins with validity rules, arrival order, plan end (organizer and the `end-plans` cron).
 
 **Gate**
 - Every F4–F6 criterion has a test.
@@ -134,7 +138,7 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 
 **Items**
 1. **F7:** puzzle, validation, feedback, event reveal and pin, Plan it, share grid, streaks.
-2. **F16:** the `/demo` seed, data isolation, the Demo chip, cached AI outputs, and a recorded replay.
+2. **F16:** the `/demo` seed copied per visit, data isolation, the `cleanup-demo` cron, the Demo chip, cached AI outputs, and a recorded replay.
 
 **Gate**
 - Every F7 and F16 criterion has a test.
@@ -160,7 +164,7 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 
 **Read:** `PRD.md` F10–F12, `DATA.md` sections 3.6–3.7.
 
-**Items:** F10 crawls and the weekly cron, F11 grade badges with plain-English summaries, F12 squad map and streaks.
+**Items:** F10 crawls and the weekly cron, including "Dinner before" from a puzzle event (F10.6), F11 grade badges with plain-English summaries, F12 squad map and streaks.
 
 **Gate:** every F10–F12 criterion has a test, the weekly cron is tested with fixtures, and the WALKTHROUGH entries are verified.
 

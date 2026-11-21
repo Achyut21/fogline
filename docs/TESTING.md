@@ -14,7 +14,8 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 
 ## Commands
 
-- `pnpm test`: unit, component and integration tests (integration tests skip when `DATABASE_URL_TEST` is absent).
+- A fresh clone runs `pnpm exec playwright install` once to get the browsers.
+- `pnpm test`: unit, component and integration tests. Integration tests skip when `DATABASE_URL_TEST` is absent. It points at a throwaway TimescaleDB (a container in CI, Docker locally), never at `fogline-db`. The Phase 0 TimescaleDB check is read-only, uses `DATABASE_URL`, and skips when that's absent.
 - `pnpm test:watch`
 - `pnpm test:e2e`: all Playwright projects. Add `--project=iphone` or `--project=pixel` to run one.
 - `pnpm test:e2e:ui`: Playwright UI mode for debugging.
@@ -37,9 +38,9 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 - **Reduced motion:** `page.emulateMedia({ reducedMotion: 'reduce' })` on every flow test at least once.
 - **Themes:** `colorScheme: 'dark'` plus the app's theme override.
 - **WebGL fallback:** a Chromium project or test launched with `--disable-gpu` (and with WebGL unavailable) must show the 2D fallbacks for fog, ride and recap.
-- **Visual baselines:** `expect(page).toHaveScreenshot()` for `/design` and each key screen at 390×844 in both themes, with a small `maxDiffPixelRatio`. Mask dynamic regions (times, live data). Update baselines only with a reason in the commit message, after design-critic approval.
+- **Visual baselines:** `expect(page).toHaveScreenshot()` for `/design` and each key screen at 390×844 in both themes, with a small `maxDiffPixelRatio`. Mask dynamic regions (times, live data). Update baselines only with a reason in the commit message, after design-critic approval. Fonts render differently on macOS and Linux, so baselines are generated and updated in Playwright's Docker image to match CI.
 - **Accessibility:** run `@axe-core/playwright` on every route. Zero serious or critical violations.
-- **PWA checks:** the manifest's fields and icons, service worker registration, the offline page, and the `beforeinstallprompt` handling in Chromium.
+- **PWA checks:** the manifest's fields and icons, service worker registration, the offline page, installability (no errors from the DevTools command `Page.getInstallabilityErrors` in Chromium), and the `beforeinstallprompt` handling in Chromium.
 - **Multi-user flows:** use two browser contexts (organizer and friend) for invites, joins, check-ins and arrival order.
 - **Network control:** route MBTA proxy calls to fixtures in most tests. Keep one `@live` tagged smoke test that hits the real feeds and is excluded from CI.
 
@@ -47,7 +48,7 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 
 | Phase | Required tests |
 |---|---|
-| 0 | one smoke test per layer, TimescaleDB check, manifest test |
+| 0 | one smoke test per layer, TimescaleDB check, manifest test, installability test |
 | 1 | `/design` visual baselines (both themes, two viewports), axe on `/design`, reduced-motion rendering of every motion pattern, WebGL-fallback test for the fog |
 | 2 | unit tests for every algorithm in `DATA.md` with all section 4 edge cases, pipeline transform tests on fixtures, migration test |
 | 3 | F1–F3 criteria, the replay ride e2e, the offline map state |
@@ -60,4 +61,4 @@ Every acceptance criterion in `docs/PRD.md` has at least one test, with its ID i
 
 ## CI (GitHub Actions)
 
-On every pull request: install with pnpm cache, typecheck, lint, unit and component tests, build, then Playwright on `desktop-chrome`, `iphone` and `pixel` against the built app, uploading reports and traces on failure. Lighthouse CI runs against the Vercel preview URL once Phase 3 has a real map route.
+On every pull request and every push to `main`: install with pnpm cache, typecheck, lint, unit, component and integration tests (against a TimescaleDB service container), build, then Playwright on `desktop-chrome`, `iphone` and `pixel` against the built app, uploading reports and traces on failure. Lighthouse CI runs against the Vercel preview URL (with the protection-bypass secret) once Phase 3 has a real map route.

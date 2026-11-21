@@ -8,10 +8,12 @@ Check current docs before using any library API listed here (Context7 or the `do
 Phone (PWA)                       Vercel (Next.js, region iad1)                 External
 -----------                       ------------------------------                --------
 App shell + service worker  --->  Server Components, Server Actions  ------->  Tiger Cloud (Postgres + TimescaleDB, us-east-1)
-MapLibre + fog (R3F)        --->  /api/mbta/* (cached proxy, ~10 s)  ------->  MBTA realtime feeds (keyless JSON)
-Motion UI, puzzle, plans    --->  /api/og/* (share images)
+MapLibre + fog (R3F)        --->  /api/mbta/* (cached proxy, ~5 s)  -------->  MBTA realtime feeds (keyless JSON)
+Motion UI, puzzle, plans    --->  /api/og/* (share images), /api/health
                                   /api/cron/record-vehicles (every minute) -->  MBTA VehiclePositions -> hypertable
+                                  /api/cron/end-plans (every 15 min)
                                   /api/cron/weekly-plans (Mondays)
+                                  /api/cron/cleanup-demo (daily)
                                   Mastra planner + AI SDK (Gemini) ---------->  Gemini API
 Static data (JSON, precached) <-- data/*.json built by scripts/ from GTFS, OSM, Analyze Boston, Wikipedia
 ```
@@ -41,7 +43,8 @@ Static data (JSON, precached) <-- data/*.json built by scripts/ from GTFS, OSM, 
 src/
   app/
     (app)/                 # tabbed app shell: map, daily, plans, me
-      page.tsx             # Map (home)
+      layout.tsx           # holds MapView, so tab switches never re-mount the map
+      page.tsx             # Map tab (sheets over the map)
       daily/  plans/  me/  squad/
     ride/                  # ride mode (full screen)
     p/[planId]/            # plan, join page, live/, recap/
@@ -50,12 +53,16 @@ src/
     how-it-works/
     demo/
     api/
+      health/route.ts             # { db, timescaledb } booleans, nothing else
       mbta/vehicles/route.ts      # cached proxy of the vehicle feed
       mbta/predictions/route.ts   # cached proxy of trip updates for a station
       og/plan/[planId]/route.tsx
       og/recap/[planId]/route.tsx
+      plans/[planId]/reminder/route.ts  # .ics with leave-by alarms (F5.8)
       cron/record-vehicles/route.ts
+      cron/end-plans/route.ts
       cron/weekly-plans/route.ts
+      cron/cleanup-demo/route.ts
     manifest.ts
     offline/page.tsx
   components/
@@ -81,7 +88,7 @@ scripts/           # data pipelines (see docs/DATA.md), run with pnpm data:*
 data/              # generated JSON, committed
 drizzle/           # migrations, including custom SQL for hypertables
 tests/
-  unit/  component/  e2e/  fixtures/   # fixtures: recorded MBTA JSON, small GTFS slices
+  unit/  component/  integration/  e2e/  fixtures/   # fixtures: recorded MBTA JSON, small GTFS slices
 public/
   icons/  splash/
 ```
@@ -92,17 +99,17 @@ public/
 - **Client islands:** MapView with FogLayer, the ride view, the puzzle, the plan builder, live mode, and every 3D scene.
 - **Heavy libraries** (MapLibre, three.js, R3F, drei) load with `next/dynamic` and `ssr: false`, after first paint.
 - **The server is the source of truth** for profiles, plans, check-ins, cells, badges and stats. Client state holds only UI state (Zustand) and polled live data (TanStack Query).
-- **Polling:**
-  - vehicles every 10 s while riding;
+- **Polling** (F3.2 allows 15 s from a feed change to the screen, F6.3 allows 10 s):
+  - vehicles every 5 s while riding;
   - predictions every 30 s while a station sheet or the trains list is open;
-  - plan live state every 10 s in live mode.
+  - plan live state every 5 s in live mode.
   - All polling stops when the tab is hidden.
 - **Optimistic UI** for check-ins and cell reveals, reconciled with the server response.
 
 ## 5. Live MBTA data
 
 - Feeds (no key): `https://cdn.mbta.com/realtime/VehiclePositions_enhanced.json`, `TripUpdates_enhanced.json`, `Alerts_enhanced.json`.
-- The browser never calls them directly. `/api/mbta/*` route handlers fetch, parse to small typed shapes, and cache for about 10 s. That keeps payloads small and survives feed hiccups by serving the last good response with its age.
+- The browser never calls them directly. `/api/mbta/*` route handlers fetch, parse to small typed shapes, and cache for about 5 s. That keeps payloads small and survives feed hiccups by serving the last good response with its age.
 - **Recorder:** Vercel Cron calls `/api/cron/record-vehicles` every minute. It checks the `CRON_SECRET` header, fetches the vehicle feed and inserts subway vehicles into the `vehicle_positions` hypertable. This feeds replay mode (F3.5) and the How it works page (F15).
 - The V3 API (`https://api-v3.mbta.com`) is optional. Without a key it allows about 20 requests a minute, so use the CDN feeds.
 
@@ -117,7 +124,7 @@ Drizzle owns the regular tables. Custom SQL migrations (`drizzle-kit generate --
 - `plan_stops`: plan_id, seq, place_id, station_id, scheduled_at.
 - `places`: id, osm_id, name, category, lat, lon, station_id, walk_m, age_rule, price_band, hours (raw OSM), inspection_key, grade, grade_date, vibe_tags.
 - `revealed_cells`: profile_id, h3 (text), state (`seen` | `visited`), source (`home` | `ride` | `checkin` | `puzzle`), first_at. Primary key (profile_id, h3).
-- `badges_awarded`: profile_id, badge_id, plan_id (nullable), awarded_at, meta (jsonb). Unique (profile_id, badge_id, plan_id) for idempotency.
+- `badges_awarded`: profile_id, badge_id, plan_id (nullable), scope (nullable: the neighborhood for First Light), awarded_at, meta (jsonb). Unique `NULLS NOT DISTINCT (profile_id, badge_id, plan_id, scope)` for idempotency. A plain unique constraint treats NULLs as distinct and would let explorer badges duplicate.
 - `events`: id, title, venue, lat, lon, starts_at, url, source, puzzle_word, is_curated.
 - `daily_puzzles`: date (America/New_York), word, event_id.
 - `puzzle_results`: profile_id, date, guesses (jsonb), solved, solved_at.
@@ -176,13 +183,20 @@ See `docs/PWA.md`. In short:
 ## 11. Environment variables
 
 See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach the browser, and those are never secret.
+- `SESSION_SECRET` signs the profile cookie.
+- `DATABASE_URL_TEST` points integration tests at a throwaway TimescaleDB (a container in CI), never at `fogline-db`.
 
 ## 12. Deployment
 
 - The Vercel project is linked to the GitHub repo. Every PR gets a preview deployment. `main` deploys to production.
 - Set the environment variables in Vercel for Production and Preview.
-- Run functions in region `iad1`, near Tiger's us-east-1.
-- `vercel.json` defines the crons: `record-vehicles` every minute (Pro plan), `weekly-plans` Mondays at 11:00 UTC (6:00 AM Eastern in standard time; check after DST changes).
+- Run functions in region `iad1`, near Tiger's us-east-1 (`regions` in `vercel.json`).
+- Crons run in UTC and only on production deployments. `vercel.json` can't disable an entry, so each cron is added when its route exists:
+  - `record-vehicles` every minute (Phase 3, Pro plan);
+  - `end-plans` every 15 minutes (Phase 4);
+  - `cleanup-demo` daily (Phase 5);
+  - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
+- Preview deployments are behind Vercel Authentication. Automated checks against a preview send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
 - Custom domain: the GoDaddy Registry domain is added in Vercel, with DNS records copied into GoDaddy.
 
 ## 13. Errors and observability
@@ -193,7 +207,8 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
 
 ## 14. Security
 
-- Zod on every input. Authorization checks on every action (profile ID from the httpOnly cookie, never from the client body).
+- Zod on every input. Authorization checks on every action (profile ID from the signed httpOnly cookie, never from the client body).
+- Plan pages, Open Graph images, reminders and recaps need the participant cookie or the plan's invite token.
 - The cron routes require `CRON_SECRET`.
 - Rate limits on AI routes and on profile-code restore attempts.
 - Image domains allowlisted (e.g. `upload.wikimedia.org`).
