@@ -15,7 +15,7 @@ import { isParticipant, recapOf, type Recap } from "@/server/recap";
 
 const inviteToken = z.union([
   z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/),
-  z.string().regex(/^demo-[2-9A-HJ-NP-Z]{16}$/),
+  z.string().regex(/^demo-(?:[2-9A-HJ-NP-Z]{16})$/),
 ]);
 
 async function shown(recap: Recap | null, viaInvite: boolean): Promise<Recap | null> {
