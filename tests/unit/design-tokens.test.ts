@@ -6,6 +6,7 @@ import { duration, ease } from "@/lib/motion";
 import { parseTokens } from "@/lib/tokens";
 import { controlPairs, lines, textPairs } from "@/styles/pairs";
 import { colorGroups } from "@/styles/swatches";
+import { shareColors } from "@/styles/share-colors";
 import { themeColor } from "@/styles/theme-color";
 import { scan } from "../support/token-scan";
 
@@ -16,8 +17,15 @@ const themes = parseTokens(css);
 const { day } = themes;
 
 // Raw values are allowed only in the token files and, until item 6 restyles them, in the stock
-// shadcn primitives (D-037, extended by D-054).
-const exempt = ["src/styles/tokens.css", "src/styles/theme-color.ts", "src/lib/motion.ts"];
+// shadcn primitives (D-037, extended by D-054). Share images render outside the page, where CSS
+// variables and Tailwind classes don't exist, so they use literal sizes and the share-colors copy (D-070).
+const exempt = [
+  "src/styles/tokens.css",
+  "src/styles/theme-color.ts",
+  "src/styles/share-colors.ts",
+  "src/lib/motion.ts",
+  "src/app/api/og/recap/[planId]/route.tsx",
+];
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -134,6 +142,17 @@ describe("design tokens", () => {
   it("gives the browser chrome the background color of each theme", () => {
     expect(themeColor.day).toBe(themes.day.bg);
     expect(themeColor.night).toBe(themes.night.bg);
+  });
+
+  it("[F9.3] paints the share image in the day theme's colors", () => {
+    expect(shareColors).toEqual({
+      bg: day.bg,
+      surface: day.surface,
+      sunken: day["surface-sunken"],
+      ink: day.ink,
+      inkMuted: day["ink-muted"],
+      accent: day.accent,
+    });
   });
 
   it("exports the same durations and easings to Motion as the CSS tokens", () => {

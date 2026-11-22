@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import type { CellState } from "@/lib/geo/cells";
 import { bostonShare, regionShares } from "@/lib/geo/regions";
 import { live, stationIndex, stationsVisited } from "@/lib/rides";
@@ -30,7 +30,7 @@ export async function myStats() {
         at: badgesAwarded.awardedAt,
       })
       .from(badgesAwarded)
-      .where(eq(badgesAwarded.profileId, id))
+      .where(and(eq(badgesAwarded.profileId, id), ne(badgesAwarded.badgeId, "ghost")))
       .orderBy(desc(badgesAwarded.awardedAt)),
   ]);
   const myPlans = [...new Set(mine.map((c) => c.planId))];

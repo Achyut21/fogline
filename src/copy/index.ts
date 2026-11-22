@@ -13,5 +13,8 @@ export { daily } from "./daily";
 export { squad } from "./squad";
 export { grades } from "./grades";
 export { weekly } from "./weekly";
+export { badges } from "./badges";
+export { howItWorks } from "./how-it-works";
+export { recap } from "./recap";
 export { calm } from "./calm";
 export { find } from "./find";
