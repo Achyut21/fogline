@@ -380,3 +380,21 @@ Decision:
 - `src/lib/places/types.ts` holds the place schema that `data:places` (item 6) writes.
 Why: a top-ranked station with no matching spot isn't an option the UI can show. OpenStreetMap rarely tags prices, so failing unknown prices would empty most results. Parks and museums have no food inspections. F4.6 needs a single constraint to offer relaxing.
 Consequences: DATA 3.2 and 3.4 updated. Vibe isn't a filter yet: F4.5 doesn't require it and no place data carries vibe tags (Open questions). Walking down the ranking has no fairness floor beyond 75 minutes, so a strict filter can return an option much less fair than the top station without F4.6 firing; that is within the spec. code-critic's first pass found the missing service check (a 3:30 AM plan got options), unknown stations reported as "time", and a bar marked all-ages passing for under-21 groups. Its second pass found the check looked at the hour after the start, so 3:45–4:59 AM plans still got options. Its third pass found that any train anywhere counted (a 2:30 AM plan for Harvard and Tufts got options from trains finishing their runs elsewhere) and that the named filters could fail together. A real-data check on the walkthrough's demo plan (BU, Harvard and Tufts, Friday 7 PM) puts Government Center first at 26, 19 and 25 minutes.
+
+**D-057 · 2026-11-21 · Places, grades and their calibration (Phase 2 item 6).**
+Decision:
+- `pnpm data:places` queries Overpass in a 3 × 3 grid of tiles over a box around every station, caching each tile under `.cache/overpass/`. It tries `overpass-api.de`, then the `maps.mail.ru` mirror, with up to 5 tries when Overpass answers busy (429 or 504). Spots are deduped by name within 50 m.
+- Price: OpenStreetMap carries almost no price tags (none in the current data). Fast food, food courts, ice cream and cafes are "$" by what they are; every other spot's price is unknown and passes the budget filter (D-056).
+- Grades come from each active establishment's latest routine inspection, the latest one with no other inspection of that license in the 30 days before it, counting violations cited as failed. Points (2, 5, 10) and cutoffs (A up to 13, B up to 27, C above) stay as DATA 3.6 started them.
+- Matching (DATA 3.7) compares distinctive words: names spelled alike once generic words are set aside (0.85 at the same address, 0.8 within 50 m), or every distinctive word of one name in the other. Only food, coffee, dessert, bar and club spots are matched.
+Why:
+- The plain latest inspection is usually a re-inspection days after a failed one, which marks the same violations "Pass": 4,043 of 4,092 establishments (98.8%) graded A that way.
+- A 0.6 name similarity at the same address matched different businesses in one building ("Poe-Lenta" to "Blue Ribbon Barbecue", "Peet's Coffee" to "Capital One Cafe"), and generic words inflated similarity ("Caffé Pompei" to "Caffe Vittoria"). A wrong grade is worse than "No inspection match" (F11.4).
+**Calibration (PHASES Phase 2 gate), Analyze Boston inspections read 2026-11-21:**
+- Citywide, the 4,092 active establishments grade A 3,010 (73.6%), B 697 (17.0%) and C 385 (9.4%), with no point changes.
+- Of 2,327 spots near stations (OSM data of 2026-11-22T02:19Z), 1,883 are in inspected categories. 832 matched: A 532, B 170, C 130.
+- The rest are mostly in Cambridge, Somerville and Brookline, which Boston doesn't inspect.
+Consequences:
+- DATA 2.2, 2.3, 3.6 and 3.7 updated. The budget filter only separates "$" spots from others until a price source exists (Open questions).
+- In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
+

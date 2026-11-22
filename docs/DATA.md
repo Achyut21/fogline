@@ -34,8 +34,8 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
    - `tourism` in museum, gallery;
    - `leisure=park`.
 
-   Normalize, dedupe, attach every station within 600 m walking with its walking distance (not only the nearest, D-046), and set `age_rule = 21plus` for bar, pub, nightclub and biergarten. Run it once and cache. Don't hit Overpass at runtime.
-3. **`data:grades`.** Pull inspections, compute a grade per establishment (section 3.6), match to places (section 3.7), and write the grades and violation lists into `places.json`.
+   `pnpm data:places [--refresh]` sends one query for a box around every station and caches the response in `.cache/overpass.json`. It tries `overpass-api.de` first, then the `maps.mail.ru` mirror, retrying when Overpass says it's busy (429 or 504). It never calls Overpass at runtime. Named spots only. Each spot keeps every station within 600 m walking with its walking distance, nearest first (D-046); spots near no station are dropped. A spot mapped twice (a point and its building) within 50 m under the same name is kept once, the copy with more tags. Categories: food (restaurant, fast_food, food_court), coffee (cafe), dessert (ice_cream), bar (bar, pub, biergarten), club (nightclub), culture (arts_centre, theatre, cinema, museum, gallery) and park. `age_rule = 21plus` for bars and clubs. OpenStreetMap carries almost no prices: fast food, food courts, ice cream and cafes are "$", every other spot's price is unknown (D-057). `places.json` is written one spot per line.
+3. **`data:grades`.** Pull inspections from Analyze Boston's datastore SQL, compute a grade per active establishment (section 3.6), match food, coffee, dessert, bar and club spots to them (section 3.7), and write the grades, license numbers and violation lists into `places.json`. Run it after `data:places`, which writes every grade as null.
 4. **`data:cards`.** For each station:
    - Wikipedia geosearch (600 m radius). Pick one notable non-station article and fetch its intro extract, page image, and the image's author and license.
    - Gemini writes one sentence of 140 characters or fewer using only facts in the extract.
@@ -90,17 +90,18 @@ Project the board and alight stops onto the route's shape and sum the haversine 
 
 ### 3.6 Grade formula (F11)
 
-- Use the most recent inspection date for each establishment.
-- **Points:** `viol_level` "*" = 2, "**" = 5, "***" = 10 (starting values; verify the level values in the data).
+- Use each active establishment's latest routine inspection: the latest inspection with no other inspection of that license in the 30 days before it. A re-inspection days after a failed one marks the same violations "Pass", so the plain latest inspection would grade almost everyone A (D-057).
+- **Points:** violations cited as failed (`viol_status` "Fail") at that inspection, by `viol_level`: "*" = 2, "**" = 5, "***" = 10. The data uses exactly these three levels.
 - **Grade:** A for 13 points or fewer, B for 14–27, C for 28 or more (the same cutoffs NYC uses).
 - **Calibrate:** compute the citywide distribution, record it in `docs/DECISIONS.md`, and adjust points only with a recorded reason. Publish the formula on `/how-it-works`.
 
 ### 3.7 Matching inspections to places
 
-1. Normalize names: lowercase, strip punctuation, "&" becomes "and", drop suffixes like "inc" and "llc".
-2. Match on street number plus street name when OSM has address tags.
-3. Otherwise accept a candidate within 50 m when name similarity is 0.8 or higher (Jaro-Winkler).
-4. Unmatched places get no grade (F11.4).
+1. Normalize names: lowercase, no accents, strip punctuation, "&" becomes "and", drop suffixes like "inc" and "llc". A name's distinctive words are its words of four letters or more, made singular, without generic words that say what or where a place is ("cafe", "grill", "pizza", "boston", "newbury" and the like).
+2. Two names are the same business when their distinctive words are spelled alike (Jaro-Winkler on the names without generic words), or when every distinctive word of one appears in the other ("Starbucks" and "BREADWINNERS/STARBUCK'S").
+3. Match on house number plus street name (suffix abbreviated: street → st, avenue → ave) when OSM has both, requiring a spelling similarity of 0.85 or the word rule.
+4. Otherwise accept a candidate within 50 m, requiring a spelling similarity of 0.8 or the word rule. The most similar name wins.
+5. Unmatched places get no grade (F11.4). Only Boston inspects these records, so spots in Cambridge, Somerville and Brookline stay unmatched.
 
 ### 3.8 Fog cells (F2, F3, F6, F7)
 

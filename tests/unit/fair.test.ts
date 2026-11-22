@@ -109,6 +109,7 @@ function place(
     lat: 42.35,
     lon: -71.06,
     stations: [{ id: station, walkM }],
+    address: null,
     ageRule: category === "bar" || category === "club" ? "21plus" : "all",
     price: 2,
     hours: null,
@@ -117,9 +118,16 @@ function place(
   };
 }
 
-const gradeA = { letter: "A" as const, date: "2026-10-01" };
-const gradeB = { letter: "B" as const, date: "2026-09-01" };
-const gradeC = { letter: "C" as const, date: "2026-08-01" };
+const graded = (letter: "A" | "B" | "C", points: number): Place["grade"] => ({
+  letter,
+  date: "2026-10-01",
+  points,
+  license: "100000",
+  violations: [],
+});
+const gradeA = graded("A", 0);
+const gradeB = graded("B", 20);
+const gradeC = graded("C", 40);
 
 const places: Place[] = [
   place("p1-food", "food", "P", 200, { grade: gradeA }),

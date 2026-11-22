@@ -42,3 +42,6 @@ pnpm-debug.log*
 
 # Playwright bypass cookie for deployment checks
 playwright/.auth/
+
+# data pipeline downloads (data:places)
+.cache/

@@ -147,6 +147,7 @@ This is the shared status board for both builders. Update it after every finishe
 ## Open questions
 
 - Move the recorder into Phase 2? See Asks for A under Builder B.
+- Prices (Phase 2 item 6, D-057): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
 - Vibe and the F4 category list (Phase 2 item 5, D-056): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
 - Rail-replacement shuttles (Phase 2 item 4, D-055): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
@@ -216,6 +217,24 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 21:31 ET · Builder B · Phase 2 item 6, places and grades, on `b/places-grades` (stacked on `b/fair-solver`):
+  - `pnpm data:places` writes `data/places.json`: 2,327 named spots within 600 m walking of a station, from 5,154 OSM elements (data of 2026-11-22T02:19Z).
+    - By category: food 1,341, coffee 320, park 290, bar 162, culture 154, dessert 43, club 17.
+    - Every nearby station is kept with its walking distance.
+  - `pnpm data:grades` adds inspection grades from Analyze Boston. `src/lib/grades.ts` holds points, cutoffs, name and street normalization, Jaro-Winkler and matching (D-057).
+  - **Grade distribution (PHASES gate, also in D-057):**
+    - Citywide, 4,092 active establishments: A 3,010 (73.6%), B 697 (17.0%), C 385 (9.4%).
+    - Matched to spots: 832 of 1,883 inspectable spots, A 532, B 170, C 130.
+    - The plain latest inspection would have given 98.8% A, because re-inspections mark violations corrected; the grade uses the latest routine inspection instead.
+  - Match quality: I read the weakest matches by hand and tightened the rule until the false ones were gone. Pairs that share an address or a generic word no longer match ("Peet's Coffee" ↔ "Capital One Cafe", "Joe's on Newbury" ↔ "Stephanie's on Newbury", "Caffé Pompei" ↔ "Caffe Vittoria"). Real ones still do ("Starbucks" ↔ "BREADWINNERS/STARBUCK'S", "Warren Towers Dining Hall" ↔ "B.U. Warren Tower Cafe").
+  - Reproducible: rerunning either pipeline from the cache gave byte-identical `places.json`.
+  - Environment note: the Claude Code sandbox blocks `overpass-api.de` and two mirrors. The one reachable mirror answered 504 when busy, so `data:places` ran once with the sandbox off. `.cache/` is ignored by git (shared file `.gitignore`).
+  - Tests: 23 unit tests (22 for the pipelines, 1 for the committed data).
+    - Grade points and cutoffs, violations worst first, inspection rows (failed only, deduped).
+    - Locations and addresses, normalization, Jaro-Winkler against published values, and the real match and non-match cases above.
+    - OSM kinds, the 600 m edge, 21+ kinds, "$" kinds, centers and addresses, duplicates, tiles and the merge.
+    - The committed `places.json` checked against its schema.
+  - Next: code-critic, then item 7 (neighborhoods).
 - 2026-11-21 20:55 ET · Builder B · Phase 2 item 5, fair solver and miles, on `b/fair-solver` (stacked on `b/last-train`):
   - `src/lib/solver/fair.ts`: `rankStations`, `spotsNear` and `fairOptions` (D-056).
     - `rankStations`: S(d), with the sum and then the station as tie-breaks, and the 75-minute cut. Unknown stations throw.

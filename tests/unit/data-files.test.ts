@@ -3,6 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { describe, expect, it } from "vitest";
 import { graphSchema, shapeLineSchema, stationSchema, timetableSchema } from "@/lib/gtfs/types";
+import { gradedCategories, placeSchema } from "@/lib/places/types";
 
 const dataDir = path.join(import.meta.dirname, "../../data");
 const read = (file: string): unknown => JSON.parse(readFileSync(path.join(dataDir, file), "utf8"));
@@ -46,5 +47,29 @@ describe("committed data files", () => {
         .flat()
         .every((i) => inRange(i, timetable.services.length)),
     ).toBe(true);
+  });
+
+  it("[F4.5] [F11.4] has places near real stations, graded only where the city inspects", () => {
+    const ids = new Set(
+      z
+        .array(stationSchema)
+        .parse(read("stations.json"))
+        .map((s) => s.id),
+    );
+    const places = z.array(placeSchema).parse(read("places.json"));
+    expect(places.length).toBeGreaterThan(1000);
+    expect(new Set(places.map((p) => p.id)).size).toBe(places.length);
+    for (const place of places) {
+      expect(place.stations.length).toBeGreaterThan(0);
+      expect(place.stations.every((s) => ids.has(s.id) && s.walkM <= 600)).toBe(true);
+      expect(place.stations.map((s) => s.walkM)).toEqual(
+        [...place.stations.map((s) => s.walkM)].sort((a, b) => a - b),
+      );
+    }
+    const graded = places.filter((p) => p.grade !== null);
+    expect(graded.length).toBeGreaterThan(0);
+    expect(graded.every((p) => [...gradedCategories, "bar", "club"].includes(p.category))).toBe(
+      true,
+    );
   });
 });
