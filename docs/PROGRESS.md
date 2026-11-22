@@ -285,6 +285,13 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 04:15 ET · Builder A · Phase 8 (F13 calm mode, F14 Find it and taste of home) on `a/calm`, and #41 merged:
+  - #41 (B's `b/crawls` with A's squad and crawl screens, folded into one PR because B had no PR open) squash `7a68d39` after code-critic FAIL (a crawl's title named its first venue, leaking 21+ venues) → fixes (station-named titles, hidden 21+ titles, stop times checked, leave-by from the last stop) → PASS.
+  - Calm: `/calm` with a microphone primer (F1.4), measuring a named stretch on the phone (`src/lib/noise.ts`), `recordNoise` (adjacent stations only, one a minute), the "Measured by riders" list, and the sensory preview in the station sheet. D-072.
+  - Find food (`/find`, linked from Plans): a photo to a dish (Gemini), Maps-grounded places with review quotes matched to our spots, age, grade and budget rules, pins on the SVG map, `ai_cache`. **The Gemini key answered 429 quota exceeded on every model tonight**; A is updating `GEMINI_MODEL` to `gemini-3.7-flash` (B's change) and checking the quota.
+  - Tests: noise unit and integration, find unit and integration (Gemini mocked), `[F13.5]` sheet tests, e2e calm (privacy check) and find. 406 pass; e2e 14 passed, 1 skipped (fake microphone is Chromium-only).
+  - Not built: F13.3 as a map layer (it's a list), F13.4 calm routing (B's solver), crowd and waiting-spot data for F13.5.
+
 - 2026-11-22 04:01 ET · Builder A · Phase 7 items 2 and 3, crawls and squad (stacked on B's `b/crawls`: [#41](https://github.com/Achyut21/fogline/pull/41) `a/squad`, [#42] `a/crawls`) and #40 merged:
   - #40 (grades) squash `8fc44b1` after code-critic PASS (two notes fixed: a retry button for a failed inspection load, and the F11.2 test renamed because the plain-English rewrite isn't built).
   - Squad (`/me/squad`, linked from Me): the SVG squad map of everyone's cells with one member's first uncovers tinted on request (no categorical color token exists, so one accent tint at a time), members with their counts, the weekly streak, an empty state.

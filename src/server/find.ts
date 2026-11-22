@@ -14,7 +14,7 @@ import { stationById } from "@/server/stations";
 // reviews; which spots are shown, how far they are and every rule applied come from our data.
 // Answers are cached in `ai_cache` by model and prompt, so a repeat search makes no new call.
 
-const model = () => process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite";
+const model = () => process.env.GEMINI_MODEL ?? "gemini-3.7-flash";
 const boston = { latitude: 42.3555, longitude: -71.0603 };
 
 async function cached<T>(db: Db, prompt: string, schema: z.ZodType<T>, run: () => Promise<T>) {

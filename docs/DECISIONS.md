@@ -598,3 +598,12 @@ Decision:
 - Vibe and calm (F10.2) aren't crawl filters yet: places carry no vibe tags (D-057), and calm mode (F13) is an Extra.
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
 Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).
+
+**D-072 · 2026-11-22 · Calm mode measures a named stretch; Find it shows only spots we know (Phase 8, F13, F14).**
+Decision:
+- Calm mode (F13.1) measures one stretch the rider names (line, from, to) between Start at the doors closing and Stop at the next station. Rides in the app are replays, played anywhere, so sampling during a replay would label room noise as a train's. Each 250 ms frame becomes one dBFS level on the phone; only the stretch's energy average and peak are sent, through `recordNoise`, which checks the stations are adjacent on that line and allows one reading a minute per profile. Levels are uncalibrated, so they are only shown on a relative scale (quieter, typical, louder by thirds).
+- The calm layer (F13.3) is the "Measured by riders" list on `/calm`, not a map layer yet. The sensory preview (F13.5) shows measured sound and the quietest hour, and says "no data" for crowds and the quietest place to wait, which have no source. The calm preference in plans (F13.4) waits for solver work (B).
+- Find it and taste of home (F14) ask Gemini for places with a quoted Google Maps review through Maps grounding, then show only names that match a spot in `data/places.json` near a station, so the age, grade and budget rules run on our data (F14.3). A photo is sent to Gemini for that one call and isn't stored. Answers are cached in `ai_cache` by model and prompt. Pins use the SVG map.
+Why: honest data (CLAUDE.md: no fake data) and F14.3's filters need fields Gemini doesn't return.
+Consequences: needs `GEMINI_MODEL` (B moved to `gemini-3.7-flash`) and a Gemini key with quota; on 2026-11-22 the key answered 429 quota exceeded for every model, so F14 shows "Search isn't available right now" until that's fixed.
+

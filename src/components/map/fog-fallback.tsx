@@ -30,6 +30,7 @@ export function FogFallback({
   lines,
   stations,
   highlight = [],
+  pins = [],
   label,
 }: {
   states: ReadonlyMap<string, CellState>;
@@ -37,6 +38,8 @@ export function FogFallback({
   stations: readonly Station[];
   /** Cells tinted in the accent color, such as one squad member's (F12.2). */
   highlight?: readonly string[];
+  /** Spots pinned on the map (F14.1). */
+  pins?: readonly { lat: number; lon: number }[];
   label?: string;
 }) {
   const cells = [...states.keys()];
@@ -92,6 +95,20 @@ export function FogFallback({
               fill="var(--surface)"
               stroke="var(--ink)"
               strokeWidth={1.5}
+            />
+          );
+        })}
+        {pins.map((pin) => {
+          const [u, v] = maskUv(pin.lon, pin.lat);
+          return (
+            <circle
+              key={`${pin.lat},${pin.lon}`}
+              cx={u * width}
+              cy={v * height}
+              r={9}
+              fill="var(--accent)"
+              stroke="var(--surface)"
+              strokeWidth={3}
             />
           );
         })}
