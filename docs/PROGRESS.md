@@ -271,7 +271,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - The image follows COPY formats ("12.1 mi", "about 0.8 mi") and uses singular words for single counts. It carries a Demo label on demo nights and says "21+ spot" only for adults-only spots.
   - Ghost stays off the image (DATA 3.10). Titles clamp to 2 lines, and names and the spot line to 1. Badges cap at 6 with "+N more". Rendered worst cases (80-character title, 40-character names, 16 badges) fit the canvas.
   - Colors mirror the day tokens with an equality test. Hanken Grotesk 400/700/800 is vendored in `assets/fonts/` (OFL), and the build traces it into the function. D-069 logs the token-test exemption.
-  - code-critic, design-critic and copy-critic all returned FAIL; every blocking item is fixed and re-reviewed (below).
+  - code-critic, design-critic and copy-critic all returned FAIL; every blocking item is fixed. The re-reviews all PASS.
   - **For A:** show Share/Download on the recap page to members only. Someone who opened the recap through an invite token gets a 404 from the image. The page can fetch the image with `/api/og/recap/${planId}` and hand the blob to `navigator.share`.
   - Known: the demo seed records no rides, so the demo recap shows 0.0 mi on the T and 0 stops.
 

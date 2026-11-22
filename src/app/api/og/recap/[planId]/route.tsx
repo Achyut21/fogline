@@ -10,7 +10,8 @@ import { shareColors as c } from "@/styles/share-colors";
 // participants get it (F9.4): the browser sends the session cookie when the page fetches it to
 // share or download. Satori can't read CSS variables or Tailwind classes, so sizes are literal
 // and colors come from share-colors (D-069). Titles, names and the spot line are clamped and the
-// badge list is capped, so nothing runs off the canvas.
+// badge list is capped, so nothing runs off the canvas. The worst case fills it exactly: any added
+// height (another stat row, bigger chips) clips the badges again.
 
 const size = { width: 1080, height: 1350 };
 const weights = [400, 700, 800] as const;
@@ -142,9 +143,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ planId: st
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", fontSize: 32, fontWeight: 700 }}>{copy.badgesHeading}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-            {card.chips.map((chip) => (
+            {card.chips.map((chip, i) => (
               <div
-                key={chip}
+                key={i}
                 style={{
                   ...oneLine,
                   maxWidth: 454,
