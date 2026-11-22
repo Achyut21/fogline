@@ -4,6 +4,9 @@ import { calm, onboarding as o } from "@/copy";
 // Calm mode end to end (F13.1) and the Phase 8 privacy check: with a fake microphone, measuring
 // one stretch sends only two numbers, to Fogline's own server, and never audio.
 
+// The fake microphone flags are Chromium's; WebKit refuses to launch with them.
+test.skip(({ browserName }) => browserName !== "chromium", "fake microphone flags are Chromium's");
+
 test.use({
   launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] },
   permissions: ["microphone"],
@@ -11,9 +14,7 @@ test.use({
 
 test("[F13.1] [F1.4] measures a stretch on the device and sends only two numbers", async ({
   page,
-  browserName,
 }) => {
-  test.skip(browserName !== "chromium", "fake microphone flags are Chromium's");
   await page.goto("/welcome");
   await page.getByLabel(o.welcome.nameLabel).fill("Sam");
   await page.getByRole("button", { name: o.next }).click();
