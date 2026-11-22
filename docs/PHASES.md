@@ -67,14 +67,14 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 5. Final tokens in DESIGN.md, `src/styles/tokens.css` and the Tailwind theme. Fonts and icons.
 6. Base components and the `/design` living style guide (tokens with contrast ratios, every component and state, motion demos, 3D previews with tier and reduced-motion toggles, theme toggle).
 7. Microcopy drafted in `src/copy/` for every screen in DESIGN.md section 6. **Deferred (D-060):** each feature brings its own strings in `src/copy/`, reviewed by copy-critic with the feature; `badges.ts` lands with F8.
-8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes. **Deferred to Phase 9 (D-060).**
+8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes. **Deferred to Phase 10 (D-060, D-075).**
 
 **Gate**
 - Both humans have approved the canvas (as cut by D-060) and `/design`. The canvas link is recorded in DESIGN.md and DECISIONS.md.
 - `design-critic` and `copy-critic` PASS on `/design`.
 - The token check passes.
 - The fog layer holds 45 fps or better on the mid tier under 4× CPU throttling with mobile emulation, and the 2D fallback renders when WebGL is disabled.
-- ~~Visual baselines are committed.~~ Deferred to Phase 9 (D-060).
+- ~~Visual baselines are committed.~~ Deferred to Phase 10 (D-060, D-075).
 
 ---
 
@@ -180,19 +180,40 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 
 ---
 
-## Phase 9: Hardening and release (both)
+## Phase 9: PWA polish and UI/UX (A)
+
+Split from the old Phase 9 on 2026-11-22 (D-075). Everything else moved to Phase 10, which B runs at the same time.
+
+**Read:** `PWA.md`, `DESIGN.md` sections 5–10, `PRD.md` for each screen touched.
 
 **Items**
-1. **PWA polish** from `PWA.md`: iOS splash screens, install flows on real devices, offline behavior, the update toast, and why the service worker doesn't activate behind Vercel protection, and why installability failed on one protected URL but not another (D-043, D-044).
-2. **Performance:** Lighthouse CI budgets, bundle analysis, 3D quality tiers on a real mid-range Android.
-3. **Accessibility:** a full keyboard and screen-reader pass, axe on every route.
-4. **Security:** run the `security-review` skill and fix its findings. Rate limits verified.
-5. **Copy:** a `copy-critic` pass on all of `src/copy/`, then a `no-ai-slop` pass.
-6. **WALKTHROUGH.md** complete for every feature, plus the 10-minute full tour.
+1. **PWA polish** from `PWA.md`: iOS tags and splash screens, the install flows (F1.6: Android's Install button from `beforeinstallprompt`, the iOS InstallSheet), offline behavior (the OfflineBanner on every screen, check-ins and puzzle guesses queued while offline), the "Update ready" toast, `navigator.storage.persist()`, touch and scroll behavior (`touch-action`, `overscroll-behavior`, the keyboard kept in view with `visualViewport`), and why the service worker doesn't activate behind Vercel protection and why installability failed on one protected URL but not another (D-043, D-044).
+2. **UI/UX across the whole app:**
+   - `design-critic` with impeccable `critique` and `audit` on every route at 390×844, in both themes and with reduced motion; every BLOCKING finding fixed.
+   - Screens for server work that has none yet: stats and badges on Me (F8), the night recap and its share image (F9), weekly plans on the Plans tab (F10.4, F10.5), Remind me and route alerts on the plan page (F5.8, F5.6), the 20 and 5 minute leave-by alerts (F5.4), plain-English violations (F11.2).
+   - UI deferred from Phase 3: the location primer (F1.4), Settings (theme, force 2D, calm mode, age band) with delete my data (F1.7).
+   - Navigation and states: every feature reachable from the four tabs (Ride, Find food, Calm, Squad, How it works), one header and back pattern, loading, empty, error and offline states on every screen.
+   - Map polish: the first-reveal card shows once, theme changes restyle the map, new reveals update the fog without a reload, readable pins.
+
+**Gate:** `design-critic` passes on every route in both themes and with reduced motion; the `PWA.md` checklist passes (its real-device lines checked by the humans); `pnpm test` and `pnpm test:e2e` pass; WALKTHROUGH entries for every touched feature are updated.
+
+---
+
+## Phase 10: Hardening and release (B)
+
+B owns this phase and can start it alongside Phase 9. Its gate runs after Phase 9's, on the final app (D-075).
+
+**Items**
+1. **Performance:** Lighthouse CI budgets, bundle analysis, 3D quality tiers on a real mid-range Android.
+2. **Accessibility:** a full keyboard and screen-reader pass, axe on every route.
+3. **Security:** run the `security-review` skill and fix its findings. Rate limits verified, including profile-code restore (D-065) and timing-safe cron secrets.
+4. **Copy:** a `copy-critic` pass on all of `src/copy/`, then a `no-ai-slop` pass.
+5. **WALKTHROUGH.md** complete for every feature, plus the 10-minute full tour.
+6. **Visual baselines** for `/design` at 390×844 and 1440×900 in both themes (deferred from Phase 1, D-060).
 7. **Ship kit:** README (what it is, how to run it, architecture summary, data credits), Devpost text, a 1-minute video script, screenshots, Open Graph images.
 
 **Gate:** every standing check passes on production, every WALKTHROUGH entry is verified, the README is complete, and both humans sign off.
 
 ## Ship kit
 
-Phase 9 item 7 can run any time after Phase 5 passes, and again at the end. A builder can generate the README, Devpost text and video script from the current WALKTHROUGH.md whenever the humans ask for it.
+Phase 10 item 7 can run any time after Phase 5 passes, and again at the end. A builder can generate the README, Devpost text and video script from the current WALKTHROUGH.md whenever the humans ask for it.

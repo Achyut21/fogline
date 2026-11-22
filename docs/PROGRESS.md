@@ -7,15 +7,16 @@ This is the shared status board for both builders. Update it after every finishe
 | Phase | Status | Owner(s) |
 |---|---|---|
 | 0 Foundations | Passed 2026-11-21 (gate table below) | A |
-| 1 Design | In progress (plan approved 2026-11-21) | A (both approve) |
+| 1 Design | Gate passed for A 2026-11-22; B's human still approves `/design` and direction C | A (both approve) |
 | 2 Data and domain logic | Gate passed for code 2026-11-22 (two human checks open, see log) | B |
-| 3 Profile, map, fog, ride | Not started | A (+B recorder) |
-| 4 Plans, last train, live night | Not started | B (+A UI) |
-| 5 Daily puzzle and demo mode | Not started | B + A |
-| 6 Badges, stats, recap, How it works | Not started | A + B |
-| 7 Crawls, weekly plans, grades, squad | In progress (B server side, 2026-11-22) | B (+A UI) |
-| 8 Extras | Not started | A + B |
-| 9 Hardening and release | Not started | A + B |
+| 3 Profile, map, fog, ride | Built and on production; gate e2e passes; gate not run. Open: F1.4, F1.6, F1.7 (now Phase 9), live trains F3.1, F3.2, F3.6 | A (+B recorder) |
+| 4 Plans, last train, live night | Built (A #37, B #45); gate not run. Open: F4.7 agent text, F5.4 alerts (now Phase 9), F6.1 directions, OG images | B (+A UI) |
+| 5 Daily puzzle and demo mode | Built (#38, #39); gate not run | B + A |
+| 6 Badges, stats, recap, How it works | B's server, recap image and How it works on `main` (#36); Me stats, badges and recap screens now Phase 9; gate not run | A + B |
+| 7 Crawls, weekly plans, grades, squad | Built (#40, #41, #44); weekly plans screen now Phase 9; gate not run | B (+A UI) |
+| 8 Extras | Built (#43, #46); F13.3 map layer and F13.4 calm routing open; gate not run | A + B |
+| 9 PWA polish and UI/UX | Plan below, waiting for A's yes (D-075) | A |
+| 10 Hardening and release | Not started; B can start now, gate runs last (D-075) | B |
 
 ## Board
 
@@ -117,6 +118,13 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
+- **Now (2026-11-22 05:24 ET): Phase 9, PWA polish and UI/UX** (D-075). Plan, waiting for A's yes. One branch and PR per item, code-critic per PR, design-critic on the screens it touches; copy goes to B's Phase 10 copy pass.
+  1. **App shell and navigation** (`a/shell`): one header and back pattern; every feature reachable (Ride from the map, Find food and weekly plans from Plans, Calm, Squad, Settings and How it works from Me); OfflineBanner and loading, empty and error states on every route; the first-reveal card shown once; theme changes restyle the map; fog updates after reveals; readable pins.
+  2. **Me** (`a/me`): stats and badges (F8) from B's `myStats` and badge copy, Settings (theme, force 2D, calm mode, age band) with delete my data (F1.7), the location primer (F1.4) before the first check-in.
+  3. **Plans** (`a/plan-extras`): weekly plans list and copy (F10.4, F10.5), Remind me only when a train runs home (F5.8), route alerts (F5.6), the 20 and 5 minute in-app leave-by alerts with vibration on Android (F5.4), and the night recap screen with its share image (F9).
+  4. **PWA polish** (`a/pwa`): iOS tags and splash screens, Install button and iOS InstallSheet after the first completed action (F1.6), the Update ready toast, offline queue for check-ins and guesses, `storage.persist()`, touch and keyboard handling, and the protected-preview service-worker question (D-043, D-044).
+  5. **Design pass and gate:** `design-critic` with impeccable `critique` and `audit` on every route at 390×844 in both themes and reduced motion, every BLOCKING fixed, then `/phase-gate 9`.
+- **For B (Phase 10, yours, D-075):** performance, accessibility, security and rate limits, copy, WALKTHROUGH, visual baselines and the ship kit; start whenever you're ready. Also from code-critic on #45: timing-safe cron secrets, direction-specific alerts, and Remind me's JSON errors (A's button will only show when a train runs home).
 - **Now (2026-11-22 05:02 ET):** Phases 7 and 8 screens are on `main` (grades #40, squad and crawls #41, calm and Find food #43); B's recap #36 merged, weekly plans #44 merging; `fogline.boston` live. Open: #46 (Find food quotes Google's review summaries), then the gates for Phases 3–8 and a design-critic pass over the new screens.
 - **Earlier (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
   1. **Grades** (`a/grades`; F11.1, F11.3, F11.4, F11.5): grade badge with the unofficial label and inspection date on food spots, "No inspection match" when unmatched, a spot detail with the cited violations, a minimum-grade filter in the builder. F11.2's plain-English rewrite needs a cached Gemini summary per spot (B's data job); until then the city's own wording is shown.
