@@ -166,22 +166,31 @@ describe.skipIf(testUrl === "")("hypertables", () => {
   });
 
   it("[F15.2] materializes check-in days through a refresh", async () => {
+    const maya = await newProfile("Maya");
+    const plan = await newPlan(maya);
+    await db
+      .insert(checkins)
+      .values([
+        checkin(maya, plan, "2026-12-10T23:30:00Z"),
+        checkin(maya, plan, "2026-12-11T04:30:00Z"),
+        checkin(maya, plan, "2026-12-11T15:00:00Z"),
+      ]);
     await db.execute(
-      sql`call refresh_continuous_aggregate('checkins_daily', '2026-11-19', '2026-11-23')`,
+      sql`call refresh_continuous_aggregate('checkins_daily', '2026-12-09', '2026-12-13')`,
     );
     await db.execute(
       sql`alter materialized view checkins_daily set (timescaledb.materialized_only = true)`,
     );
     const days = await db.execute<{ day: string; checkins: number }>(
       sql`select to_char(day at time zone 'America/New_York', 'YYYY-MM-DD') as day, checkins::int
-          from checkins_daily order by 1`,
+          from checkins_daily where day >= '2026-12-09' and day < '2026-12-13' order by 1`,
     );
     await db.execute(
       sql`alter materialized view checkins_daily set (timescaledb.materialized_only = false)`,
     );
     expect(days.map((d) => [d.day, d.checkins])).toEqual([
-      ["2026-11-20", 2],
-      ["2026-11-21", 1],
+      ["2026-12-10", 2],
+      ["2026-12-11", 1],
     ]);
   });
 

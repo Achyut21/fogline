@@ -399,6 +399,7 @@ Why:
 Consequences:
 - DATA 2.2, 2.3, 3.6 and 3.7 updated.
 - The budget filter excludes nothing today: every known price is "$" (1) and the smallest budget is 1, so F4.6 can't name budget as the blocker until a price source exists (Open questions). The UI must label "$" for cafes as an estimate.
+- F11.3 (every grade shown with "Unofficial grade from City of Boston inspection records") moves to Phase 7, where the grade UI is built (F11). Phase 2 only produces grades; nothing shows them yet.
 - In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
 
 **D-058 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**

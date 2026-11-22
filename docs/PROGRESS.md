@@ -118,7 +118,7 @@ This is the shared status board for both builders. Update it after every finishe
      - `src/lib/solver/fair.ts`: `S(d)`, the `sum(t_i)` tie-break, exclusion over 75 min or unreachable, top 3 distinct stations, spots within 600 m that match filters and the age rule, and the blocking constraint when nothing fits.
      - `src/lib/geo/miles.ts`: board and alight stops projected onto the shape, rounded to 0.1 mi.
      - Tests `[F4.3]`, `[F4.4]`, `[F4.5]`, `[F4.6]`, `[F1.5]`, `[F3.4]`, plus one participant, no home station and ties.
-  6. **Places and grades** (`b/places-grades`; F1.5, F4.5, F11.1, F11.3, F11.4)
+  6. **Places and grades** (`b/places-grades`; F1.5, F4.5, F11.1, F11.4; F11.3, the grade label, moves to Phase 7 with the grade UI)
      - `pnpm data:places`: one Overpass query, raw response cached, normalized and deduped, every station within 600 m walking (not only the nearest), `age_rule`.
      - `pnpm data:grades`: Analyze Boston inspections, `src/lib/grades.ts` (points and cutoffs after checking the real `viol_level` values) and matching (address, else Jaro-Winkler ≥ 0.8 within 50 m).
      - Fixture tests `[F11.1]`, `[F11.4]`, `[F1.5]`. Citywide grade distribution in DECISIONS (gate).
