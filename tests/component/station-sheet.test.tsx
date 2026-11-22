@@ -109,6 +109,6 @@ it("[F2.5] drops trains that already left, even when the times are old", async (
     { route: "Green-D", direction: 0, destination: "place-river", departs: now - 300 },
   ]);
   open();
-  expect(await screen.findByText(map.sheet.agedOut(10))).toBeInTheDocument();
+  expect(await screen.findByText(map.sheet.agedOut)).toBeInTheDocument();
   expect(screen.queryByText("Riverside")).toBeNull();
 });

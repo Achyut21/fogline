@@ -29,7 +29,7 @@ This is the shared status board for both builders. Update it after every finishe
      - StationSheet on the vaul Sheet: name, lines, minutes from home, departures by direction, MBTA credit, stop card once uncovered, 3 nearest spots (F1.5). TanStack Query polls every 30 s and stops while hidden; stale past 90 s. Loading, empty, error and offline states. Opens from the map and the list.
      - "Ride from here" lands with item 4's ride route (no dead button).
      - Tests `[F2.5]`: parser on a recorded snapshot, route cache and failure, sheet data, sheet states, e2e at 390×844.
-     - **Status 2026-11-22 01:50 ET:** built and checked locally (day and night, live data); code-critic running. Not pushed yet.
+     - **Status 2026-11-22 02:05 ET:** done on [#34](https://github.com/Achyut21/fogline/pull/34), merging after CI and the preview check. Next: item 4, F3 ride replay (with "Ride from here").
   4. **F3 ride replay**: a recorded trip at 1× to 20×, stop cards, reveals, summary (miles, stops, minutes, lines, new cells), `ride_events`. Live mode if time allows. Until B's recorder has a trip, a timetable-built trip labeled as demo data.
   5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
   - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
@@ -264,6 +264,14 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-22 02:05 ET · Builder A · Phase 3 item 3, F2.5 station sheet ([#34](https://github.com/Achyut21/fogline/pull/34), `a/station-sheet`):
+  - Built: `/api/mbta/predictions` (TripUpdates parsed to subway revenue trips, one fetch per 5 s for every station, last good copy with its age on failure, failures remembered for 5 s), a network-first service-worker rule for `/api/mbta/*`, TanStack Query scoped to the map, and the StationSheet (lines, minutes by T from home, trains by line direction, stale chip, stop card once uncovered, 3 nearest spots with the F1.5 rule, all states). Opens from the map and the list. `next.config.ts` traces `data/*.json` for B's runtime reads. DATA 3.13, D-068, WALKTHROUGH F2.
+  - code-critic: FAIL, 3 BLOCKING (terminal track IDs like `Alewife-01` hid the train on the platform; the per-direction cap was shared across lines, hiding the Red Line at Park Street; departed trains read "Now" on old data), all fixed. Re-check PASS; its two SHOULD FIX (a body cut off mid-read gave a 500; a hanging feed was retried by most requests) fixed with tests that fail on the old code.
+  - copy-critic: FAIL (MBTA and photo credits not COPY.md's exact lines, grades without the unofficial label, walks without "about"), all fixed. Re-check PASS; its notes applied (the aged-out line no longer blames the MBTA when the user may be offline; `maxWalkM` moved to `src/lib/places/types.ts` so the client sheet doesn't import the solver).
+  - Tests: `[F2.5]` parser (recorded snapshot, terminal track, two-line cap), route (cache, failure memory, cut-off body), sheet data, sheet states, `[F11.3]` label, e2e sheet with axe and with reduced motion, offline train times in `pwa.spec.ts`. 327 unit/component/integration passed locally; sheet e2e 6/6 on desktop-chrome, iphone, pixel.
+  - Checked at 390×844 day and night with live trains (Kenmore, Park Street both lines); route 0.24 s on a fresh feed fetch, 4 ms cached (local).
+  - Logged for later (critics' NITs): track IDs map by station name, not GTFS `parent_station`; the e2e depends on the live feed; the map page's RSC payload is 187 KB uncompressed (spots about 40 KB).
 
 - 2026-11-22 01:55 ET · Builder A · Merged #32, the fog map home (`3926558`):
   - code-critic (first recorded pass): FAIL, 1 BLOCKING. The 3D fog's mask stopped at Boston, Cambridge, Somerville and Brookline, so 21 outer home stations (Ashmont, Braintree, Oak Grove, Riverside and others) sat under solid fog on tiers 2–3 while the card said they were clear. Fixed in `3e4a496` (mask covers every station plus about 1.2 km; test `[F2.1] [F2.2] the map's mask shows the home cells of every station`), with the reveal band, finger radius and grain scaled back to their Phase 1 size and the map and list made keyboard- and screen-reader-friendly (`fa9faef`). Re-check PASS. Checked at 390×844 with home Braintree, day and night.

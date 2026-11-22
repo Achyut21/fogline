@@ -47,8 +47,7 @@ export const map = {
     },
     offline: "You're offline. Train times come back when you reconnect.",
     offlineCached: "You're offline. These are the last times you loaded.",
-    agedOut: (minutes: number) =>
-      `Train data is ${minutes} min old. The MBTA feed isn't answering.`,
+    agedOut: "No upcoming trains in the last data. Fogline can't reach the MBTA feed.",
     card: "Stop card",
     source: (title: string) => `Based on Wikipedia: ${title}, CC BY-SA`,
     nearby: "Nearby",

@@ -14,6 +14,9 @@ export type PlaceCategory = (typeof placeCategories)[number];
 /** Categories that are 21+ by what they are (F1.5, F4.9). */
 export const adultCategories: readonly PlaceCategory[] = ["bar", "club"];
 
+/** How far a spot can be from a station to count as near it, in walking meters (F4.5, DATA 3.5). */
+export const maxWalkM = 600;
+
 /** Categories where people eat, so the minimum food grade applies (F4.5, F11.5). */
 export const gradedCategories: readonly PlaceCategory[] = ["food", "coffee", "dessert"];
 

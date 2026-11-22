@@ -20,7 +20,7 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { legal, map } from "@/copy";
-import { maxWalkM } from "@/lib/solver/fair";
+import { maxWalkM } from "@/lib/places/types";
 import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
 
@@ -95,10 +95,12 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <StaleChip minutes={age / 60_000} stale={age > staleMs} />
-        {offline && <span className="text-sm text-ink-muted">{s.offlineCached}</span>}
+        {offline && groups.size > 0 && (
+          <span className="text-sm text-ink-muted">{s.offlineCached}</span>
+        )}
       </div>
       {groups.size === 0 && age > staleMs && query.data.departures.length > 0 ? (
-        <p className="text-ink-muted">{s.agedOut(Math.floor(age / 60_000))}</p>
+        <p className="text-ink-muted">{s.agedOut}</p>
       ) : groups.size === 0 ? (
         <EmptyState icon={TrainFront} title={s.empty.title} body={s.empty.body} />
       ) : (
