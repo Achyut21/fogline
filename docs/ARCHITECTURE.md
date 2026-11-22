@@ -80,7 +80,10 @@ src/
     places/        # place schema for data/places.json
     lasttrain/     # backward timetable search
     geo/           # haversine, ride miles, walking estimate, H3 helpers
-    grades.ts  badges.ts  stats.ts  puzzle.ts  flags.ts  motion.ts  log.ts
+    checkin.ts     # check-in validity
+    rides.ts       # rides, lines and stations from ride events
+    events.ts      # events.json and words.json schemas
+    grades.ts  badges.ts  stats.ts  squad.ts  puzzle.ts  flags.ts  motion.ts  log.ts
   server/
     db/            # drizzle schema, client, queries
     actions/       # Server Actions (Zod-validated)
@@ -159,7 +162,7 @@ Built by `scripts/` (see `docs/DATA.md`), committed under `data/`, imported by s
 - `stations.json`, `graph.json` (direct rides with median ride times, expected waits and routes by day type and hour, plus transfer and walk times), `timetable.json` (compact departures for last-train search), `shapes.json`;
 - `places.json`, `station-cards.json`, `neighborhoods-h3.json`, `events.json`, `words.json`.
 
-Keep each client-facing file small. Split by line or load lazily where needed. `graph.json` (about 2.9 MB) and `timetable.json` (about 3.4 MB) are server-only: the solvers run on the server.
+Keep each client-facing file small. Split by line or load lazily where needed. `graph.json` (about 2.9 MB), `timetable.json` (about 3.4 MB), `places.json` (about 1 MB) and `events.json` (it holds the puzzle answers) are server-only: the solvers run on the server.
 
 ## 8. Server Actions and routes
 
