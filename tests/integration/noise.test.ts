@@ -96,4 +96,29 @@ describe.skipIf(testUrl === "")("calm mode readings", () => {
     expect((await sensoryPreview(db, "place-brkhl")).sound?.loudness).toBe("louder");
     expect(await sensoryPreview(db, "place-alfcl")).toEqual({ sound: null, quietestHour: null });
   });
+
+  it("[F13.1] stores one reading when two are sent at once", async () => {
+    const other = stationById("place-pktrm");
+    if (!other) throw new Error("Park Street missing");
+    const { id } = await insertProfile(db, {
+      name: "Sam",
+      school: "Tufts",
+      home: other,
+      ageBand: "under21",
+    });
+    session.viewer = id;
+    const reading = {
+      route: "Green-D",
+      from: "place-fenwy",
+      to: "place-longw",
+      dbAvg: -40,
+      dbPeak: -30,
+    };
+    const results = await Promise.all([
+      recordNoise(reading),
+      recordNoise(reading),
+      recordNoise(reading),
+    ]);
+    expect(results.filter((r) => r.kind === "recorded")).toHaveLength(1);
+  });
 });

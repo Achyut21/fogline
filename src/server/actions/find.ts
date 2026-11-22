@@ -4,7 +4,7 @@ import { AISDKError } from "ai";
 import { z } from "zod";
 import { log } from "@/lib/log";
 import { getDb } from "@/server/db/client";
-import { identifyDish, spotsFor, type FoundSpot } from "@/server/find";
+import { allowSearch, identifyDish, spotsFor, type FoundSpot } from "@/server/find";
 import { currentProfile } from "@/server/profile";
 
 // Find it (F14.1) and taste of home (F14.2). The age rule comes from the profile (F1.5, F14.3).
@@ -21,6 +21,7 @@ export type FindResult =
   | { kind: "not-food" }
   | { kind: "bad-image" }
   | { kind: "no-profile" }
+  | { kind: "busy" }
   | { kind: "unavailable" };
 
 function filtersFrom(form: FormData) {
@@ -55,6 +56,7 @@ export async function findFromPhoto(_: FindResult | null, form: FormData): Promi
     return { kind: "bad-image" };
   }
   const filters = { ...filtersFrom(form), under21: profile.ageBand !== "21plus" };
+  if (!(await allowSearch(getDb(), profile.id))) return { kind: "busy" };
   return guarded(async () => {
     const { food, dish } = await identifyDish(
       new Uint8Array(await photo.arrayBuffer()),
@@ -74,6 +76,7 @@ export async function tasteOfHome(_: FindResult | null, form: FormData): Promise
   const query = queryInput.safeParse(form.get("query"));
   if (!query.success) return { kind: "spots", dish: null, spots: [] };
   const filters = { ...filtersFrom(form), under21: profile.ageBand !== "21plus" };
+  if (!(await allowSearch(getDb(), profile.id))) return { kind: "busy" };
   return guarded(async () => ({
     kind: "spots",
     dish: null,

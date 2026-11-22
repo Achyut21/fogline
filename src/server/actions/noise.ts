@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { floorDb } from "@/lib/noise";
 import { getDb } from "@/server/db/client";
@@ -32,27 +32,34 @@ export async function recordNoise(raw: unknown): Promise<NoiseResult> {
   }
   const db = getDb();
   const now = new Date();
-  const [recent] = await db
-    .select({ ts: noiseReadings.ts })
-    .from(noiseReadings)
-    .where(
-      and(
-        eq(noiseReadings.profileId, profile.id),
-        gte(noiseReadings.ts, new Date(now.getTime() - 60_000)),
-      ),
-    )
-    .limit(1);
-  if (recent) return { kind: "rejected", reason: "too-soon" };
-  await db.insert(noiseReadings).values({
-    ts: now,
-    profileId: profile.id,
-    routeId: reading.route,
-    fromStopId: reading.from,
-    toStopId: reading.to,
-    dbAvg: reading.dbAvg,
-    dbPeak: reading.dbPeak,
-    isDemo: profile.isDemo,
+  // One reading a minute per profile, checked under a per-profile lock so two sends at once
+  // can't both pass.
+  const recorded = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${profile.id}))`);
+    const [recent] = await tx
+      .select({ ts: noiseReadings.ts })
+      .from(noiseReadings)
+      .where(
+        and(
+          eq(noiseReadings.profileId, profile.id),
+          gte(noiseReadings.ts, new Date(now.getTime() - 60_000)),
+        ),
+      )
+      .limit(1);
+    if (recent) return false;
+    await tx.insert(noiseReadings).values({
+      ts: now,
+      profileId: profile.id,
+      routeId: reading.route,
+      fromStopId: reading.from,
+      toStopId: reading.to,
+      dbAvg: reading.dbAvg,
+      dbPeak: reading.dbPeak,
+      isDemo: profile.isDemo,
+    });
+    return true;
   });
+  if (!recorded) return { kind: "rejected", reason: "too-soon" };
   return { kind: "recorded" };
 }
 

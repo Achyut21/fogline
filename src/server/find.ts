@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { google } from "@ai-sdk/google";
 import { generateText, Output } from "ai";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { matchPlaces, parseGrounded, type FindFilters } from "@/lib/find";
+import { matchPlaces, nameKey, parseGrounded, type FindFilters } from "@/lib/find";
 import { data } from "@/server/data";
 import type { Db } from "@/server/db/client";
 import { aiCache } from "@/server/db/schema";
@@ -52,17 +52,52 @@ export async function identifyDish(image: Uint8Array, mediaType: string) {
 
 const groundedSchema = z.array(z.object({ name: z.string(), quote: z.string() }));
 
+// The places Maps grounding actually returned; any other name in the text is dropped.
+const groundingSchema = z.object({
+  groundingMetadata: z
+    .object({
+      groundingChunks: z
+        .array(z.object({ maps: z.object({ title: z.string() }).optional() }))
+        .optional(),
+    })
+    .optional(),
+});
+
+const perProfileHourly = 10;
+const allHourly = 300;
+
+/** Counts one search against the hourly limits; false once either is used up. */
+export async function allowSearch(db: Db, profileId: string, now = new Date()): Promise<boolean> {
+  const hour = Math.floor(now.getTime() / 3_600_000);
+  const bump = async (key: string) => {
+    const rows = await db.execute<{ n: number }>(sql`
+      insert into ai_cache (key, model, output) values (${key}, 'limit', '{"n":1}'::jsonb)
+      on conflict (key) do update
+        set output = jsonb_build_object('n', (ai_cache.output->>'n')::int + 1)
+      returning (output->>'n')::int as n`);
+    return Number(rows[0]?.n ?? 0);
+  };
+  if ((await bump(`limit:find:${profileId}:${hour}`)) > perProfileHourly) return false;
+  return (await bump(`limit:find:all:${hour}`)) <= allHourly;
+}
+
 /** Places that serve `what` near Boston, each with a review quote, from Maps grounding (F14.2). */
 export async function groundedPlaces(db: Db, what: string) {
   const prompt = `List up to 8 restaurants or cafes in Boston, Cambridge, Somerville or Brookline for: ${what}. One per line, exactly: Name | a short quote from a Google Maps review that mentions it. Only places with such a review. No other text.`;
   return cached(db, prompt, groundedSchema, async () => {
-    const { text } = await generateText({
+    const { text, providerMetadata } = await generateText({
       model: google(model()),
       tools: { google_maps: google.tools.googleMaps({}) },
       providerOptions: { google: { retrievalConfig: { latLng: boston } } },
       prompt,
     });
-    return parseGrounded(text);
+    const chunks = groundingSchema.safeParse(providerMetadata?.google);
+    const titles = new Set(
+      (chunks.success ? (chunks.data.groundingMetadata?.groundingChunks ?? []) : []).flatMap(
+        (chunk) => (chunk.maps ? [nameKey(chunk.maps.title)] : []),
+      ),
+    );
+    return parseGrounded(text).filter((entry) => titles.has(nameKey(entry.name)));
   });
 }
 

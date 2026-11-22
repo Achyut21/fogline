@@ -40,19 +40,30 @@ export function Measure({
   const levels = useRef<number[]>([]);
   const startedAt = useRef(0);
   const stopAudio = useRef<(() => void) | null>(null);
+  // Set while the permission prompt is open, so a second tap opens no second stream.
+  const starting = useRef(false);
+  const mounted = useRef(true);
 
-  useEffect(() => () => stopAudio.current?.(), []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      stopAudio.current?.();
+    };
+  }, []);
 
   const options = from ? (next[from] ?? []) : [];
   const chosen = options.find((o) => `${o.route}:${o.to}` === segment);
 
   async function start() {
+    if (starting.current || stopAudio.current) return;
     setError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("unavailable");
       return;
     }
     let stream: MediaStream;
+    starting.current = true;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
@@ -60,6 +71,13 @@ export function Measure({
     } catch (e) {
       if (!(e instanceof DOMException)) throw e;
       setError(e.name === "NotAllowedError" ? "denied" : "unavailable");
+      return;
+    } finally {
+      starting.current = false;
+    }
+    // The rider left the page while the prompt was open: turn the microphone straight off.
+    if (!mounted.current) {
+      for (const track of stream.getTracks()) track.stop();
       return;
     }
     const context = new AudioContext();

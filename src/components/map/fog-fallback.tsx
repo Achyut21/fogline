@@ -98,25 +98,11 @@ export function FogFallback({
             />
           );
         })}
-        {pins.map((pin) => {
+        {pins.map((pin, i) => {
           const [u, v] = maskUv(pin.lon, pin.lat);
           return (
             <circle
-              key={`${pin.lat},${pin.lon}`}
-              cx={u * width}
-              cy={v * height}
-              r={9}
-              fill="var(--accent)"
-              stroke="var(--surface)"
-              strokeWidth={3}
-            />
-          );
-        })}
-        {pins.map((pin) => {
-          const [u, v] = maskUv(pin.lon, pin.lat);
-          return (
-            <circle
-              key={`${pin.lat},${pin.lon}`}
+              key={i}
               cx={u * width}
               cy={v * height}
               r={9}

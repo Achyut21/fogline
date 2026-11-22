@@ -28,6 +28,9 @@ vi.mock("react", async (original) => ({
 }));
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
+const maps = (titles: string[]) => ({
+  google: { groundingMetadata: { groundingChunks: titles.map((title) => ({ maps: { title } })) } },
+});
 const grounded = [
   'Wusong Road Tiki Bar | "Great dumplings with the drinks."',
   'Studio No 3 | "The soup dumplings are the best I have had here."',
@@ -70,12 +73,16 @@ describe.skipIf(testUrl === "")("find it and taste of home", () => {
   it("[F14.1] [F14.2] [F14.3] turns a photo into known spots with their review quotes", async () => {
     gemini
       .mockResolvedValueOnce({ output: { food: true, dish: "soup dumplings" } })
-      .mockResolvedValueOnce({ text: grounded });
+      .mockResolvedValueOnce({
+        text: grounded,
+        // Cafe Luna is in the text but not in the grounding data, so it's dropped.
+        providerMetadata: maps(["Wusong Road Tiki Bar", "Studio No 3", "Nowhere Noodles"]),
+      });
     const result = await findFromPhoto(null, photoForm());
     if (result.kind !== "spots") throw new Error(`got ${result.kind}`);
     expect(result.dish).toBe("soup dumplings");
     // The bar is left out for an under-21 profile, and the unknown place isn't shown.
-    expect(result.spots.map((s) => s.name)).toEqual(["Studio No 3", "Cafe Luna"]);
+    expect(result.spots.map((s) => s.name)).toEqual(["Studio No 3"]);
     expect(result.spots[0].quote).toBe("The soup dumplings are the best I have had here.");
     expect(gemini.mock.calls[0][0].messages[0].content[1]).toMatchObject({
       type: "file",
@@ -111,5 +118,14 @@ describe.skipIf(testUrl === "")("find it and taste of home", () => {
     const form = new FormData();
     form.set("query", "Shanghai");
     expect(await tasteOfHome(null, form)).toEqual({ kind: "unavailable" });
+  });
+
+  it("[F14.1] stops a profile after 10 searches in an hour", async () => {
+    gemini.mockResolvedValue({ output: { food: false, dish: "" } });
+    const results = [];
+    for (let i = 0; i < 8; i++) results.push((await findFromPhoto(null, photoForm())).kind);
+    // Four searches ran in the tests above, so the 7th here is the 11th this hour.
+    expect(results.slice(0, 6).every((kind) => kind === "not-food")).toBe(true);
+    expect(results.slice(6)).toEqual(["busy", "busy"]);
   });
 });
