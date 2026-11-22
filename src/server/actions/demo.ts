@@ -2,6 +2,7 @@
 
 import { and, count, eq, gte } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { log } from "@/lib/log";
 import { getDb } from "@/server/db/client";
 import { profiles } from "@/server/db/schema";
 import { seedDemo } from "@/server/demo";
@@ -32,6 +33,7 @@ export async function startDemo(): Promise<DemoState> {
     ({ profileId } = await seedDemo(db));
   } catch (e) {
     if (!(e instanceof Error)) throw e;
+    log.error("demo seed failed", e);
     return { error: "failed" };
   }
   await startSession(profileId, true);
