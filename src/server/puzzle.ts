@@ -39,8 +39,9 @@ export function puzzleBoard(events: readonly PuzzleEvent[], date: string) {
 }
 
 /**
- * Plays the newest guess against the date's answer. The answer never leaves the server; the event
- * is returned only once the game is over (F7.1–F7.3, F7.7).
+ * Checks every guess in order against the date's answer, so earlier guesses can't be letter probes.
+ * The answer never leaves the server; the event is returned only once the game is over
+ * (F7.1–F7.3, F7.7).
  */
 export function playGuesses(
   events: readonly PuzzleEvent[],
@@ -50,11 +51,12 @@ export function playGuesses(
 ): PuzzlePlay {
   const event = puzzleFor(events, date);
   if (!event) return { kind: "no-puzzle", date };
-  const previous = guesses.slice(0, -1).map(normalizeGuess);
-  const newest = guesses.at(-1) ?? "";
-  const error = checkGuess(newest, valid, previous, event.word);
-  if (error) return { kind: "rejected", date, error };
-  const played = [...previous, normalizeGuess(newest)];
+  const played: string[] = [];
+  for (const guess of guesses) {
+    const error = checkGuess(guess, valid, played, event.word);
+    if (error) return { kind: "rejected", date, error };
+    played.push(normalizeGuess(guess));
+  }
   const state = gameState(played, event.word);
   const revealed: RevealedEvent = {
     id: event.id,

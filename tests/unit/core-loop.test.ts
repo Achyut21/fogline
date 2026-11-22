@@ -88,4 +88,12 @@ describe("puzzle Server Action logic", () => {
       error: "not-a-word",
     });
   });
+
+  it("[F7.2] rejects a play whose earlier guess isn't a word, so guesses can't probe letters", () => {
+    expect(playGuesses(events(), valid(), date, ["aaaaa", "carol"])).toEqual({
+      kind: "rejected",
+      date,
+      error: "not-a-word",
+    });
+  });
 });

@@ -39,7 +39,10 @@ export async function awardNightBadges(planId: string): Promise<number> {
     .innerJoin(profiles, eq(profiles.id, planParticipants.profileId))
     .where(and(eq(planParticipants.planId, planId), isNotNull(planParticipants.profileId)));
   const joined = people.flatMap((p) => (p.profileId ? [{ ...p, profileId: p.profileId }] : []));
-  const rows = await db.select().from(checkins).where(eq(checkins.planId, planId));
+  const members = new Set(joined.map((p) => p.profileId));
+  const rows = (await db.select().from(checkins).where(eq(checkins.planId, planId))).filter((c) =>
+    members.has(c.profileId),
+  );
   const { serviceDate, seconds } = toServiceTime(plan.startsAt);
   const travelSeconds = new Map<string, number>();
   for (const p of joined) {

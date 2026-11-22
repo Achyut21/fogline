@@ -7,11 +7,11 @@ import { revealAround } from "@/lib/geo/cells";
 import { awardNightBadges } from "@/server/badges";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
-import { checkins, planStops, plans, revealedCells } from "@/server/db/schema";
+import { checkins, planParticipants, planStops, plans, revealedCells } from "@/server/db/schema";
 import { sessionProfileId } from "@/server/session";
 
-// Live night for the prototype (D-067): checking in at a plan's spot (F6.2, F6.3) and the
-// organizer ending the plan (F6.4).
+// Live night for the prototype (D-067): a participant checking in at a plan's spot (F6.2, F6.3)
+// and the organizer ending the plan (F6.4).
 
 const checkinInput = z.object({
   planId: z.uuid(),
@@ -32,6 +32,10 @@ export async function checkIn(
     .select({ startsAt: plans.startsAt, endedAt: plans.endedAt, placeId: planStops.placeId })
     .from(plans)
     .innerJoin(planStops, and(eq(planStops.planId, plans.id), eq(planStops.seq, attempt.seq)))
+    .innerJoin(
+      planParticipants,
+      and(eq(planParticipants.planId, plans.id), eq(planParticipants.profileId, me)),
+    )
     .where(eq(plans.id, attempt.planId));
   const place = row ? data.places().find((p) => p.id === row.placeId) : undefined;
   if (!row || !place) return { valid: false, reason: "not-found" };
