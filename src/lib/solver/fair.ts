@@ -100,6 +100,16 @@ function meetsGrade(place: Place, minGrade: "A" | "B"): boolean {
   return letter === "A" || (minGrade === "B" && letter === "B");
 }
 
+/** Whether a spot passes the category, age, budget and grade filters (F4.5, F10.2). */
+export function matchesFilters(place: Place, filters: SpotFilters): boolean {
+  if (!filters.categories.includes(place.category)) return false;
+  if (filters.under21 && (place.ageRule === "21plus" || adultCategories.includes(place.category))) {
+    return false;
+  }
+  if (filters.budget !== null && place.price !== null && place.price > filters.budget) return false;
+  return filters.minGrade === null || meetsGrade(place, filters.minGrade);
+}
+
 /** Spots within 600 m walking of a station that match the filters, nearest first (F4.5). */
 export function spotsNear(
   places: Place[],
@@ -110,16 +120,7 @@ export function spotsNear(
   for (const place of places) {
     const near = place.stations.find((s) => s.id === station);
     if (!near || near.walkM > maxWalkM) continue;
-    if (!filters.categories.includes(place.category)) continue;
-    if (
-      filters.under21 &&
-      (place.ageRule === "21plus" || adultCategories.includes(place.category))
-    ) {
-      continue;
-    }
-    if (filters.budget !== null && place.price !== null && place.price > filters.budget) continue;
-    if (filters.minGrade !== null && !meetsGrade(place, filters.minGrade)) continue;
-    spots.push({ place, walkM: near.walkM });
+    if (matchesFilters(place, filters)) spots.push({ place, walkM: near.walkM });
   }
   return spots.sort(
     (a, b) =>
@@ -140,6 +141,27 @@ function pick(ranked: RankedStation[], places: Place[], filters: SpotFilters): F
 }
 
 /**
+ * Whether every participant's station has a train to board in the hour before the start, on its
+ * service date or, outside the feed, its day type's representative date (DATA 3.2).
+ */
+export function trainsAt(
+  graph: Graph,
+  timetable: Timetable,
+  participants: Participant[],
+  startsAt: Date,
+): boolean {
+  const { serviceDate, seconds } = toServiceTime(startsAt);
+  const checkedDate =
+    serviceDate in timetable.dates ? serviceDate : graph.dates[dayTypeOf(serviceDate)];
+  return trainsRunning(
+    timetable,
+    checkedDate,
+    seconds,
+    participants.map((p) => p.station),
+  );
+}
+
+/**
  * Up to three fair options at different stations, each with its matching spots (F4.3–F4.5).
  * When none exists, names what to relax (F4.6): one filter at a time first, in the order budget,
  * minimum grade, category, then the fewest of them that work together. The age rule is never
@@ -156,11 +178,7 @@ export function fairOptions(
 ): FairResult {
   const ranked = rankStations(graph, participants, startsAt);
   if (ranked.length === 0) return { kind: "none", blockedBy: ["time"] };
-  const { serviceDate, seconds } = toServiceTime(startsAt);
-  const checkedDate =
-    serviceDate in timetable.dates ? serviceDate : graph.dates[dayTypeOf(serviceDate)];
-  const homes = participants.map((p) => p.station);
-  if (!trainsRunning(timetable, checkedDate, seconds, homes)) {
+  if (!trainsAt(graph, timetable, participants, startsAt)) {
     return { kind: "none", blockedBy: ["no-trains"] };
   }
   const options = pick(ranked, places, filters);

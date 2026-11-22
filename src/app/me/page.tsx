@@ -1,7 +1,10 @@
+import { UsersRound } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/app/bottom-nav";
-import { onboarding } from "@/copy";
+import { Button } from "@/components/ui/button";
+import { onboarding, squad } from "@/copy";
 import { currentProfile } from "@/server/profile";
 import { formatProfileCode } from "@/server/profile-code";
 import { stationById } from "@/server/stations";
@@ -39,6 +42,12 @@ export default async function MePage() {
           </p>
           <p className="text-sm text-ink-muted">{m.codeHelp}</p>
         </section>
+        <Button asChild variant="secondary" className="self-start">
+          <Link href="/me/squad">
+            <UsersRound aria-hidden="true" />
+            {squad.open}
+          </Link>
+        </Button>
       </main>
       <BottomNav />
     </div>

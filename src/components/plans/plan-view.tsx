@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
 import { plans } from "@/copy";
+import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
 import { LeaveByLine } from "./option-card";
@@ -63,6 +64,7 @@ export function PlanView({
   const clock = useSyncExternalStore(signedIn ? tick : noop, now, () => null);
 
   const startsAt = new Date(plan.startsAt);
+  const title = plan.title ?? p.hiddenTitle;
   const ended = plan.status === "ended";
   const live =
     !ended &&
@@ -96,12 +98,10 @@ export function PlanView({
   async function invite() {
     const url = `${window.location.origin}/p/${plan.id}?t=${token}`;
     if (navigator.share) {
-      await navigator
-        .share({ title: plan.title, text: p.share(plan.title), url })
-        .catch((e: unknown) => {
-          // Closing the share sheet rejects with AbortError; that isn't a failure.
-          if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
-        });
+      await navigator.share({ title, text: p.share(title), url }).catch((e: unknown) => {
+        // Closing the share sheet rejects with AbortError; that isn't a failure.
+        if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
+      });
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -162,7 +162,7 @@ export function PlanView({
               {p.live}
             </p>
           )}
-          <h1 className="text-2xl font-extrabold tracking-tight">{plan.title}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
           <p className="text-ink-muted">{p.when(startsAt)}</p>
         </div>
 
@@ -170,6 +170,28 @@ export function PlanView({
           <section role="status" className="flex flex-col gap-2 rounded-lg bg-surface p-4">
             <h2 className="text-lg font-extrabold">{p.adultsOnly}</h2>
             <p className="text-sm text-ink-muted">{p.adultsOnlyBody}</p>
+          </section>
+        ) : plan.stops.length > 1 ? (
+          <section
+            aria-labelledby="stops"
+            className="flex flex-col gap-2 rounded-lg bg-surface p-4"
+          >
+            <h2 id="stops" className="text-sm font-bold text-ink-muted">
+              {p.stops(plan.stops.length)}
+            </h2>
+            <ol className="flex flex-col gap-3">
+              {plan.stops.map((stop, i) => (
+                <li key={`${stop.id}-${i}`} className="flex items-baseline gap-3">
+                  <span className="w-20 shrink-0 text-sm font-bold tabular-nums">
+                    {clockTime(new Date(stop.scheduledAt))}
+                  </span>
+                  <span className="flex flex-col">
+                    <span className="font-extrabold">{stop.name}</span>
+                    <span className="text-sm text-ink-muted">{stop.station}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </section>
         ) : (
           plan.spot && (

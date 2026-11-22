@@ -4,6 +4,7 @@ import { isLine } from "@/components/display/line-badge";
 import { PlanBuilder } from "@/components/plans/plan-builder";
 import { plans } from "@/copy";
 import { calendarDateOf, serviceDateOf, serviceTimeToDate } from "@/lib/time";
+import { data } from "@/server/data";
 import { currentProfile } from "@/server/profile";
 import { stationById, stations } from "@/server/stations";
 
@@ -36,7 +37,8 @@ const stationChoices = [...stations]
   .map((s) => ({ id: s.id, name: s.name, lines: s.routes.filter(isLine) }));
 
 export default async function NewPlanPage({ searchParams }: PageProps<"/plans/new">) {
-  const { at } = await searchParams;
+  const { at, event: eventId } = await searchParams;
+  const event = data.events().find((e) => e.id === eventId);
   const profile = await currentProfile();
   if (!profile) redirect("/welcome");
   const home = stationById(profile.homeStationId);
@@ -47,6 +49,7 @@ export default async function NewPlanPage({ searchParams }: PageProps<"/plans/ne
       under21={profile.ageBand !== "21plus"}
       stations={stationChoices}
       times={startTimes(new Date(), typeof at === "string" ? at : undefined)}
+      event={event ? { id: event.id, title: event.title } : null}
     />
   );
 }
