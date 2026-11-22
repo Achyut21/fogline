@@ -30,7 +30,7 @@ unlock, unleash, elevate, seamless, seamlessly, effortless, effortlessly, journe
 | Miles | one decimal, "mi" | 2.3 mi |
 | Walking distance | "about" + one decimal | about 0.4 mi |
 | Minutes | whole number, "min" | 14 min |
-| Clock time | 12-hour, no leading zero, AM/PM | 12:14 AM |
+| Clock time | 12-hour, no leading zero, AM/PM after a no-break space (U+00A0), so the two never split across lines | 12:14 AM |
 | Date | short weekday, month, day | Fri, Nov 27 |
 | Percent | whole number | 38% |
 | Counts | thousands separator | 1,204 |
