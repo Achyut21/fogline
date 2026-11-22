@@ -6,7 +6,11 @@ import { StatTile } from "@/components/display/stat-tile";
 import { ShareRecap } from "@/components/recap/share-recap";
 import { EmptyState } from "@/components/system/empty-state";
 import { badges, plans, recap } from "@/copy";
+import { clock } from "@/copy/plans";
 import { recapByInvite } from "@/server/actions/recap";
+import { getDb } from "@/server/db/client";
+import { currentProfile } from "@/server/profile";
+import { isParticipant } from "@/server/recap";
 
 export const metadata: Metadata = { title: recap.page.title, robots: { index: false } };
 
@@ -42,6 +46,9 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
   const podium =
     arrivals.length <= 3 ? arrivals : [arrivals[0], arrivals[1], arrivals[arrivals.length - 1]];
   const title = night.title ?? plans.plan.hiddenTitle;
+  // The share image is for participants (F9.4); someone holding only the link sees the page.
+  const viewer = await currentProfile();
+  const member = viewer !== null && (await isParticipant(getDb(), night.planId, viewer.id));
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
       <PageHeader back={back} />
@@ -72,7 +79,10 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
                   <span className="w-10 text-sm font-extrabold text-accent">
                     {recap.places[podium.length === 3 || i < 2 ? i : 2]}
                   </span>
-                  <span className="font-semibold">{a.name}</span>
+                  <span className="flex-1 font-semibold">{a.name}</span>
+                  <span className="text-sm text-ink-muted tabular-nums">
+                    {clock(new Date(a.at))}
+                  </span>
                 </li>
               ))}
             </ol>
@@ -126,7 +136,7 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
         )}
 
         <div className="mt-auto pb-4">
-          <ShareRecap planId={night.planId} title={title} />
+          {member && <ShareRecap planId={night.planId} title={title} />}
         </div>
       </main>
     </div>
