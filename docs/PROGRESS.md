@@ -285,6 +285,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:02 ET · Builder A · Merges, domain and Find food on production:
+  - Merged #43 (Phase 8, `1c3c6e3`) after CI fixes: the fake-microphone test runs only in Chromium (WebKit wouldn't launch with its flags), the puzzle e2e waits for each guess, the inspection retry waits for the button. B's #36 (recap) admin-merged as `efc6fed` (D-052) after A's fixes for code-critic's blockers: a 21+ recap hides its title, every stop counts for 21+, cleared cells go to members only. B's #44 (weekly plans): A's fixes (event stop IDs hashed so weekly plans don't reveal puzzle answers; check-ins store the stop's own ID; B's decision renumbered D-073), `main` merged in, merging on green CI.
+  - `fogline.boston` (Porkbun DNS: A `@` to Vercel, CNAME `www`) redirects to `www.fogline.boston`; HTTPS live at 04:55 ET; checked at 390×844.
+  - Find food on production (via `/demo`, Sichuan): grounding ran on the billed key but matched nothing, because Gemini paraphrases reviews and the quote rule dropped every line. [#46](https://github.com/Achyut21/fogline/pull/46) quotes a line of Google's "Generated Summary" from the grounding data instead, labeled as Google's review summary (D-072 updated). Tests updated; on review and CI.
+  - Still for B: weekly cron runs only at 6 AM with no retry, `violations.json` is empty (Gemini quota at the time), double-tap copy of a weekly plan makes two plans.
+
 - 2026-11-22 04:15 ET · Builder A · Phase 8 (F13 calm mode, F14 Find it and taste of home) on `a/calm`, and #41 merged:
   - #41 (B's `b/crawls` with A's squad and crawl screens, folded into one PR because B had no PR open) squash `7a68d39` after code-critic FAIL (a crawl's title named its first venue, leaking 21+ venues) → fixes (station-named titles, hidden 21+ titles, stop times checked, leave-by from the last stop) → PASS.
   - Calm: `/calm` with a microphone primer (F1.4), measuring a named stretch on the phone (`src/lib/noise.ts`), `recordNoise` (adjacent stations only, one a minute), the "Measured by riders" list, and the sensory preview in the station sheet. D-072.
