@@ -36,7 +36,7 @@ async function newContext(browser: Browser, at?: { latitude: number; longitude: 
 
 test.skip(testUrl === "", "needs DATABASE_URL_TEST to move the plan's start time");
 
-test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins it and checks in", async ({
+test("[F1.4] [F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins it and checks in", async ({
   page,
   browser,
 }) => {
@@ -73,6 +73,12 @@ test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins
 
   await page.reload();
   await expect(page.getByRole("heading", { name: p.live })).toBeVisible();
+
+  // The organizer hasn't granted location: the primer explains it before the browser asks (F1.4).
+  await page.getByRole("button", { name: p.checkIn }).click();
+  await expect(page.getByRole("dialog", { name: p.primer.title })).toBeVisible();
+  await page.getByRole("button", { name: p.primer.continue }).click();
+  await expect(page.getByRole("dialog", { name: p.primer.title })).toBeHidden();
 
   const friend = await newContext(browser, { latitude: spot.lat, longitude: spot.lon });
   const sam = await friend.newPage();
