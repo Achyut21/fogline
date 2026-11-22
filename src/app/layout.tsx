@@ -2,11 +2,14 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { DemoMark } from "@/components/app/demo-mark";
+import { AppUpdates } from "@/components/system/app-updates";
+import { InstallListener } from "@/components/system/install";
 import { MotionProvider } from "@/components/system/motion-provider";
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { ThemeProvider } from "@/components/system/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { app } from "@/copy";
+import { startupImages } from "@/styles/splash-screens";
 import { themeColor } from "@/styles/theme-color";
 import "./globals.css";
 
@@ -19,7 +22,12 @@ export const metadata: Metadata = {
   applicationName: app.name,
   title: app.name,
   description: app.description,
-  appleWebApp: { capable: true, title: app.name, statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true,
+    title: app.name,
+    statusBarStyle: "black-translucent",
+    startupImage: [...startupImages],
+  },
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
@@ -50,6 +58,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ThemeProvider>
             <MotionProvider>{children}</MotionProvider>
             <DemoMark />
+            <AppUpdates />
+            <InstallListener />
             {/* Every screen has an offline state (DESIGN). The banner floats just above the
                 bottom nav, clear of each screen's title and back link. */}
             <div className="pointer-events-none fixed inset-x-0 bottom-0 z-(--layer-toast) pb-safe">
