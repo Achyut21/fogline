@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
 import { alerts, plans } from "@/copy";
+import { dueLeaveAlert } from "@/lib/leave-alerts";
 import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
@@ -24,7 +25,6 @@ const minute = 60_000;
 // the plan ends, or 4 hours after the start, when F6.4 ends a plan nobody ended.
 const liveFromMs = 30 * minute;
 const liveUntilMs = 4 * 60 * minute;
-const leaveAlerts = [20, 5];
 // Arrival order reaches everyone within 10 s (F6.3).
 const refreshMs = 8_000;
 
@@ -93,19 +93,16 @@ export function PlanView({
   const started = clock !== null && clock >= startsAt.getTime();
   const countdownTo = started && myLeaveBy ? myLeaveBy : startsAt;
 
-  // F5.4: in live mode, an alert 20 and 5 minutes before your leave-by, with a buzz on Android.
+  // F5.4: alerts 20 and 5 minutes before your leave-by, with a buzz on Android. They don't wait
+  // for live mode, which ends 4 hours after the start while a leave-by can come later.
   const alerted = useRef(new Set<number>());
   useEffect(() => {
-    if (!live || !myLeaveBy || clock === null) return;
+    if (ended || !myLeaveBy || clock === null) return;
     const left = (myLeaveBy.getTime() - clock) / minute;
-    for (const at of leaveAlerts) {
-      if (left <= at && left > 0 && !alerted.current.has(at)) {
-        alerted.current.add(at);
-        toast(p.leaveAlert(Math.max(1, Math.ceil(left))));
-        if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-      }
-    }
-  }, [live, myLeaveBy, clock]);
+    if (dueLeaveAlert(left, alerted.current) === null) return;
+    toast(p.leaveAlert(Math.max(1, Math.ceil(left))));
+    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+  }, [ended, myLeaveBy, clock]);
 
   useEffect(() => {
     if (!live) return;
