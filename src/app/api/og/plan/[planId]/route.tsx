@@ -1,13 +1,13 @@
 import { ImageResponse } from "next/og";
 import { planImage as copy, system } from "@/copy";
-import { planByInvite } from "@/server/actions/plans";
-import { planPreview } from "@/server/plan-preview";
+import { getDb } from "@/server/db/client";
+import { planPreview, previewPlan } from "@/server/plan-preview";
 import { shareFonts } from "@/server/share-fonts";
 import { shareColors as c } from "@/styles/share-colors";
 
 // F4.8: the link preview for `/p/[planId]?t=[token]`, 1200×630. Link previews are fetched
 // without cookies, so the token in the URL is what grants access; what it shows comes from
-// planPreview. Sizes are literal and colors come from share-colors, since Satori can't read CSS
+// planPreview, from a query narrow enough for a crawler's short timeout. Sizes are literal and colors come from share-colors, since Satori can't read CSS
 // variables (D-070).
 
 const size = { width: 1200, height: 630 };
@@ -21,8 +21,8 @@ const oneLine = {
 export async function GET(request: Request, { params }: { params: Promise<{ planId: string }> }) {
   const { planId } = await params;
   const token = new URL(request.url).searchParams.get("t");
-  const plan = token ? await planByInvite(token) : null;
-  if (!plan || plan.id !== planId) return new Response(null, { status: 404 });
+  const plan = await previewPlan(getDb(), planId, token);
+  if (!plan) return new Response(null, { status: 404 });
 
   const card = planPreview(plan);
 
@@ -87,7 +87,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ plan
             background: c.surface,
           }}
         >
-          <div style={{ ...oneLine, fontSize: 40, fontWeight: 800 }}>{card.spot}</div>
+          {card.spot && (
+            <div style={{ ...oneLine, fontSize: 40, fontWeight: 800 }}>{card.spot}</div>
+          )}
           {card.more && (
             <div style={{ display: "flex", fontSize: 28, color: c.inkMuted }}>{card.more}</div>
           )}

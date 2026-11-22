@@ -13,15 +13,6 @@ vi.mock("@/server/db/client", async (original) => ({
   ...(await original<typeof import("@/server/db/client")>()),
   getDb: () => session.db,
 }));
-// A link preview arrives without a cookie.
-vi.mock("@/server/profile", async (original) => ({
-  ...(await original<typeof import("@/server/profile")>()),
-  currentProfile: async () => null,
-}));
-vi.mock("@/server/alerts", async (original) => ({
-  ...(await original<typeof import("@/server/alerts")>()),
-  currentAlerts: async () => null,
-}));
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
 const token = "PREVKEW23456";
@@ -95,7 +86,8 @@ describe.skipIf(testUrl === "")("invite link preview image", () => {
 
   it("[F4.8] gives nothing without the plan's own token", async () => {
     expect((await image(planId, null)).status).toBe(404);
-    expect((await image(planId, "WRONGTOKEN23")).status).toBe(404);
+    expect((await image(planId, "ABCDEFGHJK23")).status).toBe(404);
+    expect((await image("not-a-plan", token)).status).toBe(404);
     expect((await image(crypto.randomUUID(), token)).status).toBe(404);
   });
 });

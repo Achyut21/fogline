@@ -7,6 +7,4 @@ export const planImage = {
   moreStops: (n: number) => (n === 1 ? "+1 more stop" : `+${n} more stops`),
   /** Every seat that hasn't said no, answered or not, so it doesn't claim they're all going. */
   people: (n: number) => (n === 1 ? "1 person" : `${n} people`),
-  /** The link's text preview, for apps that show a small thumbnail or none. */
-  description: (when: string, spot: string, people: string) => `${when} · ${spot} · ${people}`,
 } as const;
