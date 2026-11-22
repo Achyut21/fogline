@@ -280,6 +280,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 04:20 ET · Builder A · Phase 5 daily puzzle (`a/daily`) and #37 merged:
+  - #37 (plans) squash `49aed51` after code-critic FAIL → fixes (arrival order refreshes every 8 s while live, `[F6.3]` e2e; arrivals only to members; live mode closes 4 h after start; keys) → PASS. CI first failed on `format:check` (Prettier not run before push); fixed, and format:check is now in A's pre-push checks.
+  - **For B (SHOULD FIX from code-critic):** `checkIn` accepts check-ins until `endedAt` is set, and nothing ends a plan automatically yet (F6.4 cron). Either the cron or a 4 h cap in `checkInValidity`.
+  - `/daily`: the board as stops on a line (filled = right spot, ringed = wrong spot, dashed = not in the word; DESIGN asks for no borrowed word-game tiles), on-screen and hardware keyboard, guesses stored in `puzzle_results` through `submitGuess` (`src/server/actions/daily.ts`), k=1 cells around the venue on a solve, the event card with station, walk, minutes from home and source, Plan it (prefills the builder's time), share grid, streak. `src/server/daily.ts` replays stored guesses.
+  - Tests: e2e `tests/e2e/daily.spec.ts` (`[F7.2]` `[F7.3]` `[F7.4]` `[F7.5]` `[F7.7]`) 6/6; screenshots at 390×844 in both themes.
+
 - 2026-11-22 03:50 ET · Builder A · Phase 4 screens, plan builder and plan page (`a/plan-builder`):
   - `/plans` (upcoming and past), `/plans/new` (friends with stations, start time, kinds of spot → up to 3 fair options with minutes bars, leave-by and no-train warnings, spots → createPlan), `/p/[id]?t=` (spot, people, leave-by for members, Join, invite link, live mode 30 min before the start with countdown, check-in with location and its failure lines, arrival order, End for the organizer).
   - **Note for B (your file):** `planByInvite` in `src/server/actions/plans.ts` now also returns `inviteToken` (members only), `viewer` (member, organizer), `arrivals` (first valid check-in per person) and per-person `you` and `placeholder`. `src/server/plans.ts` adds `myPlans`.

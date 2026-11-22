@@ -16,7 +16,7 @@ export function LeaveByLine({ name, leaveBy }: { name: string; leaveBy: LeaveBy 
     return leaveBy.startsAfterLeaveBy ? (
       <p className="text-sm font-semibold text-danger">{b.noTrain(name, leaveBy.leaveBy)}</p>
     ) : (
-      <LeaveByChip at={leaveBy.leaveBy} />
+      <LeaveByChip at={leaveBy.leaveBy} className="self-start" />
     );
   }
   if (leaveBy.kind === "no-train") {
