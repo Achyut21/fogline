@@ -14,7 +14,6 @@ import { isParticipant, recapOf, type Recap } from "@/server/recap";
 // - a bar or club, and the title that may name it, is hidden from anyone not known to be 21+;
 // - demo and real never mix.
 
-
 async function shown(recap: Recap | null, viaInvite: boolean): Promise<Recap | null> {
   if (!recap) return null;
   const viewer = await currentProfile();
