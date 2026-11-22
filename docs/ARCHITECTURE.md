@@ -119,18 +119,19 @@ public/
 
 ## 6. Database (Tiger Cloud)
 
-Drizzle owns the regular tables. Custom SQL migrations (`drizzle-kit generate --custom`) create hypertables, continuous aggregates, compression and retention.
+Drizzle owns the regular tables. Allowed values are `text` columns with check constraints rather than Postgres enums, because Drizzle applies every pending migration in one transaction and a new enum value can't be used in the transaction that adds it. Deleting a profile cascades to its cells, badges and puzzle results. Custom SQL migrations (`drizzle-kit generate --custom`) create hypertables, continuous aggregates, compression and retention.
 
 **Regular tables**
-- `profiles`: id (uuid), display_name, school, home_station_id, age_band (`under21` | `21plus`), profile_code (unique), theme_pref, is_demo, created_at.
-- `plans`: id, created_by, kind (`meetup` | `crawl`), title, starts_at (timestamptz), status (`draft` | `planned` | `live` | `ended`), budget, vibe, calm, min_grade, invite_token, is_demo, created_at.
-- `plan_participants`: plan_id, profile_id (nullable for placeholders), placeholder_name, origin_station_id, rsvp, joined_at.
+- `profiles`: id (uuid), display_name, school, home_station_id, age_band (`under21` | `21plus`), profile_code (unique), theme_pref (`system` | `light` | `dark`), is_demo, created_at.
+- `plans`: id, created_by (set to null when the organizer deletes their data), kind (`meetup` | `crawl`), title, starts_at (timestamptz), ended_at (when the plan ended, for the check-in window; set exactly when status is `ended`), status (`draft` | `planned` | `live` | `ended`), budget (1–3, null for any), vibe (`quiet` | `lively`), calm, min_grade (`A` | `B`, null for any), invite_token, is_demo, created_at.
+- `plan_participants`: id, plan_id, profile_id (nullable for placeholders, set to null when the person deletes their data), placeholder_name, origin_station_id, rsvp (`pending` | `yes` | `no`), joined_at. A seat is a joined profile (no name or station on the row: the station is the profile's home station), a placeholder (name and station), or a former member (none of the three, F1.7). A profile sits in a plan once.
 - `plan_stops`: plan_id, seq, place_id (text ID from `places.json`, or an event ID from `events.json`), station_id, scheduled_at.
 - `revealed_cells`: profile_id, h3 (text), state (`seen` | `visited`), source (`home` | `ride` | `checkin` | `puzzle`), first_at. Primary key (profile_id, h3).
-- `badges_awarded`: profile_id, badge_id, plan_id (nullable), scope (nullable: the neighborhood for First Light), awarded_at, meta (jsonb). Unique `NULLS NOT DISTINCT (profile_id, badge_id, plan_id, scope)` for idempotency. A plain unique constraint treats NULLs as distinct and would let explorer badges duplicate.
+- `badges_awarded`: id, profile_id, badge_id, plan_id (nullable), scope (nullable: the neighborhood for First Light), awarded_at, meta (jsonb). Unique `NULLS NOT DISTINCT (profile_id, badge_id, plan_id, scope)` for idempotency. A plain unique constraint treats NULLs as distinct and would let explorer badges duplicate.
 - `daily_puzzles`: date (America/New_York), word, event_id (text ID from `events.json`).
-- `puzzle_results`: profile_id, date, guesses (jsonb), solved, solved_at.
+- `puzzle_results`: profile_id, date, guesses (jsonb), solved, solved_at (set exactly when solved).
 - `ai_cache`: key, model, output (jsonb), created_at.
+- Rate limits (sections 9 and 14) get a token-bucket table when the first limited route lands: profile-code restore in Phase 3.
 
 **Hypertables (time column first)**
 - `vehicle_positions`: ts, vehicle_id, trip_id, route_id, direction_id, stop_id, current_status, lat, lon, bearing, occupancy (jsonb, per-car when present).

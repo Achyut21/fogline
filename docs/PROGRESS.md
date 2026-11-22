@@ -93,7 +93,7 @@ This is the shared status board for both builders. Update it after every finishe
   2. **Schema and migrations** (`b/schema-tables`, then `b/schema-hypertables`; F3.8, F6.3, F8.6, F13.2, F15.1)
      - Regular tables from ARCHITECTURE section 6 in `src/server/db/schema.ts`, migration from `pnpm db:generate`. `badges_awarded` unique `NULLS NOT DISTINCT` (D-022).
      - Custom SQL: four hypertables, three continuous aggregates `WITH NO DATA` plus refresh policies, compression (`vehicle_positions` after 1 day, the rest after 7) and 30-day retention on `vehicle_positions`.
-     - A Vitest `globalSetup` migrates the test database. Integration tests: the four hypertables exist, `[F8.6]` a duplicate badge is rejected, the aggregates refresh, migrating twice is a no-op.
+     - Each integration test file migrates its own scratch database (D-049). Integration tests: the four hypertables exist, `[F8.6]` a duplicate badge is rejected, the aggregates refresh, migrating twice is a no-op.
      - Each migration PR merges on its own. B applies it to `fogline-db` from B's own terminal, then we check `timescaledb_information.hypertables`.
   3. **GTFS pipeline and travel time** (`b/gtfs`; F4.2)
      - `pnpm data:gtfs`: download the feed, keep `route_type` 0 and 1, write `stations.json`, `graph.json`, `timetable.json` and `shapes.json`, and log counts.
@@ -208,6 +208,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 20:15 ET · Builder B · Phase 2 item 2a, core tables, on `b/schema-tables` (migration `0001_core_tables`, its own PR):
+  - Nine regular tables from ARCHITECTURE section 6: profiles, plans, plan_participants, plan_stops, revealed_cells, badges_awarded, daily_puzzles, puzzle_results, ai_cache. Rules in D-049.
+  - Tests: 7 integration tests on a scratch TimescaleDB. `[F8.6]` explorer and night badges once each. Every allowed value accepted and one outside value rejected per check. Plan end and puzzle-solved pairs stay in step. Seat rules. A profile delete keeps shared plans with an empty seat.
+  - code-critic: first pass FAIL. BLOCKING fixed: drizzle-kit's meta files failed Prettier on Linux (`drizzle/meta/` now ignored). All 6 SHOULD FIX items fixed and 0001 regenerated, since it's applied nowhere yet: the station left on a deleted member's seat, `ended_at` versus `status`, one value list per column, the seat test, the foreign-key indexes and D-049. Second pass: PASS. Its nits are fixed too: every allowed value is written once in the test, so a list passed to the wrong column fails, and the puzzle check is tested both ways.
+  - Shared file changed: `.prettierignore`.
+  - Next: B applies `0001_core_tables` to `fogline-db` after the PR merges. Then item 2b, the hypertables migration.
 - 2026-11-21 19:40 ET · Builder B · Phase 2 item 1, time, geo and H3 helpers, on `b/time-geo`:
   - `src/lib/time.ts`: GTFS times past 24:00:00, the service-day origin (noon minus 12 h), the service date of a moment (3 AM cutoff, D-047), day type and hour buckets (D-048). Uses `@date-fns/tz` 1.5.
   - `src/lib/geo/distance.ts` (haversine, walking ×1.25 at 80 m/min) and `src/lib/geo/cells.ts` (H3 res 9 reveals, visited over seen, uncovered share). Uses `h3-js` 4.5.
