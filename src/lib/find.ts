@@ -6,10 +6,11 @@ import { adultCategories, gradedCategories, type Place } from "@/lib/places/type
 
 export type Grounded = { name: string; quote: string };
 
+// Words every search shares, which would pick a line that says nothing about the dish.
+const genericWords = new Set(["food", "restaurant", "restaurants", "cafe", "place"]);
+
 /** A Maps grounding chunk: the place's title and the text Google returns about it. */
 export type MapsChunk = { title: string; text?: string };
-
-const summaryLine = /^\s*\*\s+(.+?)\s*$/;
 
 /** The bullet lines under "Generated Summary" in a Maps chunk's text: Google's review summary. */
 export function reviewSummary(text: string): string[] {
@@ -17,9 +18,16 @@ export function reviewSummary(text: string): string[] {
   const start = lines.findIndex((line) => line.includes("**Generated Summary:**"));
   if (start < 0) return [];
   const out: string[] = [];
+  let indent: number | null = null;
   for (const line of lines.slice(start + 1)) {
-    if (/^\s*\*\s+\*\*/.test(line) || !summaryLine.test(line)) break;
-    out.push(line.replace(summaryLine, "$1"));
+    const match = line.match(/^(\s*)\*\s+(.+?)\s*$/);
+    // The summary ends at the next bullet that is less indented than its own lines.
+    if (!match || (indent !== null && match[1].length < indent)) break;
+    if (indent === null) {
+      if (match[1].length === 0) break;
+      indent = match[1].length;
+    }
+    out.push(match[2]);
   }
   return out;
 }
@@ -32,7 +40,7 @@ export function reviewSummary(text: string): string[] {
 export function groundedQuotes(chunks: readonly MapsChunk[], search: string): Grounded[] {
   const words = nameKey(search)
     .split(" ")
-    .filter((w) => w.length >= 4);
+    .filter((w) => w.length >= 4 && !genericWords.has(w));
   return chunks.flatMap((chunk) => {
     const lines = reviewSummary(chunk.text ?? "");
     if (lines.length === 0) return [];

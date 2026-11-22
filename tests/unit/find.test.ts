@@ -42,9 +42,11 @@ describe("find it and taste of home", () => {
     ).toEqual([
       { name: "Dumpling House", quote: "Delicious dumplings and free tea in a calm environment." },
     ]);
-    expect(groundedQuotes([{ title: "Dumpling House - Google Maps", text }], "pork")[0].quote).toBe(
-      "Pork and cabbage soup dumplings, fast service.",
-    );
+    const bold = text.replace("  * Pork and", "  * **Pork** and");
+    expect(reviewSummary(bold)).toHaveLength(2);
+    expect(
+      groundedQuotes([{ title: "Dumpling House - Google Maps", text }], "pork food")[0].quote,
+    ).toBe("Pork and cabbage soup dumplings, fast service.");
   });
 
   it("[F14.1] matches names to known spots near the T, at most three", () => {
