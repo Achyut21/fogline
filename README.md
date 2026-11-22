@@ -4,18 +4,18 @@ Boston starts covered in fog. You clear it by riding the T, going out with frien
 
 Under the game is a planner for college students without cars. It finds a meetup spot that's fair by T minutes for friends at different campuses, builds crawls, and tells each person when to leave to catch their own last train home.
 
-Built for BostonHacks 2026, "Bos(tons) of Eats and Streets" track. Live at [fogline.boston](https://www.fogline.boston). The 3-minute judge path runs in demo mode at [/demo](https://www.fogline.boston/demo).
+Built for BostonHacks 2026, "Bos(tons) of Eats and Streets" track. Live at [fogline.boston](https://www.fogline.boston); try it with sample data at [/demo](https://www.fogline.boston/demo).
 
 ## What it does
 
-- **Fair plans:** friends pick their home stations, and Fogline ranks meetup stations by how even the T trip is for everyone, not by map distance. Each person sees their own trip and their own last train.
-- **Last train:** a leave-by time per person, from the plan's last stop, with MBTA service alerts on their way home and a "Remind me" calendar file with alarms 20 and 5 minutes before.
-- **Crawls and weekly plans:** 2 to 4 stops, each within 10 minutes of the last by walk or T and open at its time. Three fair plans are suggested every Monday, including a meal before a real Boston event.
-- **The fog:** riding, checking in and solving the daily puzzle uncover hexagons of the city. Squads share a map and a weekly streak.
+- **Fair plans:** friends pick their home stations, and Fogline ranks meetup stations by how even the T trip is for everyone, not by map distance. Each person sees their own minutes and their own leave-by time for their last train home, from the plan's last stop.
+- **Crawls:** 2 to 4 stops, each within 10 minutes of the last by walk or T, open at its time where its hours are known.
+- **The fog:** riding, checking in and solving the daily puzzle uncover hexagons of the city. Ride replays lift the fog stop by stop on a recorded train. Squads share a map and a weekly streak.
 - **The daily puzzle:** a five-letter word tied to a real event in Boston that day. Solving it reveals the event and offers to plan a night around it.
+- **Live night:** check-ins at the spot and the arrival order.
 - **Grades:** an unofficial letter grade from City of Boston food inspections, with the violations listed.
-- **Live night and recap:** check-ins, arrival order, badges, and a recap with a share image.
-- **Calm mode and Find food:** quiet routes and sensory previews, and finding a dish from a photo.
+- **Calm mode and Find food:** noise measured by riders on each stretch with a sensory preview, and finding a dish from a photo.
+- **How it works:** live counts from the database and every data source with its credit.
 
 Facts (times, distances, grades, scores) always come from code. AI only writes words.
 
@@ -69,17 +69,18 @@ The static data in `data/` is committed. Rebuild it with the pipelines in `scrip
   - H3 cells for the fog.
 - **Vercel** hosting (region iad1, next to the database). Vercel Cron records train positions every minute, ends plans, cleans up demo copies and makes the weekly plans.
 - **No accounts:** an anonymous profile in a signed cookie, invite links with tokens, and a profile code to move to another device.
-- **Gemini** through the AI SDK for station card facts, plain-English violations and Find food. Every AI output is checked or cached before it's shown.
+- **Gemini** through the AI SDK for station card facts and Find food. Every AI output is checked or cached before it's shown.
 
 `docs/ARCHITECTURE.md` has the full picture, `docs/PRD.md` the features and acceptance criteria, and `docs/DECISIONS.md` the reasons behind each choice.
 
 ## Data and credits
 
-- Train data: MBTA. Not affiliated with the MBTA. Schedules from MBTA GTFS; live positions, predictions and alerts from MBTA's realtime feeds.
-- Map data © OpenStreetMap contributors. Tiles by OpenFreeMap. Spots from OpenStreetMap through Overpass.
-- Unofficial grades from City of Boston inspection records (Analyze Boston). Neighborhood boundaries from the BPDA, and Cambridge, Somerville and Brookline from US Census TIGERweb.
-- Stop card facts from Wikipedia, and photos from Wikimedia Commons with each author and license shown.
-- Puzzle words from dwyl/english-words (The Unlicense). Events are curated by hand from each venue's own listing.
+- Train data: MBTA. Not affiliated with the MBTA. Schedules from MBTA GTFS; live positions and predictions from MBTA's realtime feeds.
+- Map data © OpenStreetMap contributors. Tiles by OpenFreeMap, styles from OpenMapTiles. Spots from OpenStreetMap through Overpass.
+- Unofficial grades from City of Boston inspection records (Analyze Boston). Neighborhood boundaries from the BPDA; Cambridge, Somerville and Brookline from the US Census Bureau (TIGERweb).
+- Stop card facts from Wikipedia (CC BY-SA), and photos from Wikimedia Commons with each author and license shown.
+- Find food: places and review summaries from Google Maps, through Gemini grounding.
+- Puzzle words from dwyl/english-words (The Unlicense). Events are checked by hand against each venue's own listing.
 - Font: Hanken Grotesk (SIL Open Font License).
 
 ## Team
