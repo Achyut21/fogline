@@ -17,7 +17,7 @@ Working canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR (private until
 - Transit: departure times and line color carry the screen, usable with one thumb.
 - Strava: stats and recaps that make the numbers the reward.
 
-**The world, as drawn on the canvas** (values are starting points until item 5 sets the tokens):
+**The world, as drawn on the canvas** (item 5 set the final values in section 4, D-054):
 - **Map:** a muted gray basemap with white roads, a dark variant for night, official line colors with casings, stations as small white dots. Fog is a near-opaque white veil by day and a near-black veil by night over H3 cells. Seen cells are thinner fog, visited cells are clear.
 - **Surfaces:** floating cards (about 20 px radius) and sheets (24 px top corners) with soft shadows over the map. Pills for chips and line letters. Cards only where they float over the map or hold a tile. No cards inside cards.
 - **Color:** cool neutrals and one accent, a teal (about `#0B7A75` by day, `#3BC9BE` by night) for the primary action, the active tab and progress. Line colors only on lines and line badges.
@@ -56,44 +56,99 @@ Two themes from the same token set:
 
 Default: follow the OS setting (`prefers-color-scheme`). Settings offers System, Day and Night. An iPhone set to Automatic already switches at sunset, people who need dark mode all day keep it, and the `theme-color` media tags stay correct without runtime work. Only a manual override updates `theme-color` at runtime (D-051). This replaces the earlier `suncalc` default.
 
-## 4. Tokens (starting values, finalized in Phase 1)
+## 4. Tokens (final, D-054)
 
-All values live in `src/styles/tokens.css` as CSS variables and are mapped into the Tailwind theme. Components never use raw values.
+Values live in `src/styles/tokens.css` as CSS variables: day in `:root`, night in `.dark`. Springs and the list stagger, which only Motion and R3F use, live in `src/lib/motion.ts`. `src/app/globals.css` maps the CSS tokens into the Tailwind theme and resets Tailwind's default palette, type sizes, tracking, radii, shadows and easings, so only tokens exist as classes. Components never use raw values. `tests/unit/design-tokens.test.ts` enforces this on every `pnpm test` (D-054). `/design` shows every token, with contrast ratios, and a unit test checks that every color token appears there.
 
 ### Color roles
 
-| Token | Role |
-|---|---|
-| `--bg` | app background |
-| `--surface` / `--surface-raised` | sheets, cards |
-| `--ink` / `--ink-muted` / `--ink-subtle` | text levels |
-| `--fog` / `--fog-thin` | fog colors (also fed to the shader as uniforms) |
-| `--accent` / `--accent-ink` | primary actions |
-| `--success` / `--warning` / `--danger` | states; countdown turns warning at 20 min, danger at 5 min |
-| `--line-red` `#DA291C`, `--line-orange` `#ED8B00`, `--line-blue` `#003DA5`, `--line-green` `#00843D` | fixed MBTA line colors (Mattapan uses red) |
+| Token | Day | Night | Role |
+|---|---|---|---|
+| `--bg` | `#F4F5F7` | `#0E1013` | app background; `theme-color` (D-043) |
+| `--surface` | `#FFFFFF` | `#1E2227` | cards and sheets |
+| `--surface-raised` | `#FFFFFF` | `#262B31` | menus and popovers above a sheet |
+| `--surface-sunken` | `#EEF1F4` | `#2A3037` | chips and segmented-control tracks. At night it is lighter than `--surface-raised`, as on the canvas: chips read lighter than cards. |
+| `--rule` | `#E3E6EA` | `#2E343B` | dividers |
+| `--field` | `#F4F5F7` | `#15181C` | input fill. At night it is darker than the card, as on the canvas. |
+| `--field-border` | `#848C95` | `#6B737D` | input border, 3:1 against `--surface` (WCAG 1.4.11). Focused inputs use a 2 px `--accent` border. |
+| `--ink` | `#15181C` | `#EEF1F4` | primary text |
+| `--ink-muted` | `#5B636D` | `#A3ACB6` | secondary text |
+| `--ink-subtle` | `#6B737D` | `#8A939E` | metadata, on `--surface` only |
+| `--accent` / `--accent-ink` | `#0B7A75` / `#FFFFFF` | `#3BC9BE` / `#071615` | primary action, active tab, progress |
+| `--accent-soft` | `#DCEFED` | `#233B3A` | selected rows and chips, with `--ink` text (accent on accent-soft is 4.34:1 by day), text selection |
+| `--success` | `#1B7348` | `#4CC38A` | arrived, checked in |
+| `--warning` | `#A35600` | `#F2A93B` | countdown at 20 min or less |
+| `--danger` / `--danger-ink` | `#C2321F` / `#FFFFFF` | `#FF7A66` / `#071615` | countdown at 5 min or less, errors |
+| `--focus` | `#0B7A75` | `#3BC9BE` | focus ring |
+| `--scrim` | ink at 12% | black at 30% | behind modal sheets |
+| `--fog` / `--fog-thin` | `#FCFCFD` / 45% | `#08090B` / 45% | fog and seen cells (shader uniforms) |
+| `--fog-edge` | accent at 45% | `#96ECE4` at 70% | the bright edge of the burn-off reveal (shader uniform) |
+| `--halo` | `#FFFFFF` | `#08090B` | map label halos and station-dot rings |
+| `--map-land` / `--map-water` / `--map-park` / `--map-road` | `#E6E9EC` / `#B6D0EA` / `#CCE6C6` / `#FFFFFF` | `#1D2126` / `#122030` / `#1B2A21` / `#30353C` | basemap restyle (section 10) |
+| `--line-red`, `--line-orange`, `--line-blue`, `--line-green` | `#DA291C`, `#ED8B00`, `#003DA5`, `#00843D` | same | MBTA line colors, only on lines and line badges (Mattapan uses red) |
+| `--line-ink` / `--line-ink-orange` | `#FFFFFF` / `#15181C` | same | text on line badges |
+| `--line-*-casing` | white; ink for orange | `#0E1013`; `#EEF1F4` for blue | line casings |
 
-Contrast rules:
-- White text on Orange Line `#ED8B00` fails WCAG AA, so use `--ink` on orange.
-- White on red, green and blue passes; check the exact pair in Phase 1.
-- Every color pair used for text must meet WCAG 2.2 AA in both themes. The `/design` page lists each pair with its ratio.
-- T lines on the map need 3:1 against the basemap (WCAG 1.4.11). Orange on a light basemap is about 2.2:1 and Blue on a near-black one about 2:1, so lines get a casing in both themes. The line colors themselves don't change.
+Contrast rules (each one is a unit test):
+- Every text pair in `src/styles/pairs.ts` meets WCAG 2.2 AA (4.5:1) in both themes. Add a pair there before using a new text and background combination.
+- Input borders and focus rings reach 3:1 against what sits next to them (`controlPairs` in `src/styles/pairs.ts`, WCAG 1.4.11). `--field-border` falls under 3:1 on `--surface-sunken` and, at night, on `--surface-raised`, so inputs sit on `--surface`.
+- White on the Orange Line fails AA, so orange badges use `--line-ink-orange`. White on red (4.87:1), green (4.81:1) and blue (9.50:1) passes.
+- Every T line reaches 3:1 against land, water, park, road and fog in both themes (WCAG 1.4.11), or against its casing where a ground is too close. A cased line's adjacent color is its casing. Orange gets an ink casing by day, blue a light casing by night, and the others dark casings by night, as on the canvas. The line colors don't change. `/design` draws every line on every ground, and above the fog (F2.3).
 
 ### Type
 
-- Two families at most: a display face with character for numbers and headings, and a text face for everything else. Both need tabular figures. Load them with `next/font`. Fonts must carry an open license (OFL or similar).
-- Don't default to Inter, Poppins or Space Grotesk without a reason recorded in `docs/DECISIONS.md`. Use impeccable `typeset` to choose.
-- Scale (starting point, rem-based so it respects user font size): 12, 14, 16, 18, 22, 28, 36, 48, 64. The 48 and 64 sizes are for hero numbers.
+- One family: **Hanken Grotesk** (OFL), a variable font at weights 400 to 800, loaded with `next/font` (Latin subset) as `--font-hanken`. impeccable `typeset` confirmed it (D-054). Its figures are tabular by default and it has no proportional set. Numbers still carry `tabular-nums`, so a fallback font lines up too.
+- Roles, taken from the canvas (direction C, onboarding and Map pages):
+
+| Role | Classes | Canvas |
+|---|---|---|
+| Hero number (map card, countdown) | `text-3xl font-extrabold tracking-tight tabular-nums` | 40/800, -0.02em |
+| Recap and first-reveal hero | `text-4xl` or `text-5xl font-extrabold tracking-tight tabular-nums` | not drawn yet |
+| Title (screen and sheet) | `text-2xl font-extrabold tracking-tight` | 24–30/800, -0.02em |
+| Section heading (inside a sheet or page) | `text-xl font-extrabold tracking-tight` | 22/800 |
+| Stat | `text-xl font-extrabold tabular-nums` | 17–20/800 |
+| Wordmark | `text-xl font-extrabold tracking-snug` | 22/800, -0.01em |
+| Primary button | `text-lg font-bold` | 18/700 |
+| Secondary button, link, selected segment | `text-base font-bold` (unselected segments `font-semibold`) | 15/700 and 15/600 |
+| Row title | `text-base font-bold` | 16/700 |
+| Body and input text | `text-base` (inputs `font-semibold`) | 16, inputs 16–17/600 |
+| Label | `text-sm font-bold` | 14/700 |
+| Helper and meta | `text-sm`, `--ink-muted` | 13 |
+| Caption (stat and nav labels, units, line letters) | `text-xs`, weight 500 to 800 | 11–12 |
+| Profile code | `text-2xl font-extrabold tracking-wide` | 24/800, 0.18em |
+
+- Canvas sizes map to the scale like this: 10–12 px → `xs`, 13–14 → `sm`, 15–17 → `base`, 18 → `lg`, 20–22 → `xl`, 24–30 → `2xl`, 40 → `3xl`. The role table wins over this mapping: the canvas's 17 px recap stats are Stats (`text-xl`), because numbers are the biggest type (principle 3). New artboards use the scale sizes.
+- Tracking: `tracking-tight` (-0.02em) for titles and hero numbers, `tracking-snug` (-0.01em) for the wordmark, `tracking-wide` (0.18em) for profile codes. Tailwind's other tracking classes are reset.
+- A time and its AM or PM are joined by a no-break space, so "12:14 AM" never splits (COPY.md).
+- Scale (rem, so it follows the user's font size), with line heights:
+
+| Class | Size | Line height |
+|---|---|---|
+| `text-xs` | 0.75rem (12) | 1rem |
+| `text-sm` | 0.875rem (14) | 1.25rem |
+| `text-base` | 1rem (16) | 1.5rem |
+| `text-lg` | 1.125rem (18) | 1.625rem |
+| `text-xl` | 1.375rem (22) | 1.75rem |
+| `text-2xl` | 1.75rem (28) | 2.125rem |
+| `text-3xl` | 2.5rem (40) | 1 |
+| `text-4xl` | 3rem (48) | 1 |
+| `text-5xl` | 4rem (64) | 1 |
 
 ### Space, radius, elevation, layers
 
-- Spacing on a 4 px base: 4, 8, 12, 16, 20, 24, 32, 40, 56, 72.
-- Radius: 6 (chips), 12 (cards), 20 (sheets), full (pills, avatars).
-- Elevation: three levels, defined per theme. Night uses light borders more than shadows.
-- Layers, bottom to top: map, fog, map overlays (lines, stations, pins), floating chips, sheets, toasts, modals.
+- Spacing: Tailwind's 4 px steps, limited to 0, 1, 2, 3, 4, 5, 6, 8, 10, 14 and 18 (0 to 72 px) for padding, margin, gap and space. The token check rejects other steps.
+- Radius:
+  - `rounded-sm`, 8 px (`--radius-small`): segmented-control thumbs (the canvas draws 10) and swatches.
+  - `rounded-md`, 12 px (`--radius-tile`): inputs and list rows (the canvas draws 14), segmented-control tracks and tiles.
+  - `rounded-lg`, 20 px (`--radius-card`): floating cards.
+  - `rounded-xl`, 24 px (`--radius-sheet`): sheet top corners.
+  - `rounded-full`: buttons, icon buttons, chips, line badges, grabbers, progress bars and avatars. The canvas draws these as pills (radius half the height: 22 for 44 px, 28 for 56 px).
+- Elevation: `shadow-sm`, `shadow-md` and `shadow-lg` (`--elevation-1` to `--elevation-3`). Level 3 casts upward, for bottom sheets. Night adds a hairline light ring to each level, because a black shadow barely shows on near-black and night `--surface` is almost the color of night `--map-land`.
+- Layers, bottom to top, as `z-(--layer-*)`: map 0, fog 1, overlay 2 (lines, stations, pins), chips 10, sheet 20, toast 30, modal 40.
 
 ### Motion
 
-| Token | Starting value | Use |
+| Token | Value | Use |
 |---|---|---|
 | `duration.instant` | 80 ms | press feedback |
 | `duration.fast` | 160 ms | small state changes, tab crossfade |
@@ -108,7 +163,7 @@ Contrast rules:
 | `spring.bouncy` | stiffness 380, damping 18 | pin drop, badge award |
 | `stagger.list` | 35 ms (stagger the first 8 items, show the rest together) | lists |
 
-Export the same values from `src/lib/motion.ts` for Motion and for R3F animations.
+CSS uses `duration-(--duration-fast)`, `ease-standard` and `ease-exit`. `src/lib/motion.ts` exports the same values for Motion and R3F, and a unit test keeps the two equal.
 
 ## 5. Layout and navigation
 
@@ -201,13 +256,15 @@ Measure both under Chrome's 4× CPU throttle with mobile emulation, then record 
 
 - Start from an OpenFreeMap style and restyle it: muted land and water, low label density, no POI icons (we draw our own), plus a night variant.
 - Draw T lines from GTFS shapes as our own layers, so color, width and order are ours. Draw stations as circles that grow at higher zoom.
+- Line casings stay at least 2 CSS px wide on each side at every zoom where the line draws. A line's 3:1 contrast against roads and parks comes through its casing (section 4, D-054), so a casing that interpolates below a pixel drops it to about 2.5:1.
 - The attribution control stays visible: OpenFreeMap, OpenStreetMap contributors.
 
 ## 11. Imagery and icons
 
-- Icons: lucide, plus custom line and station glyphs.
+- Icons: lucide, plus custom line and station glyphs, which arrive with LineBadge and StationDot in Phase 1 item 6.
 - Stop-card photos come from Wikimedia Commons, with author and license shown on the card.
-- App icon and wordmark: original artwork that works as a maskable icon (key shapes inside the safe zone). No MBTA marks.
+- App icon (`public/icons/icon.svg`, PNGs from `pnpm icons`): seven H3 cells on the night background. A teal line enters from the lower right and ends at a station dot in the center. The two cells it crossed are cleared (tinted `--accent-soft`), the cells beside them hold thin fog, and the rest full fog. Colors are tokens (night `--bg`, `--accent-soft` and `--accent`, day `--fog`), and every shape sits inside the central 80%, so the same file works as a maskable icon. No MBTA marks (D-054).
+- Wordmark: "Fogline" in `text-xl font-extrabold tracking-snug`, in `--ink`. It is type, not a separate logo file.
 
 ## 12. Phase 1 process (design before any feature UI)
 

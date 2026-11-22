@@ -72,7 +72,7 @@ Never write "done" for something you have not run and seen.
 ## UI rules
 
 - Design comes first. No feature UI before the Phase 1 gate passes and the `/design` style-guide route exists.
-- Components use design tokens only (CSS variables and the Tailwind theme). No raw hex values, no one-off spacing, no one-off durations. A grep check runs at every phase gate.
+- Components use design tokens only (CSS variables and the Tailwind theme). No raw hex values, no one-off spacing, no one-off durations. A token check in `pnpm test` enforces this (D-054).
 - Every screen has loading, empty, error and offline states.
 - Motion animates transform and opacity only, can be interrupted, uses the motion tokens, and has a `prefers-reduced-motion` version.
 - 3D is lazy-loaded, checks the GPU tier, has a 2D fallback, and stops rendering when hidden or off-screen.

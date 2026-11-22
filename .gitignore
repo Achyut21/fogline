@@ -42,3 +42,6 @@ pnpm-debug.log*
 
 # Playwright bypass cookie for deployment checks
 playwright/.auth/
+
+# Phase 1 canvas tooling (map renders, canvas sources), local only
+.canvas-work/

@@ -7,7 +7,7 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 ## Standing checks (part of every gate)
 
 - `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e` (all Playwright projects) and `pnpm build` pass.
-- **Token check:** `grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9]+px" src/components src/app --include=*.tsx` finds nothing outside `src/styles/tokens.css`, the `/design` route, and documented exceptions in DECISIONS.md. (Refine the pattern in Phase 1 so it fits the token setup, and record that refinement.)
+- **Token check:** the "finds no raw colors, pixels, arbitrary values, palette colors or off-scale spacing in src" test in `tests/unit/design-tokens.test.ts` passes, so it runs with every `pnpm test` and CI run. It scans every `.ts`, `.tsx` and `.css` file under `src/` except the exemptions recorded in DECISIONS.md (D-054). It replaced the Phase 0 grep in Phase 1.
 - `code-critic` and `test-auditor` verdicts are PASS. `design-critic` and `copy-critic` are PASS when UI or copy changed.
 - axe finds zero serious or critical violations on every route touched.
 - `docs/PROGRESS.md`, `docs/WALKTHROUGH.md` and `docs/DECISIONS.md` are current.

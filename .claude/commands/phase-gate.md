@@ -12,7 +12,7 @@ Run the exit gate for Phase $ARGUMENTS of Fogline.
    - `pnpm test`
    - `pnpm test:e2e` (all projects, including iPhone and Pixel)
    - `pnpm build`
-   - the token grep check described in `docs/PHASES.md`
+   - the token check described in `docs/PHASES.md` (part of `pnpm test`)
 3. Run these subagents in parallel:
    - `code-critic` on everything merged or changed since the phase started,
    - `test-auditor` on the phase's criteria,

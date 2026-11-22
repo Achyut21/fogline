@@ -1,17 +1,13 @@
 import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
+import { ThemeProvider } from "@/components/system/theme-provider";
 import { app } from "@/copy";
 import { themeColor } from "@/styles/theme-color";
 import "./globals.css";
 
-const sans = Geist({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const mono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sans = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
 });
 
@@ -39,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
+    <html lang="en" className={`${sans.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <SerwistProvider
           swUrl="/serwist/sw.js"
@@ -47,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           reloadOnOnline={false}
           cacheOnNavigation={false}
         >
-          {children}
+          <ThemeProvider>{children}</ThemeProvider>
         </SerwistProvider>
       </body>
     </html>
