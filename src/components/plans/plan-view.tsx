@@ -1,13 +1,15 @@
 "use client";
 
-import { ArrowLeft, Link2, MapPin } from "lucide-react";
+import { CalendarClock, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
-import { plans } from "@/copy";
+import { alerts, plans } from "@/copy";
+import { dueLeaveAlert } from "@/lib/leave-alerts";
 import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
@@ -32,6 +34,17 @@ const tick = (onChange: () => void) => {
   return () => clearInterval(id);
 };
 const now = () => Math.floor(Date.now() / 15_000) * 15_000;
+
+/** The location permission's state, or "prompt" where the browser can't say (some WebViews). */
+async function locationPermission(): Promise<PermissionState> {
+  if (!navigator.permissions) return "prompt";
+  try {
+    return (await navigator.permissions.query({ name: "geolocation" })).state;
+  } catch (e) {
+    if (e instanceof TypeError || e instanceof DOMException) return "prompt";
+    throw e;
+  }
+}
 
 function position(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) =>
@@ -61,6 +74,7 @@ export function PlanView({
   const [pending, start] = useTransition();
   const [checkInLine, setCheckInLine] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [primer, setPrimer] = useState(false);
   const clock = useSyncExternalStore(signedIn ? tick : noop, now, () => null);
 
   const startsAt = new Date(plan.startsAt);
@@ -78,6 +92,17 @@ export function PlanView({
   const hidden = plan.adultsOnly && plan.spot === null;
   const started = clock !== null && clock >= startsAt.getTime();
   const countdownTo = started && myLeaveBy ? myLeaveBy : startsAt;
+
+  // F5.4: alerts 20 and 5 minutes before your leave-by, with a buzz on Android. They don't wait
+  // for live mode, which ends 4 hours after the start while a leave-by can come later.
+  const alerted = useRef(new Set<number>());
+  useEffect(() => {
+    if (ended || !myLeaveBy || clock === null) return;
+    const left = (myLeaveBy.getTime() - clock) / minute;
+    if (dueLeaveAlert(left, alerted.current) === null) return;
+    toast(p.leaveAlert(Math.max(1, Math.ceil(left))));
+    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+  }, [ended, myLeaveBy, clock]);
 
   useEffect(() => {
     if (!live) return;
@@ -106,6 +131,13 @@ export function PlanView({
     }
     await navigator.clipboard.writeText(url);
     toast(p.copied);
+  }
+
+  // The primer explains the location request before the browser asks (F1.4), until it's granted.
+  async function startCheckIn() {
+    const state = await locationPermission();
+    if (state === "granted") void checkInHere();
+    else setPrimer(true);
   }
 
   async function checkInHere() {
@@ -147,14 +179,7 @@ export function PlanView({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/plans">
-            <ArrowLeft aria-hidden="true" />
-            {p.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/plans", label: p.back }} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-1">
           {live && (
@@ -212,9 +237,14 @@ export function PlanView({
         )}
 
         {ended && (
-          <p role="status" className="rounded-md bg-surface-sunken px-4 py-3 font-semibold">
-            {p.ended}
-          </p>
+          <div role="status" className="flex flex-col gap-2 rounded-md bg-surface-sunken px-4 py-3">
+            <p className="font-semibold">{p.ended}</p>
+            {plan.viewer.member && (
+              <Button asChild className="self-start">
+                <Link href={`/p/${plan.id}/recap?t=${token}`}>{p.recapLink}</Link>
+              </Button>
+            )}
+          </div>
         )}
 
         {live && (
@@ -228,9 +258,30 @@ export function PlanView({
               </span>
               <Countdown to={countdownTo} className="text-4xl font-extrabold tracking-tight" />
             </div>
-            <Button size="lg" disabled={checking} onClick={checkInHere}>
-              {checking ? p.checkingIn : p.checkIn}
-            </Button>
+            {primer ? (
+              <div
+                role="dialog"
+                aria-labelledby="primer"
+                className="flex flex-col gap-2 rounded-md bg-surface-sunken p-4"
+              >
+                <h3 id="primer" className="font-extrabold">
+                  {p.primer.title}
+                </h3>
+                <p className="text-sm">{p.primer.body}</p>
+                <Button
+                  onClick={() => {
+                    setPrimer(false);
+                    void checkInHere();
+                  }}
+                >
+                  {p.primer.continue}
+                </Button>
+              </div>
+            ) : (
+              <Button size="lg" disabled={checking} onClick={startCheckIn}>
+                {checking ? p.checkingIn : p.checkIn}
+              </Button>
+            )}
             {checkInLine && (
               <p role="status" className="text-sm font-semibold">
                 {checkInLine}
@@ -264,12 +315,26 @@ export function PlanView({
             {plan.people.map((person) => (
               <li key={person.id} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-bold">{person.name}</span>
+                  <span className={person.former ? "text-ink-muted" : "font-bold"}>
+                    {person.name ?? p.formerMember}
+                  </span>
                   {person.placeholder && (
                     <span className="text-xs text-ink-muted">{p.placeholder}</span>
                   )}
                 </div>
-                {person.leaveBy && <LeaveByLine name={person.name} leaveBy={person.leaveBy} />}
+                {person.leaveBy && person.name && (
+                  <LeaveByLine name={person.name} leaveBy={person.leaveBy} />
+                )}
+                {person.alerts?.kind === "disrupted" && (
+                  <ul className="flex flex-col gap-1 border-l-2 border-warning pl-3 text-sm">
+                    {person.alerts.texts.map((text) => (
+                      <li key={text}>{text}</li>
+                    ))}
+                  </ul>
+                )}
+                {person.alerts?.kind === "check" && (
+                  <p className="text-sm font-semibold text-warning">{alerts.check}</p>
+                )}
               </li>
             ))}
           </ul>
@@ -289,6 +354,17 @@ export function PlanView({
                 <Link href="/welcome">{p.joinNeedsProfile}</Link>
               </Button>
             ))}
+          {myLeaveBy && !ended && (
+            <div className="flex flex-col gap-1">
+              <Button variant="secondary" asChild>
+                <a href={`/api/plans/${plan.id}/remind`} download>
+                  <CalendarClock aria-hidden="true" />
+                  {p.remind}
+                </a>
+              </Button>
+              <p className="text-xs text-ink-muted">{p.remindHelp}</p>
+            </div>
+          )}
           {plan.viewer.member && !ended && (
             <Button variant="secondary" onClick={invite}>
               <Link2 aria-hidden="true" />

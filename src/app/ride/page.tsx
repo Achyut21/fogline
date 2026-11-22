@@ -1,11 +1,11 @@
-import { ArrowLeft, TrainFront } from "lucide-react";
+import { TrainFront } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isLine, LineBadge } from "@/components/display/line-badge";
 import { EmptyState } from "@/components/system/empty-state";
-import { Button } from "@/components/ui/button";
 import { ride } from "@/copy";
 import { getDb } from "@/server/db/client";
 import { currentProfile } from "@/server/profile";
@@ -26,14 +26,7 @@ export default async function RidePage({ searchParams }: PageProps<"/ride">) {
   const trips = await recordedRides(getDb(), station.id);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/">
-            <ArrowLeft aria-hidden="true" />
-            {ride.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/", label: ride.back }} />
       <main className="flex flex-1 flex-col gap-4 px-4 pb-safe">
         <h1 className="text-2xl font-extrabold tracking-tight">{ride.list.title(station.name)}</h1>
         <p className="text-ink-muted">{ride.list.body}</p>

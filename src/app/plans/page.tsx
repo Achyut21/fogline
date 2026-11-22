@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { find, plans } from "@/copy";
 import { getDb } from "@/server/db/client";
 import { myPlans, type PlanSummary } from "@/server/plans";
+import { thisWeeksPlans } from "@/server/actions/weekly";
+import { WeeklyPlans } from "@/components/plans/weekly-plans";
 import { currentProfile } from "@/server/profile";
 
 export const metadata: Metadata = { title: plans.pageTitle };
@@ -41,7 +43,10 @@ function PlanList({ title, items }: { title: string; items: PlanSummary[] }) {
 export default async function PlansPage() {
   const profile = await currentProfile();
   if (!profile) redirect("/welcome");
-  const { upcoming, past } = await myPlans(getDb(), profile.id);
+  const [{ upcoming, past }, weekly] = await Promise.all([
+    myPlans(getDb(), profile.id),
+    thisWeeksPlans(),
+  ]);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
       <main className="flex flex-1 flex-col gap-6 px-4 pt-safe pb-6">
@@ -74,6 +79,7 @@ export default async function PlansPage() {
             <PlanList title={l.past} items={past} />
           </>
         )}
+        <WeeklyPlans weekly={weekly} />
       </main>
       <BottomNav />
     </div>

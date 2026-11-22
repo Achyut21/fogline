@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { DemoMark } from "@/components/app/demo-mark";
 import { MotionProvider } from "@/components/system/motion-provider";
+import { OfflineBanner } from "@/components/system/offline-banner";
 import { ThemeProvider } from "@/components/system/theme-provider";
 import { LazyToaster } from "@/components/ui/lazy-toaster";
 import { app } from "@/copy";
@@ -49,6 +50,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ThemeProvider>
             <MotionProvider>{children}</MotionProvider>
             <DemoMark />
+            {/* Every screen has an offline state (DESIGN). The banner floats just above the
+                bottom nav, clear of each screen's title and back link. */}
+            <div className="pointer-events-none fixed inset-x-0 bottom-0 z-(--layer-toast) pb-safe">
+              <div className="mb-14">
+                <OfflineBanner />
+              </div>
+            </div>
             <LazyToaster />
           </ThemeProvider>
         </SerwistProvider>

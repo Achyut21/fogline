@@ -52,10 +52,6 @@ test.skip(({ browserName }) => browserName !== "chromium", "CDP throttling is Ch
 test("[NFR] the welcome page meets the JavaScript and LCP budgets on a throttled phone", async ({
   page,
 }) => {
-  // Known overrun, logged for Phase 9 (PROGRESS 2026-11-22): the onboarding form's app shell is
-  // about 213 KB gzip, mostly the framework runtime plus Radix, Motion and lucide. This runs every
-  // time and reports as fixed once the page fits the budget.
-  test.fail();
   await throttle(page);
   await page.goto("/welcome", { waitUntil: "load" });
   const { lcp, shellBytes } = await measure(page);

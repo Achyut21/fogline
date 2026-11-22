@@ -16,4 +16,18 @@ export const recap = {
   badgesHeading: "Badges",
   award: (badge: string, name: string) => `${badge} · ${name}`,
   more: (n: number) => `+${n} more`,
+  page: {
+    title: "The night",
+    back: "Plan",
+    arrivals: "Who got there first",
+    numbers: "The night in numbers",
+    share: "Share the recap",
+    sharing: "Making the image",
+    shareFailed: "Couldn't make the image. Try again.",
+    imageName: "fogline-recap.png",
+    notReady: {
+      title: "No recap yet",
+      body: "The recap shows once the plan has ended.",
+    },
+  },
 } as const;

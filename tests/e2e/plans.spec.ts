@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import { display, onboarding as o, plans } from "@/copy";
+import { display, onboarding as o, plans, recap } from "@/copy";
 import { createDb } from "@/server/db/client";
 import { planStops, plans as planTable } from "@/server/db/schema";
 import { data } from "@/server/data";
@@ -36,7 +36,7 @@ async function newContext(browser: Browser, at?: { latitude: number; longitude: 
 
 test.skip(testUrl === "", "needs DATABASE_URL_TEST to move the plan's start time");
 
-test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins it and checks in", async ({
+test("[F1.4] [F9.1] [F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins it and checks in", async ({
   page,
   browser,
 }) => {
@@ -74,6 +74,12 @@ test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins
   await page.reload();
   await expect(page.getByRole("heading", { name: p.live })).toBeVisible();
 
+  // The organizer hasn't granted location: the primer explains it before the browser asks (F1.4).
+  await page.getByRole("button", { name: p.checkIn }).click();
+  await expect(page.getByRole("dialog", { name: p.primer.title })).toBeVisible();
+  await page.getByRole("button", { name: p.primer.continue }).click();
+  await expect(page.getByRole("dialog", { name: p.primer.title })).toBeHidden();
+
   const friend = await newContext(browser, { latitude: spot.lat, longitude: spot.lon });
   const sam = await friend.newPage();
   await onboard(sam, "Sam", "Tufts");
@@ -95,4 +101,16 @@ test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins
   await friend.close();
   await page.getByRole("button", { name: p.end }).click();
   await expect(page.getByText(p.ended)).toBeVisible();
+
+  // The night's recap (F9.1): who got there first and the night in numbers.
+  await page.getByRole("link", { name: p.recapLink }).click();
+  await expect(page.getByRole("heading", { name: recap.page.arrivals })).toBeVisible();
+  await expect(
+    page
+      .getByRole("list", { name: recap.page.arrivals })
+      .getByRole("listitem")
+      .filter({ hasText: "Sam" }),
+  ).toContainText(recap.places[0]);
+  await expect(page.getByRole("heading", { name: recap.page.numbers })).toBeVisible();
+  await expect(page.getByRole("button", { name: recap.page.share })).toBeVisible();
 });

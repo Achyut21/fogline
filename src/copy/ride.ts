@@ -16,7 +16,8 @@ const minutes = (n: number) => `${n} min`;
 export const ride = {
   pageTitle: "Ride",
   back: "Back to map",
-  startFrom: "Ride",
+  startFrom: "Ride from here",
+  mapButton: "Ride",
   list: {
     title: (station: string) => `Trips from ${station}`,
     body: "Replay a real train the MBTA tracked in the last 24 hours. Each stop clears the fog around it.",

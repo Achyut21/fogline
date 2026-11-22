@@ -319,12 +319,8 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - thousands separators and singulars;
     - the percent format with one decimal under 10% written into COPY.md.
   - **Ship kit:** `README.md` and `docs/SHIP.md` describe only what's on screen today; regenerate after Phase 9.
-  - **Performance:** `tests/e2e/perf.spec.ts` runs with Lighthouse's mobile throttling.
-    - The map home passes (app shell under 200 KB gzip, LCP under 2.5 s).
-    - The welcome page's app shell is about 213 KB gzip, over budget. The check is marked `test.fail()` until fixed.
-    - The toaster now loads after first paint, saving about 16 KB on every page.
+  - **Performance:** `tests/e2e/perf.spec.ts` runs with Lighthouse's mobile throttling. After `main`'s Phase 9 merges, the welcome page and the map home both pass: app shell under 200 KB gzip (the scripts the server's HTML loads), LCP under 2.5 s. The toaster now loads after first paint, saving about 16 KB on every page.
   - **For A (Phase 9):**
-    - Welcome page JS: the framework runtime (about 117 KB) plus Radix, Motion and lucide chunks of about 13–17 KB each. Loading Motion with `LazyMotion`/`m` or the onboarding steps lazily would fit it.
     - Strings outside `src/copy/`: "Other" in `src/server/schools.ts`, the friend legend in `plan-builder.tsx:228`, and " · " separators in `plans/page.tsx`, `daily-puzzle.tsx` and `plan-builder.tsx`.
     - From the security review (no limiter, D-077):
       - one client can use up the global `/demo` cap;
@@ -338,6 +334,26 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Ship kit: `README.md` (what it is, how to run it, architecture, data credits) and `docs/SHIP.md` (Devpost text and a 1-minute video script from the judge path). Numbers in the video script are checked against the app before recording.
   - Copy pass over all of `src/copy/` is running.
   - #50 (weekly fixes) re-review PASS; waiting on A with #47.
+
+- 2026-11-22 05:45 ET · Builder A · Phase 9 item 3, plan extras (`a/plan-extras`, stacked on `a/me`):
+  - Plans tab: this week's plans (F10.4) with their stops, hours and legs, and Invite friends copying one into your own plan (F10.5).
+  - Plan page: MBTA alerts on each member's route home as MBTA wrote them, or "Check MBTA alerts" (F5.6); Remind me (F5.8) only when you have a train home, so B's route never shows its JSON errors; in-app alerts 20 and 5 min before your leave-by with a buzz on Android (F5.4); "See the night's recap" once a plan ends.
+  - `/p/[id]/recap?t=`: 1st, 2nd and last, the night in numbers (walked labeled "about"), badges with names, and Share the recap (B's image; Web Share with the file, else a download) (F9).
+  - Tests: `tests/component/weekly-plans.test.tsx` (`[F10.4]` `[F10.5]`), the plans e2e now ends on the recap (`[F9.1]`), `[F1.4]` primer step.
+
+- 2026-11-22 05:39 ET · Builder A · Phase 9 item 2, Me and Settings (`a/me`):
+  - Me shows stats (share of Boston to one decimal, miles on the T, stations of the total, stops, lines, nights out) and earned badges from B's `myStats`. Badges whose line needs a number show their name only, because awards don't store the number. **For B:** fill `badges_awarded.meta` (minutes late, ride minutes, minutes to spare, neighborhood) so those lines can show; `myStats` now also returns `shareUncovered`.
+  - `/me/settings`: theme, Automatic or Always 2D map (per device; `useFogRenderer` reads it), age band (`updateAgeBand`), and delete my data with a confirmation (`deleteMyData`, `endSession`; F1.7). A deleted person's seat shows as "Former member" with no name or station (`planByInvite` returns `former`).
+  - Location primer before the first check-in until the browser has granted location (F1.4).
+  - Tests: `tests/integration/settings.test.ts` (`[F1.5]` `[F1.7]`), `tests/e2e/me.spec.ts` (`[F8.3]` `[F1.7]`); 458 pass; me and plans e2e 6/6. Screenshots at 390×844 in both themes.
+
+- 2026-11-22 05:33 ET · Builder A · Phase 9 item 1, app shell and navigation (`a/shell`):
+  - `PageHeader` (one back-link pattern) on Calm, Find food, the ride list, the plan builder, the plan page and Squad; Calm goes back to Me.
+  - Me links Squad, Calm mode and How it works, so every feature has a way in; the map has a Ride button (DESIGN section 5) to recorded trips from the home station.
+  - The offline banner is in the root layout, above every screen, in the page flow (it pushes the screen down rather than covering its title).
+  - Map: new `states` update the fog without a reload (a check-in or puzzle reveal fades in where it is), the map reloads its colors on a theme change, the first-reveal card shows once per device (localStorage, with a fallback when storage is blocked), Find food's pins are readable.
+  - Tried and dropped: an app-wide `loading.tsx`. It makes the no-profile redirect happen in the browser after the page streams, which broke 15 e2e tests and would flash a skeleton.
+  - Tests: `[F2.4]` once-per-device card and Ride link; 456 unit/component/integration pass; e2e 105 passed, 15 skipped (by design). Screenshots at 390×844 in both themes and offline.
 
 - 2026-11-22 06:00 ET · Builder B · Phase 4 leftovers on `b/leftovers` (stacked on `b/crawls`, #44):
   - Checked A's work first: server-side puzzle results (`puzzle_results`) and the countdown's 20/5-minute colors are done. Nothing else from B's Phase 4/5 list was built.

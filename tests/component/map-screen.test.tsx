@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { MapScreen } from "@/components/map/map-screen";
-import { map } from "@/copy";
+import { map, ride } from "@/copy";
 import type { MapData } from "@/server/map-data";
 
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
@@ -42,15 +42,29 @@ const data: MapData = {
 };
 
 it("[F2.4] shows Boston's uncovered share and the first-reveal card", () => {
-  render(<MapScreen data={data} />);
+  localStorage.clear();
+  render(<MapScreen data={data} homeStation="place-bucen" />);
   expect(screen.getByText("0.3%")).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: map.firstReveal.title })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: map.firstReveal.dismiss }));
   expect(screen.queryByRole("heading", { name: map.firstReveal.title })).toBeNull();
 });
 
+it("[F2.4] shows the first-reveal card once per device, then the Ride button", () => {
+  localStorage.clear();
+  const first = render(<MapScreen data={data} homeStation="place-bucen" />);
+  fireEvent.click(screen.getByRole("button", { name: map.firstReveal.dismiss }));
+  first.unmount();
+  render(<MapScreen data={data} homeStation="place-bucen" />);
+  expect(screen.queryByRole("heading", { name: map.firstReveal.title })).toBeNull();
+  expect(screen.getByRole("link", { name: ride.mapButton })).toHaveAttribute(
+    "href",
+    "/ride?from=place-bucen",
+  );
+});
+
 it("[F2.7] [F2.3] lists neighborhoods and stations with line names and fog state", () => {
-  render(<MapScreen data={data} />);
+  render(<MapScreen data={data} homeStation="place-bucen" />);
   fireEvent.click(screen.getByRole("radio", { name: map.view.list }));
   expect(screen.getByText("Fenway").closest("li")).toHaveTextContent("15%");
   const kenmore = screen.getByText("Kenmore").closest("li");

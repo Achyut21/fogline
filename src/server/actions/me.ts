@@ -51,6 +51,8 @@ export async function myStats() {
     stationsVisited: visited.size,
     stationsTotal: stations.length,
     percentUncovered: Math.round(bostonShare(regions, states) * 100),
+    /** The exact share, for one-decimal display like the map header. */
+    shareUncovered: bostonShare(regions, states),
     neighborhoods: regionShares(regions, states).map((r) => ({
       ...r,
       percent: Math.round(r.share * 100),

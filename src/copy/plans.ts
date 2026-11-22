@@ -20,6 +20,14 @@ export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, "\u00a0
 
 export const plans = {
   pageTitle: "Plans",
+  weekly: {
+    title: "This week",
+    body: "Three nights out, fair for friends at five campuses. All ages.",
+    invite: "Invite friends",
+    inviting: "Making your copy",
+    failed: "Couldn't copy this plan. Try again.",
+    empty: "This week's plans come out Monday morning.",
+  },
   list: {
     title: "Plans",
     new: "Plan a night",
@@ -44,6 +52,11 @@ export const plans = {
     stops: (n: number) => `${n} stops`,
     people: "Who's going",
     placeholder: "Not on Fogline yet",
+    formerMember: "Former member",
+    remind: "Remind me",
+    remindHelp: "Saves a calendar event with alarms 20 and 5 min before you have to leave.",
+    leaveAlert: (minutes: number) => `Leave in ${minutes} min for your last train.`,
+    recapLink: "See the night's recap",
     leaveByHidden: "Join to see when everyone has to leave.",
     join: "Join",
     joining: "Joining",
@@ -55,6 +68,11 @@ export const plans = {
     leaveIn: "Leave in",
     startsIn: "Starts in",
     checkIn: "Check in",
+    primer: {
+      title: "Fogline needs your location to check you in",
+      body: "It's read once, now, to confirm you're within 150 m of the spot. Fogline saves this check-in's position and time, nothing else, and never tracks you.",
+      continue: "Continue",
+    },
     checkingIn: "Checking your location",
     checkedIn: "You're checked in. The fog around this spot is gone.",
     checkInResult: {
