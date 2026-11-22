@@ -123,7 +123,7 @@ export function RideReplay({
             suffix={ride.summary.milesSuffix}
           />
           <StatTile label={ride.summary.minutes} value={minutes} />
-          <StatTile label={ride.summary.lines} value={1} />
+          <StatTile label={ride.summary.lines(1)} value={1} />
           <StatTile label={ride.summary.cells} value={newCells} accent className="col-span-2" />
         </dl>
         <p className="text-sm text-ink-muted">{ride.summary.replayNote}</p>

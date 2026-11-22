@@ -1,17 +1,13 @@
 import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
-import { z } from "zod";
 import { rideMiles } from "@/lib/geo/miles";
-import { shapeLineSchema } from "@/lib/gtfs/types";
 import { rideStops, shapeFor, stationTimes, type RideStop } from "@/lib/replay";
 import type { Db } from "@/server/db/client";
 import { vehiclePositions } from "@/server/db/schema";
-import rawShapes from "../../data/shapes.json";
+import { data } from "./data";
 import { stationById, stationOfStop } from "./stations";
 
 // Recorded trips for replay (F3.5): the recorder's vehicle_positions rows, one a minute, turned
 // into the stops a rider passes from a station.
-
-export const shapes = z.array(shapeLineSchema).parse(rawShapes);
 
 const lookbackMs = 24 * 60 * 60_000;
 const tripsListed = 8;
@@ -40,6 +36,7 @@ function rideOf(row: Row, from: string): RecordedRide | null {
     const station = s.stopId ? stationOfStop(s.stopId) : undefined;
     return station ? [station] : [];
   });
+  const shapes = data.shapes();
   const line = shapeFor(shapes, row.route, dir, from, seen);
   if (!line) return null;
   const stops = rideStops(stationTimes(row.samples, line), from);

@@ -10,7 +10,8 @@ import { ride } from "@/copy";
 import { rideMiles } from "@/lib/geo/miles";
 import { getDb } from "@/server/db/client";
 import { currentProfile } from "@/server/profile";
-import { recordedRide, shapes } from "@/server/replay";
+import { data } from "@/server/data";
+import { recordedRide } from "@/server/replay";
 import { stopCard } from "@/server/station-sheet";
 import { stationById } from "@/server/stations";
 
@@ -57,7 +58,7 @@ export default async function ReplayPage({ params, searchParams }: PageProps<"/r
           name: name(s.station),
           at: s.at.getTime(),
           card: stopCard(s.station),
-          miles: i === 0 ? 0 : rideMiles(shapes, recorded.route, from, s.station),
+          miles: i === 0 ? 0 : rideMiles(data.shapes(), recorded.route, from, s.station),
         }))}
       />
     </div>

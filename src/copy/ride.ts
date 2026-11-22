@@ -46,7 +46,7 @@ export const ride = {
     miles: "on the T",
     milesSuffix: " mi",
     minutes: "minutes",
-    lines: "lines",
+    lines: (n: number) => (n === 1 ? "line" : "lines"),
     cells: "new cells",
     replayNote: "Replays clear fog but earn no badges.",
     done: "Back to map",

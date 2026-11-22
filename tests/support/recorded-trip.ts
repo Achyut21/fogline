@@ -1,7 +1,7 @@
 import { cumulativeMeters } from "@/lib/geo/along";
 import type { ShapeLine } from "@/lib/gtfs/types";
 import type { vehiclePositions } from "@/server/db/schema";
-import { stationById } from "@/server/stations";
+import { data } from "@/server/data";
 
 /** The point this many meters along a shape. */
 export function pointAt(line: ShapeLine, meters: number) {
@@ -24,7 +24,7 @@ export function recordedTripRows(
   return Array.from({ length: trip.minutes + 1 }, (_, minute) => {
     const meters = trip.fromM + ((trip.toM - trip.fromM) * minute) / trip.minutes;
     const ahead = line.stops.find((s) => s.meters >= meters - 150) ?? line.stops.at(-1);
-    const stop = ahead ? stationById(ahead.station)?.stops[0] : undefined;
+    const stop = ahead ? data.stations().find((s) => s.id === ahead.station)?.stops[0] : undefined;
     return {
       ts: new Date(trip.start.getTime() + minute * 60_000),
       vehicleId: `test-${trip.id}`,

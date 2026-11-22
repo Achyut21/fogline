@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { ShapeLine } from "@/lib/gtfs/types";
+import { type ShapeLine } from "@/lib/gtfs/types";
+import { data } from "@/server/data";
 import { rideStops, shapeFor, stationTimes, type Sample } from "@/lib/replay";
-import shapesFile from "../../data/shapes.json";
 import { pointAt } from "../support/recorded-trip";
 
-const shapes = shapesFile as ShapeLine[];
+const shapes = data.shapes();
 const greenD = shapes.find((s) => s.route === "Green-D" && s.direction === 0);
 const t0 = new Date("2026-11-24T19:00:00-05:00").getTime();
 const minute = 60_000;

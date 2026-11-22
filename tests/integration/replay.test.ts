@@ -6,7 +6,8 @@ import { recordReplayStop } from "@/server/actions/ride";
 import { createDb, type Db } from "@/server/db/client";
 import { profiles, revealedCells, rideEvents, vehiclePositions } from "@/server/db/schema";
 import { insertProfile } from "@/server/profile";
-import { recordedRides, shapes } from "@/server/replay";
+import { data } from "@/server/data";
+import { recordedRides } from "@/server/replay";
 import { stationById } from "@/server/stations";
 import { recordedTripRows } from "../support/recorded-trip";
 import { createScratchDatabase } from "./scratch-database";
@@ -25,7 +26,7 @@ vi.mock("@/server/session", async (original) => ({
 }));
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
-const greenD = shapes.find((s) => s.route === "Green-D" && s.direction === 0);
+const greenD = data.shapes().find((s) => s.route === "Green-D" && s.direction === 0);
 
 describe.skipIf(testUrl === "")("ride replay", () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
