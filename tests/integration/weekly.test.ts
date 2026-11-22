@@ -31,7 +31,8 @@ vi.mock("@/server/session", async (original) => ({
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
 const monday6am = new Date("2026-11-23T06:00:00-05:00");
 
-describe.skipIf(testUrl === "")("weekly plans", () => {
+// Drafting a week scores every candidate for five campuses: CPU-heavy beside the other suites.
+describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
   let db: Db;
 

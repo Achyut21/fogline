@@ -297,10 +297,12 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - weekly plans are hidden and not copyable once a stop leaves the data or turns 21+, and only this week's can be copied;
     - titles are headings under six words and name the meal by its hour ("Dinner, then Symphony Hall", or "the event" for a long venue);
     - violation checks share COPY's banned words and patterns and reject semicolons, Title Case and invented numbers.
-  - **Deploy order:** migration 0004 must reach fogline-db before this branch deploys. `plan_stops` now selects `walked_from_previous`, so plan pages and `endPlan` fail until the column exists.
+  - **Migration 0004 is on fogline-db** (checked 2026-11-22: 5 migrations recorded, `weekly_plans` and `plan_stops.walked_from_previous` present), so this branch can deploy.
+  - Known flake: `[F15.2]` in `tests/integration/hypertables.test.ts` failed once in a full parallel run (3/3 pass alone); the continuous-aggregate refresh is slow under load. Not touched here.
+  - Earlier deploy-order note: `plan_stops` now selects `walked_from_previous`, so plan pages and `endPlan` fail until the column exists.
   - Data note: one city violation reads "uspension of Permit / Emergency Closure without a Prior Hearing", with its first letter missing in `places.json`. Check `data:grades` against the source next time it runs.
-  - Tests: 393 pass. The only failure is A's Windows-only token test.
-  - **For B's human:** apply migration 0004 to fogline-db in your terminal (`MIGRATE_DATABASE_URL=<url> pnpm db:migrate`), and rerun `pnpm data:violations` once Gemini quota is back.
+  - Tests: 398 pass. The only steady failure is A's Windows-only token test. code-critic and copy-critic re-reviews: PASS (one test timeout fixed after).
+  - **For B's human:** rerun `pnpm data:violations` once Gemini quota is back.
   - **For A:**
     - #40: in `spotInspection`, map each violation's `text` through `violationWords(text, data.violations())` from `src/lib/violations.ts`. F11.2 also wants a link to the city record, for example https://data.boston.gov/dataset/food-establishment-inspections.
     - `planByInvite` now also returns `stops` (every stop in order, events as their venue), and leave-by runs from the last stop. A crawl's plan page can list them; `spot` and `station` are still the first stop.
