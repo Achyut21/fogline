@@ -28,15 +28,17 @@ vi.mock("react", async (original) => ({
 }));
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
-const maps = (titles: string[]) => ({
-  google: { groundingMetadata: { groundingChunks: titles.map((title) => ({ maps: { title } })) } },
+const summary = (line: string) =>
+  `**Title:** x\n* **Generated Summary:**\n  * ${line}\n* **Attributes:** casual`;
+const maps = (places: [string, string][]) => ({
+  google: {
+    groundingMetadata: {
+      groundingChunks: places.map(([title, line]) => ({
+        maps: { title: `${title} - Google Maps`, text: summary(line) },
+      })),
+    },
+  },
 });
-const grounded = [
-  'Wusong Road Tiki Bar | "Great dumplings with the drinks."',
-  'Studio No 3 | "The soup dumplings are the best I have had here."',
-  'Nowhere Noodles | "Fantastic."',
-  'Cafe Luna | "Dumplings on the brunch menu."',
-].join("\n");
 
 function photoForm(type = "image/png", bytes = 64) {
   const form = new FormData();
@@ -74,12 +76,11 @@ describe.skipIf(testUrl === "")("find it and taste of home", () => {
     gemini
       .mockResolvedValueOnce({ output: { food: true, dish: "soup dumplings" } })
       .mockResolvedValueOnce({
-        text: grounded,
-        // Cafe Luna is in the text but not in the grounding data, so it's dropped.
+        text: "",
         providerMetadata: maps([
-          "Wusong Road Tiki Bar - Google Maps",
-          "Studio No 3 - Google Maps",
-          "Nowhere Noodles - Google Maps",
+          ["Wusong Road Tiki Bar", "Great dumplings with the drinks."],
+          ["Studio No 3", "The soup dumplings are the best here."],
+          ["Nowhere Noodles", "Fantastic dumplings."],
         ]),
       });
     const result = await findFromPhoto(null, photoForm());
@@ -87,7 +88,7 @@ describe.skipIf(testUrl === "")("find it and taste of home", () => {
     expect(result.dish).toBe("soup dumplings");
     // The bar is left out for an under-21 profile, and the unknown place isn't shown.
     expect(result.spots.map((s) => s.name)).toEqual(["Studio No 3"]);
-    expect(result.spots[0].quote).toBe("The soup dumplings are the best I have had here.");
+    expect(result.spots[0].quote).toBe("The soup dumplings are the best here.");
     expect(gemini.mock.calls[0][0].messages[0].content[1]).toMatchObject({
       type: "file",
       mediaType: "image/png",

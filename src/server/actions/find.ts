@@ -80,11 +80,6 @@ export async function tasteOfHome(_: FindResult | null, form: FormData): Promise
   return guarded(async () => ({
     kind: "spots",
     dish: null,
-    spots: await spotsFor(
-      getDb(),
-      `food like home from ${query.data}`,
-      filters,
-      profile.homeStationId,
-    ),
+    spots: await spotsFor(getDb(), `${query.data} food`, filters, profile.homeStationId),
   }));
 }

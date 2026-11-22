@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchPlaces, nameKey, parseGrounded } from "@/lib/find";
+import { groundedQuotes, matchPlaces, nameKey, reviewSummary } from "@/lib/find";
 import type { Place } from "@/lib/places/types";
 
 const place = (over: Partial<Place>): Place => ({
@@ -18,18 +18,35 @@ const place = (over: Partial<Place>): Place => ({
 });
 
 describe("find it and taste of home", () => {
-  it("[F14.2] keeps only places that come with a review quote", () => {
+  it("[F14.2] quotes Google's review summary from the grounding data, word for word", () => {
     const text = [
-      "1. Gene's Chinese Flatbread Cafe | \"The hand-pulled noodles taste like Xi'an.\"",
-      "2. Some Place |",
-      "3. Paraphrase Place | Highly praised for its authentic dumplings.",
-      "Intro line without a separator",
-      '- Bell in Hand Tavern | "Great pints."',
+      "**Title:** Dumpling House",
+      "* **Rating:** 4.4 (2265 reviews)",
+      "* **Generated Summary:**",
+      "  * Delicious dumplings and free tea in a calm environment.",
+      "  * Pork and cabbage soup dumplings, fast service.",
+      "* **Attributes:** casual",
     ].join("\n");
-    expect(parseGrounded(text)).toEqual([
-      { name: "Gene's Chinese Flatbread Cafe", quote: "The hand-pulled noodles taste like Xi'an." },
-      { name: "Bell in Hand Tavern", quote: "Great pints." },
+    expect(reviewSummary(text)).toEqual([
+      "Delicious dumplings and free tea in a calm environment.",
+      "Pork and cabbage soup dumplings, fast service.",
     ]);
+    expect(
+      groundedQuotes(
+        [
+          { title: "Dumpling House - Google Maps", text },
+          { title: "No Summary Cafe - Google Maps", text: "**Title:** No Summary Cafe" },
+        ],
+        "soup dumplings",
+      ),
+    ).toEqual([
+      { name: "Dumpling House", quote: "Delicious dumplings and free tea in a calm environment." },
+    ]);
+    const bold = text.replace("  * Pork and", "  * **Pork** and");
+    expect(reviewSummary(bold)).toHaveLength(2);
+    expect(
+      groundedQuotes([{ title: "Dumpling House - Google Maps", text }], "pork food")[0].quote,
+    ).toBe("Pork and cabbage soup dumplings, fast service.");
   });
 
   it("[F14.1] matches names to known spots near the T, at most three", () => {
