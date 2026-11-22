@@ -21,8 +21,7 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder A
 - **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
-  - **Status 2026-11-21 21:18 ET:** item 5 resumed from the 20:32 handoff in a new session under another Claude account. The 20:32 order change stands: code now, canvas alongside.
-    - **Item 5 on `a/design-tokens`:** done apart from the PR and its preview check (log entries below). code-critic and design-critic PASS on their second pass, copy-critic on its third.
+  - **Status 2026-11-21 21:41 ET:** item 5 is done and on `main` ([#20](https://github.com/Achyut21/fogline/pull/20), `c6ccaad`), with its production check passed. The 20:32 order change stands: code now, canvas alongside. Next is item 6 on `a/design-components`, with canvas batches in between.
     - **A approved three changes to the item 5 plan (2026-11-21, D-054):** one type family instead of two; the D-037 exemption for `src/components/ui/` stays until item 6 restyles those files; the custom line and station glyphs land with LineBadge and StationDot in item 6.
     - **Dev servers:** a stale `next dev` from the previous session still runs on :3001 and serves old CSS. Check UI against `fogline-prod` (`.claude/launch.json`, port 3200) or restart the dev server.
     - **Canvas:** onboarding page done (6 artboards). The Map page has map home, station sheet, neighborhoods sheet and list view. Next is the Map states artboard (`map-states.dc.html` is listed in the canvas index but has no file yet), then Ride, Daily, Plans, Me, Squad, System and the motion storyboards.
@@ -96,7 +95,7 @@ This is the shared status board for both builders. Update it after every finishe
     7. **`/design` on production** ships with every deployment. Recommendation: keep it reachable with `noindex` and label its sample data, since CLAUDE.md bans unlabeled fake data.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-- **Next:** item 5 PR and its preview check, then item 6 (base components) with canvas batches in between.
+- **Next:** item 6 (base components and `/design`) on `a/design-components`, with canvas batches in between.
 - **Blocked:** none.
 
 ### Builder B
@@ -223,6 +222,13 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 21:41 ET · Builder A · Phase 1 item 5 merged: [#20](https://github.com/Achyut21/fogline/pull/20), squash `c6ccaad`.
+  - PR head `2bd16ca`: CI `check` passed (run 44976393167). The deployment check on its own preview `fogline-n4h2afh4k` passed 46 and skipped 23 (run 44976482857), `/design` spec included; the service-worker specs skip on previews (D-043).
+  - Production: `vercel ls --meta githubCommitSha=c6ccaad…` showed `fogline-ely18wk3l` Ready, and `vercel inspect fogline-mu.vercel.app` showed the same deployment. The production check on `fogline-mu.vercel.app` passed 58 and skipped 11 (run 44977110387).
+  - `test:e2e:deployment` now includes `tests/e2e/design.spec.ts` (it writes nothing).
+  - A approved the three item 5 plan changes (D-054).
+  - Next: item 6.
 
 - 2026-11-21 21:18 ET · Builder A · Phase 1 item 5 review rounds on `a/design-tokens` (`d18d2c6`, `e3cb31a`, `90ca503`, `ed4af5b`, `d9796a5`, `f341f07`):
   - code-critic pass 1 FAIL. BLOCKING: a manual theme lost its `theme-color` after an in-app navigation, because Next swaps in fresh meta tags with the server values. The sync now reruns when `<head>` changes. A new e2e follows a link from the 404 page and waits for the tag swap; it failed without the fix on both phones. SHOULD FIX, all fixed: the scanner missed inline and Motion durations, `rem`, `em` and viewport units, raw `z-` layers and one-off springs; the F2.3 test skipped park, road and fog; an `as` in `contrast.ts`; `/design` didn't show every token (now a test checks it). Pass 2 PASS; its SHOULD FIX (fog drawn over the lines on `/design`) is fixed.
