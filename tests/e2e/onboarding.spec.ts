@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { onboarding as o } from "@/copy";
+import { map, onboarding as o } from "@/copy";
 
 test("[F1.1] [F1.2] [F1.3] makes a profile in four screens, keeps it, and restores it elsewhere", async ({
   page,
@@ -24,6 +24,11 @@ test("[F1.1] [F1.2] [F1.3] makes a profile in four screens, keeps it, and restor
 
   await page.reload();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText(map.uncoveredLabel)).toBeVisible();
+  await page.getByRole("radio", { name: map.view.list }).click();
+  await expect(
+    page.getByText("Boston University Central").locator("xpath=ancestor::li"),
+  ).toContainText(map.list.uncovered);
   await page.goto("/me");
   await expect(page.getByRole("heading", { level: 1, name: "Maya" })).toBeVisible();
   const code = (await page.getByTestId("profile-code").textContent()) ?? "";

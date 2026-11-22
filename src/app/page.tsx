@@ -1,14 +1,21 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { app } from "@/copy";
+import { BottomNav } from "@/components/app/bottom-nav";
+import { MapScreen } from "@/components/map/map-screen";
+import { map } from "@/copy";
+import { mapData } from "@/server/map-data";
 import { currentProfile } from "@/server/profile";
 
-// New visitors start onboarding (F1.1). The map replaces this screen in Phase 3 item 2.
+export const metadata: Metadata = { title: map.pageTitle };
+
+// The map home. New visitors start onboarding (F1.1).
 export default async function Home() {
-  if (!(await currentProfile())) redirect("/welcome");
+  const profile = await currentProfile();
+  if (!profile) redirect("/welcome");
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-2 p-6 text-center">
-      <h1 className="text-3xl font-extrabold tracking-tight">{app.name}</h1>
-      <p className="text-balance text-ink-muted">{app.homeBody}</p>
-    </main>
+    <div className="flex h-dvh flex-col">
+      <MapScreen data={await mapData(profile)} />
+      <BottomNav />
+    </div>
   );
 }
