@@ -63,7 +63,10 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
           {podium.length === 0 ? (
             <p className="text-sm">{recap.noArrivals}</p>
           ) : (
-            <ol className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm">
+            <ol
+              aria-labelledby="arrivals"
+              className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm"
+            >
               {podium.map((a, i) => (
                 <li key={a.profileId} className="flex min-h-12 items-center gap-3 px-4">
                   <span className="w-10 text-sm font-extrabold text-accent">
