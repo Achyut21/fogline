@@ -28,7 +28,7 @@
     "data:neighborhoods": "node -e \"console.error('data:neighborhoods arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
     "data:events": "node -e \"console.error('data:events arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
     "data:words": "node -e \"console.error('data:words arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
-    "test:e2e:deployment": "playwright test tests/e2e/smoke.spec.ts tests/e2e/pwa.spec.ts tests/e2e/deployment.spec.ts"
+    "test:e2e:deployment": "playwright test tests/e2e/smoke.spec.ts tests/e2e/pwa.spec.ts tests/e2e/design.spec.ts tests/e2e/deployment.spec.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
