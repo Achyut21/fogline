@@ -139,7 +139,7 @@ This is the shared status board for both builders. Update it after every finishe
   1. **Security:**
      - a whole-app security review (subagent);
      - timing-safe `CRON_SECRET` checks in one shared helper;
-     - a `rate_limits` token bucket (migration 0005, applied by B's human) on profile-code restore (D-065), demo seeding and the AI routes;
+     - no rate limiter: B's human skipped it (D-077);
      - fix the review's findings.
   2. **Copy:** copy-critic over all of `src/copy/`, then a no-ai-slop pass; fix the findings.
   3. **Ship kit:** README (what it is, how to run it, architecture, data credits), Devpost text, a 1-minute video script.

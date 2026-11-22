@@ -644,3 +644,7 @@ Decision:
 Why: the hackathon deadline. Both builders work at once instead of one phase waiting on the other.
 Consequences: PHASES sections 9 and 10 rewritten, the PROGRESS phase table updated. Earlier decisions that point at "Phase 9" items (D-043, D-044 protected previews, the update toast) stay with Phase 9; performance (D-058's Android check), rate limits (D-065) and visual baselines now belong to Phase 10.
 
+**D-077 · 2026-11-22 · No rate limiter for the prototype (Phase 10, B's human).**
+Decision: B's human chose to skip the rate limiter. Phase 10 adds no `rate_limits` table and no per-IP limits. Profile-code restore stays without one, as D-065 already allows. `/demo` seeding keeps A's global cap.
+Why: the hackathon deadline. A limiter needs a migration and tuning that the prototype doesn't need to be demoed.
+Consequences: Phase 10's security item covers the security review's findings and the timing-safe cron secret, not rate limits. A later release adds a token bucket (ARCHITECTURE section 6) before the app is opened widely.
