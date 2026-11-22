@@ -1,6 +1,7 @@
 export const system = {
   offlineBanner: "You're offline. Your map and saved plans still work.",
-  stale: (minutes: number) => (minutes < 1 ? "Updated just now" : `Updated ${minutes} min ago`),
+  stale: (minutes: number) =>
+    minutes < 1 ? "Updated just now" : `Updated ${Math.floor(minutes)} min ago`,
   demo: "Demo",
   stepper: {
     decrease: (label: string) => `${label}: one less`,

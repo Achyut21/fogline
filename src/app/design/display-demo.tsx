@@ -13,7 +13,7 @@ import { StatTile } from "@/components/display/stat-tile";
 import { StationDot } from "@/components/display/station-dot";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { design } from "@/copy";
+import { design, display } from "@/copy";
 
 const d = design.display;
 const minute = 60_000;
@@ -70,7 +70,7 @@ export function DisplayDemo() {
           <dl key={replay} className="grid grid-cols-3 gap-2">
             <StatTile label={d.statLabels.miles} value={12.1} decimals={1} />
             <StatTile label={d.statLabels.stations} value={46} />
-            <StatTile label={d.statLabels.uncovered} value={38} suffix="%" accent />
+            <StatTile label={d.statLabels.uncovered} value={38} suffix={display.percent} accent />
           </dl>
           <Button
             variant="secondary"
