@@ -117,7 +117,8 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Now (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
+- **Now (2026-11-22 05:02 ET):** Phases 7 and 8 screens are on `main` (grades #40, squad and crawls #41, calm and Find food #43); B's recap #36 merged, weekly plans #44 merging; `fogline.boston` live. Open: #46 (Find food quotes Google's review summaries), then the gates for Phases 3–8 and a design-critic pass over the new screens.
+- **Earlier (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
   1. **Grades** (`a/grades`; F11.1, F11.3, F11.4, F11.5): grade badge with the unofficial label and inspection date on food spots, "No inspection match" when unmatched, a spot detail with the cited violations, a minimum-grade filter in the builder. F11.2's plain-English rewrite needs a cached Gemini summary per spot (B's data job); until then the city's own wording is shown.
   2. **Crawl builder and Dinner before** (F10.1–F10.3, F10.6) on B's `src/server/crawl.ts` and `dinner-before.ts` once `b/crawls` is merged. **B: please open the `b/crawls` PR.**
   3. **Squad screen under Me** (F12.2, F12.3) on B's `src/server/squad.ts`.
@@ -302,6 +303,11 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - **For A:**
     - A "Remind me" link to `/api/plans/${id}/remind`, shown only when your leave-by is a train and the plan hasn't ended. Other answers are JSON errors (401, 404, 409), not pages.
     - Show `alerts` under the leave-by time.
+- 2026-11-22 05:02 ET · Builder A · Merges, domain and Find food on production:
+  - Merged #43 (Phase 8, `1c3c6e3`) after CI fixes: the fake-microphone test runs only in Chromium (WebKit wouldn't launch with its flags), the puzzle e2e waits for each guess, the inspection retry waits for the button. B's #36 (recap) admin-merged as `efc6fed` (D-052) after A's fixes for code-critic's blockers: a 21+ recap hides its title, every stop counts for 21+, cleared cells go to members only. B's #44 (weekly plans): A's fixes (event stop IDs hashed so weekly plans don't reveal puzzle answers; check-ins store the stop's own ID; B's decision renumbered D-073), `main` merged in, merging on green CI.
+  - `fogline.boston` (Porkbun DNS: A `@` to Vercel, CNAME `www`) redirects to `www.fogline.boston`; HTTPS live at 04:55 ET; checked at 390×844.
+  - Find food on production (via `/demo`, Sichuan): grounding ran on the billed key but matched nothing, because Gemini paraphrases reviews and the quote rule dropped every line. [#46](https://github.com/Achyut21/fogline/pull/46) quotes a line of Google's "Generated Summary" from the grounding data instead, labeled as Google's review summary (D-072 updated). Tests updated; on review and CI.
+  - Still for B: weekly cron runs only at 6 AM with no retry, `violations.json` is empty (Gemini quota at the time), double-tap copy of a weekly plan makes two plans.
 
 - 2026-11-22 05:15 ET · Builder B · Phase 7 server side on `b/crawls` (from `main`; PR to follow):
   - **Crawls (F10.1–F10.3):** `src/lib/crawl.ts` (`buildCrawls`), OSM opening hours in `src/lib/places/hours.ts` (967 of 1,000 parse), `planCrawl` + `findCrawl` Server Action. DATA 3.15.
