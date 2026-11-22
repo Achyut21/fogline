@@ -580,3 +580,13 @@ Decision:
 Why: F2.5 asks for live departures within 2 s and the stop card if seen; the feed's shape decides the rest.
 Consequences: DATA 3.13 added. The map page's RSC payload measured 187 KB uncompressed for a new profile, about 40 KB of it the 361 nearby spots; cards come only for uncovered stations. The 110 KB of line shapes in the same payload (code-critic on #32) is the bigger cost. F3.1's trains list reuses the route.
 
+
+**D-069 · 2026-11-22 · Recap share image (Phase 6, F9.3).**
+Decision:
+- `/api/og/recap/[planId]` renders with next/og, which can't read CSS variables or Tailwind classes. Its colors live in `src/styles/share-colors.ts`, literal copies of the day tokens kept equal by a unit test, like `theme-color.ts` (D-043). Its sizes are literal.
+- The token check exempts `src/styles/share-colors.ts` and that one route file, nothing wider (this extends D-054's exempt list).
+- The image is for members only, through `recapForPlan`. Invite-token viewers see the recap page but get no image.
+- Ghost is left off the image, because DATA 3.10 keeps it inside the plan's recap. Badges cap at 6 chips with "+N more"; titles, names and the spot line clamp, so nothing clips.
+- Hanken Grotesk 400/700/800 static TTFs (OFL) are vendored in `assets/fonts/`, because next/og takes only ttf, otf or woff. The build traces them into the function.
+Why: F9.3 wants a 1080×1350 image with the recap's numbers; the three critics' first pass (all FAIL) asked for the Ghost, 21+ and overflow fixes.
+Consequences: a new og image reuses `share-colors.ts` and adds its own file to the exempt list.

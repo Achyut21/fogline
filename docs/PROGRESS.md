@@ -266,6 +266,15 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 03:35 ET · Builder B · Recap share image (F9.3) on `b/recap`:
+  - `GET /api/og/recap/[planId]` draws a 1080×1350 PNG from `recapForPlan`, so only members get it (F9.4) and the image's facts match the recap page. The facts come from `src/server/recap-card.ts`, which is unit-tested.
+  - The image follows COPY formats ("12.1 mi", "about 0.8 mi") and uses singular words for single counts. It carries a Demo label on demo nights and says "21+ spot" only for adults-only spots.
+  - Ghost stays off the image (DATA 3.10). Titles clamp to 2 lines, and names and the spot line to 1. Badges cap at 6 with "+N more". Rendered worst cases (80-character title, 40-character names, 16 badges) fit the canvas.
+  - Colors mirror the day tokens with an equality test. Hanken Grotesk 400/700/800 is vendored in `assets/fonts/` (OFL), and the build traces it into the function. D-069 logs the token-test exemption.
+  - code-critic, design-critic and copy-critic all returned FAIL; every blocking item is fixed and re-reviewed (below).
+  - **For A:** show Share/Download on the recap page to members only. Someone who opened the recap through an invite token gets a 404 from the image. The page can fetch the image with `/api/og/recap/${planId}` and hand the blob to `navigator.share`.
+  - Known: the demo seed records no rides, so the demo recap shows 0.0 mi on the T and 0 stops.
+
 - 2026-11-22 03:20 ET · Builder B · Phase 6, B's parts started early under D-067, on `b/recap` (stacked on #33):
   - **Recap data (F9.1, F9.4):** `src/server/recap.ts` and `src/server/actions/recap.ts` (`recapForPlan`, `recapByInvite`). The recap holds:
     - the arrival order, badges (Ghost included) and the night's numbers;

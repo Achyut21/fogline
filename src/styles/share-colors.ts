@@ -1,5 +1,5 @@
 // Colors for the recap share image (F9.3). ImageResponse can't read CSS variables, so these are
-// literal copies of the day theme in src/styles/tokens.css; a unit test keeps them equal (D-043).
+// literal copies of the day theme in src/styles/tokens.css; a unit test keeps them equal (D-069).
 export const shareColors = {
   bg: "#f4f5f7",
   surface: "#ffffff",

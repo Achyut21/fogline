@@ -18,13 +18,13 @@ const { day } = themes;
 
 // Raw values are allowed only in the token files and, until item 6 restyles them, in the stock
 // shadcn primitives (D-037, extended by D-054). Share images render outside the page, where CSS
-// variables and Tailwind classes don't exist, so they use literal sizes and the share-colors copy.
+// variables and Tailwind classes don't exist, so they use literal sizes and the share-colors copy (D-069).
 const exempt = [
   "src/styles/tokens.css",
   "src/styles/theme-color.ts",
   "src/styles/share-colors.ts",
   "src/lib/motion.ts",
-  "src/app/api/og/",
+  "src/app/api/og/recap/[planId]/route.tsx",
 ];
 
 function sourceFiles(dir: string): string[] {
