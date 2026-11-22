@@ -27,6 +27,7 @@
     "data:places": "tsx scripts/places.ts",
     "data:grades": "tsx scripts/grades.ts",
     "data:cards": "tsx --env-file-if-exists=.env scripts/cards.ts",
+    "data:violations": "tsx --env-file-if-exists=.env scripts/violations.ts",
     "data:neighborhoods": "tsx scripts/neighborhoods.ts",
     "data:events": "tsx scripts/events.ts",
     "data:words": "tsx scripts/words.ts",

@@ -62,20 +62,17 @@ export function parseHours(text: string): Week | null {
   const trimmed = text.trim();
   if (trimmed === "24/7") return days.map(() => [[0, dayMinutes]]);
   const week: Week = days.map(() => []);
-  // OSM: a rule after ";" replaces earlier rules on its days; a rule after "," adds to them.
   const groups = trimmed.split(/\s*;\s*/).filter((group) => group !== "");
   if (groups.length === 0) return null;
   for (const group of groups) {
-    const touched = new Map<number, [number, number][]>();
-    for (const rule of group.split(addedRule)) {
+    for (const [n, rule] of group.split(addedRule).entries()) {
       const selector = daySelector.exec(rule);
       const picked = selector ? dayIndexes(selector[1].replace(/\s+/g, "")) : [0, 1, 2, 3, 4, 5, 6];
       const open = spans(selector ? rule.slice(selector[0].length) : rule);
       if (!picked || !open) return null;
-      for (const i of picked)
-        touched.set(i, open.length === 0 ? [] : [...(touched.get(i) ?? []), ...open]);
+      // The first rule after ";" replaces its days; each rule after "," adds to them.
+      for (const i of picked) week[i] = n === 0 || open.length === 0 ? open : [...week[i], ...open];
     }
-    for (const [i, open] of touched) week[i] = open;
   }
   return week;
 }

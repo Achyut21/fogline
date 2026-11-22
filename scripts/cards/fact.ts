@@ -2,15 +2,13 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { bannedWords } from "@/lib/banned-words";
 import { factMaxLength } from "@/lib/cards";
 
 // One sentence per card from Gemini, using only the article's intro (DATA 2.4). Answers are
 // cached under .cache/cards/ by model and prompt, so a rerun makes no new calls.
 const cacheDir = ".cache/cards";
 const attempts = 3;
-
-const banned =
-  /\b(unlock|unleash|elevate|seamless(ly)?|effortless(ly)?|journey|embark|delve|dive in|hidden gem|vibrant|bustling|curated|tapestry|game-changer|revolutioni[sz]e|supercharge|empower|leverage|utiliz\w*|robust|cutting-edge|next-level|world-class|immersive|discover the magic|nestled|iconic|rich history|boasts)\b/i;
 
 // Periods that end an abbreviation, not a sentence ("St. Stephen's Church", "U.S. Army").
 const abbreviations =
@@ -39,7 +37,7 @@ export function checkFact(sentence: string, extract: string): string | null {
   const plain = s.slice(0, -1).replace(abbreviations, "");
   if (/[.!?]\s+[A-Z0-9]/.test(plain)) return "more than one sentence";
   if (/[—!]|\s–\s/.test(s)) return "has a dash between clauses or an exclamation mark";
-  const word = banned.exec(s);
+  const word = bannedWords.exec(s);
   if (word) return `uses "${word[0]}"`;
   const source = digits(extract);
   const missing = (digits(s).match(/\d+/g) ?? []).find((n) => !source.includes(n));
