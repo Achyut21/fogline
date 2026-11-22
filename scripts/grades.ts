@@ -1,13 +1,13 @@
 import { log } from "@/lib/log";
 import { addressKey, matchEstablishment } from "@/lib/grades";
-import type { Grade, PlaceCategory } from "@/lib/places/types";
+import { adultCategories, gradedCategories, type Grade } from "@/lib/places/types";
 import { fetchInspections, gradeOf, type InspectedEstablishment } from "./grades/inspections";
 import { readPlaces, writePlaces } from "./places/file";
 
 // pnpm data:grades: grades from Analyze Boston inspections (DATA 3.6), matched to the spots in
 // data/places.json (DATA 3.7). Run data:places first.
 
-const inspected: readonly PlaceCategory[] = ["food", "coffee", "dessert", "bar", "club"];
+const inspected = [...gradedCategories, ...adultCategories];
 const establishments = await fetchInspections();
 const byAddress = new Map<string, InspectedEstablishment[]>();
 for (const e of establishments) {

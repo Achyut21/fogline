@@ -4,7 +4,8 @@ import { z } from "zod";
 import { log } from "@/lib/log";
 
 // overpass-api.de first, then a public mirror with the same data for networks that can't reach
-// it. One query per run, cached under .cache/, so Overpass is never hit at runtime (DATA 2.2).
+// it. The box is fetched in 9 tiles, each cached under .cache/overpass/, so Overpass is never hit
+// at runtime and a rerun fetches only missing tiles (DATA 2.2).
 const endpoints = [
   "https://overpass-api.de/api/interpreter",
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
@@ -90,6 +91,15 @@ async function download(body: string): Promise<OsmResponse> {
   throw new Error(`Every Overpass endpoint failed: ${failures.join("; ")}`);
 }
 
+async function readCache(file: string): Promise<string | null> {
+  try {
+    return await readFile(file, "utf8");
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 /** Overpass data for a box, one cached file per tile, so a rerun fetches only missing tiles. */
 export async function overpass(box: Box, refresh: boolean): Promise<OsmResponse> {
   await mkdir(cacheDir, { recursive: true });
@@ -97,7 +107,7 @@ export async function overpass(box: Box, refresh: boolean): Promise<OsmResponse>
   for (const tile of tiles(box)) {
     const body = query(tile);
     const file = `${cacheDir}/${createHash("sha256").update(body).digest("hex").slice(0, 16)}.json`;
-    const cached = refresh ? null : await readFile(file, "utf8").catch(() => null);
+    const cached = refresh ? null : await readCache(file);
     if (cached !== null) {
       responses.push(responseSchema.parse(JSON.parse(cached)));
       continue;

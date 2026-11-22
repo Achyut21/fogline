@@ -49,7 +49,7 @@ describe("committed data files", () => {
     ).toBe(true);
   });
 
-  it("[F4.5] [F11.4] has places near real stations, graded only where the city inspects", () => {
+  it("[F4.5] has places near real stations, graded only in inspected categories", () => {
     const ids = new Set(
       z
         .array(stationSchema)

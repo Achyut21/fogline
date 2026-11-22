@@ -26,6 +26,34 @@ const categories: Record<string, PlaceCategory> = {
 // spot's price stays unknown.
 const inexpensive = new Set(["fast_food", "food_court", "ice_cream", "cafe"]);
 
+// OpenStreetMap tags some bars as restaurants. Under-21 profiles never see bars (F1.5), so a
+// spot is 21+ when OSM says `min_age` 21, when its name says it's a bar, when OSM marks a brewery
+// or hookah, or when it's on the reviewed list below (D-057). Hiding a restaurant by mistake
+// costs less than showing a bar.
+const barName =
+  /\b(pub|bar|tavern|tap|taproom|tap room|saloon|lounge|spirits|hookah|brewing|brewery|brewpub|beer hall|beer garden|biergarten|alehouse|ale house|speakeasy|cocktails?)\b/;
+const notBarName =
+  /\b(juice|salad|smoothie|raw|oyster|sushi|coffee|espresso|snack|candy|yogurt|acai|poke|ramen|noodle|tapas|dessert|cereal|granola|protein) bar\b/g;
+const reviewedBars = new Set([
+  "21st amendment",
+  "hurricane s at the garden",
+  "lolita",
+  "club cafe",
+]);
+
+export function isAdult(category: PlaceCategory, name: string, tags: Record<string, string>) {
+  if (category === "bar" || category === "club") return true;
+  const normalized = normalizeName(name);
+  return (
+    Number(tags.min_age) >= 21 ||
+    reviewedBars.has(normalized) ||
+    tags.microbrewery === "yes" ||
+    tags.craft === "brewery" ||
+    (tags.cuisine ?? "").split(";").some((cuisine) => cuisine.trim() === "hookah") ||
+    barName.test(normalized.replace(notBarName, ""))
+  );
+}
+
 const maxWalkM = 600;
 const duplicateM = 50;
 
@@ -47,7 +75,7 @@ const typeOrder = { node: 0, way: 1, relation: 2 } as const;
 /**
  * Named OSM spots within 600 m walking of a station (DATA 2.2), each with every such station,
  * nearest first. A spot mapped twice (a point and its building) within 50 m under the same name
- * is kept once, preferring the copy with more tags.
+ * is kept once, preferring the copy with more tags, and is 21+ if either copy is.
  */
 export function toPlaces(elements: OsmElement[], stations: Station[]): Place[] {
   const candidates: { place: Place; tags: number; order: number }[] = [];
@@ -74,7 +102,7 @@ export function toPlaces(elements: OsmElement[], stations: Station[]): Place[] {
         lon: round(lon),
         stations: near,
         address: number && street ? { number, street } : null,
-        ageRule: category === "bar" || category === "club" ? "21plus" : "all",
+        ageRule: isAdult(category, name, element.tags) ? "21plus" : "all",
         price: inexpensive.has(kind) ? 1 : null,
         hours: element.tags.opening_hours ?? null,
         grade: null,
@@ -95,7 +123,11 @@ export function toPlaces(elements: OsmElement[], stations: Station[]): Place[] {
   for (const { place } of candidates) {
     const key = normalizeName(place.name);
     const same = byName.get(key) ?? [];
-    if (same.some((other) => haversineM(other, place) <= duplicateM)) continue;
+    const copy = same.find((other) => haversineM(other, place) <= duplicateM);
+    if (copy) {
+      if (place.ageRule === "21plus") copy.ageRule = "21plus";
+      continue;
+    }
     same.push(place);
     byName.set(key, same);
     kept.push(place);

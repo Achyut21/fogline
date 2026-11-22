@@ -18,12 +18,18 @@ export function gradeFor(points: number): Grade {
 
 const nameSuffixes = new Set(["inc", "llc", "corp", "corporation", "co", "ltd", "company"]);
 
-/** DATA 3.7: lowercase, no accents, "&" becomes "and", no punctuation, no company suffixes. */
+// The city numbers chain counters and food-hall stalls at the end of a name: "CinnabonNo.  106694",
+// "Starbucks Coffee No.  822", "Hangover B&B  SpaceNo. 13", "Baby Cafe - Space No. 8",
+// "Chick-Fil-A (StoreNo. 80845)".
+const counterSuffix = /\(?\s*(?:space|stall|store)?\s*no\.\s*\d+[a-z]?\s*\)?\s*$/;
+
+/** DATA 3.7: lowercase, no accents, no counter number, "&" becomes "and", no punctuation, no company suffixes. */
 export function normalizeName(name: string): string {
   const words = name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{M}/gu, "")
     .toLowerCase()
+    .replace(counterSuffix, "")
     .replaceAll("&", " and ")
     .replace(/[^a-z0-9 ]+/g, " ")
     .split(/\s+/)
@@ -32,7 +38,8 @@ export function normalizeName(name: string): string {
   return words.join(" ");
 }
 
-// Words that say what a place is, or where, rather than which place it is.
+// Words that say what a place is, or where, rather than which place it is. Compass words stay
+// distinctive: "Stetson East" and "Stetson West" are different dining halls.
 const genericWords = new Set([
   ...["and", "the", "of", "at", "cafe", "caffe", "coffee", "restaurant", "ristorante", "grill"],
   ...["kitchen", "bar", "pub", "house", "pizza", "pizzeria", "sushi", "thai", "food"],
@@ -44,7 +51,7 @@ const genericWords = new Set([
   ...["boston", "cambridge", "somerville", "brookline", "medford", "quincy", "newton"],
   ...["newbury", "boylston", "beacon", "hill", "harvard", "kenmore", "fenway", "brighton"],
   ...["allston", "dorchester", "charlestown", "roxbury", "jamaica", "plain", "back"],
-  ...["south", "north", "east", "west", "downtown", "broadway", "tremont", "washington"],
+  ...["downtown", "broadway", "tremont", "washington"],
   ...["central", "porter", "davis", "kendall", "union", "seaport", "chinatown"],
 ]);
 
@@ -52,6 +59,7 @@ const genericWords = new Set([
 export function distinctiveWords(name: string): string[] {
   return normalizeName(name)
     .split(" ")
+    .filter((word) => !genericWords.has(word))
     .map((word) => (word.length > 4 && word.endsWith("s") ? word.slice(0, -1) : word))
     .filter((word) => word.length >= 4 && !genericWords.has(word));
 }
@@ -62,39 +70,90 @@ function core(name: string): string {
   return words.length > 0 ? words.join(" ") : normalizeName(name);
 }
 
-/** How alike two names are once generic words are set aside, from 0 to 1. */
+/** How alike two names are once generic words are set aside, from 0 to 1. Ranks candidates. */
 export function nameSimilarity(a: string, b: string): number {
   return jaroWinkler(core(a), core(b));
 }
 
+const wordLengthGap = 2;
+const fuzzyMinLength = 8;
+const wordSimilarity = 0.9;
+
 /**
- * Whether two names plausibly belong to one business: their distinctive words spelled alike
- * (Jaro-Winkler at least `minimum`), or every distinctive word of one name appearing in the other.
+ * One word spelled alike: the same, or a typo apart (both 8 letters or more, at most 2 letters
+ * apart in length, Jaro-Winkler at least 0.9): "hokkaido" and "hokkaldo". Shorter words must be
+ * equal, since a shared prefix lifts short pairs past 0.9 ("mario" and "maria", "tasty" and
+ * "taste").
  */
-export function sameBusiness(a: string, b: string, minimum: number): boolean {
-  if (nameSimilarity(a, b) >= minimum) return true;
-  const [fewer, more] = [new Set(distinctiveWords(a)), new Set(distinctiveWords(b))].sort(
-    (x, y) => x.size - y.size,
+function sameWord(a: string, b: string): boolean {
+  if (a === b) return true;
+  return (
+    Math.min(a.length, b.length) >= fuzzyMinLength &&
+    Math.abs(a.length - b.length) <= wordLengthGap &&
+    jaroWinkler(a, b) >= wordSimilarity
   );
-  return fewer.size > 0 && [...fewer].every((word) => more.has(word));
 }
 
+/**
+ * Whether two names plausibly belong to one business (DATA 3.7), any of:
+ * - the same once spaces are set aside ("Gong Cha" and "Gongcha");
+ * - one name's words all in the other, whose extra words are generic ("Thai Place" and "Thai
+ *   Place Restaurant");
+ * - every distinctive word of the name with fewer of them spelled alike by a word of the other.
+ */
+export function sameBusiness(a: string, b: string): boolean {
+  const [plainA, plainB] = [normalizeName(a), normalizeName(b)];
+  if (plainA.replaceAll(" ", "") === plainB.replaceAll(" ", "")) return true;
+  const [shorter, longer] = [plainA.split(" "), plainB.split(" ")].sort(
+    (x, y) => x.length - y.length,
+  );
+  if (
+    shorter.every((word) => longer.includes(word)) &&
+    longer.every((word) => shorter.includes(word) || genericWords.has(word))
+  ) {
+    return true;
+  }
+  const [fewer, more] = [distinctiveWords(a), distinctiveWords(b)].sort(
+    (x, y) => x.length - y.length,
+  );
+  return fewer.length > 0 && fewer.every((word) => more.some((other) => sameWord(word, other)));
+}
+
+// Every spelling of a street suffix, on either side, maps to one form. The city writes BL, HW,
+// PW, PZ, WY, WH and PK; OpenStreetMap writes the full words.
 const streetSuffixes: Record<string, string> = {
   street: "st",
   avenue: "ave",
   av: "ave",
   road: "rd",
   boulevard: "blvd",
+  bl: "blvd",
   place: "pl",
   square: "sq",
   drive: "dr",
   lane: "ln",
   terrace: "ter",
+  te: "ter",
   highway: "hwy",
+  hw: "hwy",
   parkway: "pkwy",
+  pw: "pkwy",
+  plaza: "plz",
+  pz: "plz",
+  way: "wy",
+  wharf: "wh",
+  whf: "wh",
+  park: "pk",
+  court: "ct",
+  circle: "cir",
 };
 
-/** A street name in one spelling: lowercase, no punctuation, the last word's suffix abbreviated. */
+const directions: Record<string, string> = { north: "n", south: "s", east: "e", west: "w" };
+
+/**
+ * A street name in one spelling: lowercase, no punctuation, a leading direction and the last
+ * word's suffix abbreviated ("West Broadway" and "W BROADWAY").
+ */
 export function normalizeStreet(street: string): string {
   const words = street
     .toLowerCase()
@@ -102,6 +161,7 @@ export function normalizeStreet(street: string): string {
     .split(/\s+/)
     .filter(Boolean);
   const last = words.length - 1;
+  if (last > 0 && words[0] in directions) words[0] = directions[words[0]];
   if (last > 0 && words[last] in streetSuffixes) words[last] = streetSuffixes[words[last]];
   return words.join(" ");
 }
@@ -154,14 +214,14 @@ export type MatchTarget = {
   at: LatLon;
 };
 
-const addressSimilarity = 0.85;
-const nearbySimilarity = 0.8;
 const nearbyM = 50;
+const addressMaxM = 2000;
 
 /**
- * DATA 3.7: an establishment at the same house number and street with the same business name
- * (spelling at least 0.85 similar, or the distinctive words agreeing), else one within 50 m
- * (spelling at least 0.8 similar, or the distinctive words agreeing), most similar first.
+ * DATA 3.7: an establishment at the same house number and street with the same business name,
+ * else one within 50 m with the same business name. An address match must be within 2 km: the
+ * city's geocodes can be off by a kilometer, and the same address in Cambridge, Somerville or
+ * Brookline is farther away. The most similar name wins; a tie between two licenses is no match.
  * Null means no inspection match (F11.4).
  */
 export function matchEstablishment<T extends Establishment>(
@@ -169,21 +229,28 @@ export function matchEstablishment<T extends Establishment>(
   byAddress: ReadonlyMap<string, T[]>,
   nearby: readonly T[],
 ): T | null {
-  const best = (candidates: readonly T[], minimum: number) => {
-    let found: { establishment: T; score: number } | null = null;
+  const best = (candidates: readonly T[]) => {
+    let found: { establishment: T; score: number; tied: boolean } | null = null;
     for (const establishment of candidates) {
-      if (!sameBusiness(place.name, establishment.name, minimum)) continue;
+      if (!sameBusiness(place.name, establishment.name)) continue;
       const score = nameSimilarity(place.name, establishment.name);
-      if (!found || score > found.score) found = { establishment, score };
+      if (!found || score > found.score) found = { establishment, score, tied: false };
+      else if (score === found.score && establishment.license !== found.establishment.license) {
+        found.tied = true;
+      }
     }
-    return found?.establishment ?? null;
+    return found && !found.tied ? found.establishment : null;
   };
-  if (place.address) {
-    const match = best(byAddress.get(addressKey(place.address)) ?? [], addressSimilarity);
+  const key = place.address ? addressKey(place.address) : null;
+  if (key !== null) {
+    const atAddress = (byAddress.get(key) ?? []).filter(
+      (e) => e.at === null || haversineM(e.at, place.at) <= addressMaxM,
+    );
+    const match = best(atAddress);
     if (match) return match;
   }
   const close = nearby.filter((e) => e.at !== null && haversineM(e.at, place.at) <= nearbyM);
-  return best(close, nearbySimilarity);
+  return best(close);
 }
 
 export function addressKey(address: { number: string; street: string }): string {

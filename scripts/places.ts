@@ -6,8 +6,9 @@ import { writePlaces } from "./places/file";
 import { overpass } from "./places/osm";
 import { toPlaces } from "./places/transform";
 
-// pnpm data:places [--refresh]: spots near every station from one Overpass query, cached in
-// .cache/overpass.json. Run data:grades afterwards to add inspection grades.
+// pnpm data:places [--refresh]: spots near every station from Overpass, fetched in 9 tiles cached
+// under .cache/overpass/ (--refresh fetches them again). Run data:grades afterwards to add
+// inspection grades.
 
 const margin = 0.008;
 const stations = z

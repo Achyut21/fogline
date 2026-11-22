@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { placeSchema } from "@/lib/places/types";
 import type { Station } from "@/lib/gtfs/types";
 import { merge, tiles, type OsmElement } from "../../scripts/places/osm";
-import { kindOf, toPlaces } from "../../scripts/places/transform";
+import { isAdult, kindOf, toPlaces } from "../../scripts/places/transform";
 
 const station = (id: string, lat: number, lon: number): Station => ({
   id,
@@ -115,6 +115,50 @@ describe("toPlaces", () => {
         address: { number: "1", street: "Tremont Street" },
         grade: null,
       }),
+    ]);
+  });
+
+  it("[F1.5] makes restaurants that are bars in practice 21+, by name, brewery tags or review", () => {
+    const adult = (name: string, tags: Record<string, string> = {}) => isAdult("food", name, tags);
+    expect(adult("Beantown Pub")).toBe(true);
+    expect(adult("Dive Bar")).toBe(true);
+    expect(adult("Tip Tap Room")).toBe(true);
+    expect(adult("Democracy Brewing")).toBe(true);
+    expect(adult("21st Amendment")).toBe(true);
+    expect(adult("Hurricane's at the Garden")).toBe(true);
+    expect(adult("Lamplighter", { microbrewery: "yes" })).toBe(true);
+    expect(adult("Island Creek Oyster Bar")).toBe(false);
+    expect(adult("Pressed Juice Bar")).toBe(false);
+    expect(adult("Barcelona")).toBe(false);
+    expect(adult("Tatte Bakery")).toBe(false);
+    expect(isAdult("club", "Royale", {})).toBe(true);
+    expect(adult("Lolita", { min_age: "21" })).toBe(true);
+    expect(adult("Lolita")).toBe(true);
+    expect(adult("Teatro", { min_age: "18" })).toBe(false);
+    expect(adult("Habibi's Lounge")).toBe(true);
+    expect(adult("Sahara", { cuisine: "lebanese; hookah" })).toBe(true);
+    expect(adult("Tap 151")).toBe(true);
+    expect(adult("Mike's Food & Spirits")).toBe(true);
+    expect(adult("Club Café")).toBe(true);
+    expect(adult("Juliet Social Club")).toBe(false);
+    expect(adult("Pub & Oyster Bar")).toBe(true);
+  });
+
+  it("[F1.5] keeps a spot 21+ when the copy dropped as a duplicate was", () => {
+    const places = toPlaces(
+      [
+        node(1, { name: "The Banshee", amenity: "pub" }),
+        {
+          type: "way",
+          id: 2,
+          center: { lat: 42.3567, lon: -71.0623 },
+          tags: { name: "The Banshee", amenity: "restaurant", cuisine: "irish", website: "x" },
+        },
+      ],
+      stations,
+    );
+    expect(places.map((p) => [p.id, p.category, p.ageRule])).toEqual([
+      ["osm:way/2", "food", "21plus"],
     ]);
   });
 
