@@ -651,7 +651,7 @@ Consequences: Phase 10's security item covers the security review's findings and
 
 **D-078 · 2026-11-22 · Phase 10 security fixes (B).**
 Decision:
-- **Squad privacy:** a mate's squad-map cells are limited to rides and check-ins on nights you shared (DATA 3.12). Check-ins trust the phone's reported position, so anyone holding an invite link could fake one and become a mate. Before this, that showed them each attendee's whole history, home area included.
+- **Squad privacy:** a mate's squad-map cells are limited to their check-ins on nights you shared (DATA 3.12). Rides are left out because a ride can be a replay played from anywhere. Check-ins trust the phone's reported position, so anyone holding an invite link could fake one and become a mate. Before this, that showed them each attendee's whole history, home area included.
 - **Solver inputs:** `categories` arrays are capped at the number of categories. One 5 MB request could otherwise make the solver scan millions of entries.
 - **Demo replays:** a demo profile's replayed rides are written as demo rows, so How it works' real counts leave them out (F16.2).
 - **Headers:** `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy, and a Permissions-Policy limiting the camera, microphone and location to this site. A full CSP waits until it can be tested against MapLibre's blob workers and the tile hosts.

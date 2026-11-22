@@ -44,11 +44,8 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
   const sharedNights = new Map<string, Date>();
   // The nights the viewer shared with each mate, as check-in windows (DATA 3.9, 3.12).
   const together = new Map<string, { from: Date; to: Date }[]>();
-  const minePlans = new Set(rows.filter((r) => r.profileId === profileId).map((r) => r.planId));
   for (const row of rows) {
-    if (row.profileId === profileId || !mates.has(row.profileId) || !minePlans.has(row.planId)) {
-      continue;
-    }
+    if (row.profileId === profileId || !mates.has(row.profileId)) continue;
     sharedNights.set(row.planId, row.startsAt);
     if (row.endedAt === null) continue;
     const windows = together.get(row.profileId) ?? [];
@@ -72,11 +69,11 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
       .from(revealedCells)
       .where(inArray(revealedCells.profileId, ids)),
   ]);
-  // A mate's map shows only what they uncovered riding or checking in on a night you shared, so a
-  // squad never shows where a mate lives or goes without you (D-078). Your own cells all count.
+  // A mate's map shows only what they uncovered checking in on a night you shared. Rides can be
+  // replays played from anywhere, home included, so they stay off (D-078). Your own cells all count.
   const visible = cells.filter((cell) => {
     if (cell.profileId === profileId) return true;
-    if (cell.source !== "ride" && cell.source !== "checkin") return false;
+    if (cell.source !== "checkin") return false;
     return (together.get(cell.profileId) ?? []).some(
       (w) => cell.firstAt >= w.from && cell.firstAt <= w.to,
     );

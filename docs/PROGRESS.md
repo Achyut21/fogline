@@ -319,8 +319,12 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - thousands separators and singulars;
     - the percent format with one decimal under 10% written into COPY.md.
   - **Ship kit:** `README.md` and `docs/SHIP.md` describe only what's on screen today; regenerate after Phase 9.
-  - **Performance:** `tests/e2e/perf.spec.ts` runs with Lighthouse's mobile throttling. After `main`'s Phase 9 merges, the welcome page and the map home both pass: app shell under 200 KB gzip (the scripts the server's HTML loads), LCP under 2.5 s. The toaster now loads after first paint, saving about 16 KB on every page.
+  - **Performance:** `tests/e2e/perf.spec.ts` uses Lighthouse's mobile throttling with a cold cache.
+    - The welcome page passes: app shell 194 KB gzip, LCP under 2.5 s.
+    - The map home is over budget at about 263 KB gzip. Its check is marked `test.fail()` until fixed.
+    - The toaster now loads after first paint, saving about 16 KB on every page.
   - **For A (Phase 9):**
+    - Map home JS: about 30 KB of Zod reaches the client through a value import of a module with a schema (`@/lib/places/types` is one path; there's at least one more), plus a 38 KB polyfill-style chunk. The map and three.js already load after first paint.
     - Strings outside `src/copy/`: "Other" in `src/server/schools.ts`, the friend legend in `plan-builder.tsx:228`, and " · " separators in `plans/page.tsx`, `daily-puzzle.tsx` and `plan-builder.tsx`.
     - From the security review (no limiter, D-077):
       - one client can use up the global `/demo` cap;

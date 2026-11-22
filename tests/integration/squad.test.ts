@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Db } from "@/server/db/client";
-import { profiles, revealedCells } from "@/server/db/schema";
+import { plans, profiles, revealedCells } from "@/server/db/schema";
 import { seedDemo } from "@/server/demo";
 import { squadOf } from "@/server/squad";
 import { createScratchDatabase } from "./scratch-database";
@@ -73,6 +73,18 @@ describe.skipIf(testUrl === "")("squad", () => {
       .where(eq(revealedCells.profileId, mate.id));
     expect(theirs.some((c) => c.source === "home")).toBe(true);
     expect(after.cells.filter((c) => c.by === mate.id).length).toBeLessThan(theirs.length);
+
+    // A check-in cell from the night you shared still shows, credited to the mate.
+    const [night] = await db.select().from(plans).where(eq(plans.createdBy, maya));
+    await db.insert(revealedCells).values({
+      profileId: mate.id,
+      h3: "892a3066a2bffff",
+      state: "visited",
+      source: "checkin",
+      firstAt: new Date(night.startsAt.getTime() + 10 * 60_000),
+    });
+    const withNight = await squadOf(db, maya, seededAt);
+    expect(withNight.cells.find((c) => c.h3 === "892a3066a2bffff")?.by).toBe(mate.id);
   });
 
   it("[F12.3] counts the demo night toward this week's streak", async () => {

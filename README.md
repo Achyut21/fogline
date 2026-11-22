@@ -8,11 +8,11 @@ Built for BostonHacks 2026, "Bos(tons) of Eats and Streets" track. Live at [fogl
 
 ## What it does
 
-- **Fair plans:** friends pick their home stations, and Fogline ranks meetup stations by how even the T trip is for everyone, not by map distance. Each person sees their own minutes and their own leave-by time for their last train home, from the plan's last stop.
-- **Crawls:** 2 to 4 stops, each within 10 minutes of the last by walk or T, open at its time where its hours are known.
+- **Fair plans:** friends pick their home stations, and Fogline ranks meetup stations by how even the T trip is for everyone, not by map distance. Each person sees their own minutes and their own leave-by time for their last train home, from the plan's last stop, with MBTA service alerts on their way home and a "Remind me" calendar file with alarms 20 and 5 minutes before.
+- **Crawls:** 2 to 4 stops, each within 10 minutes of the last by walk or T, open at its time where its hours are known. Up to 3 fair plans are suggested every Monday, including a meal before a real Boston event.
 - **The fog:** riding, checking in and solving the daily puzzle uncover hexagons of the city. Ride replays lift the fog stop by stop on a recorded train. Squads share a map and a weekly streak.
 - **The daily puzzle:** a five-letter word tied to a real event in Boston that day. Solving it reveals the event and offers to plan a night around it.
-- **Live night:** check-ins at the spot and the arrival order.
+- **Live night and recap:** check-ins at the spot, the arrival order, badges, stats on Me, and a night recap with a share image.
 - **Grades:** an unofficial letter grade from City of Boston food inspections, with the violations listed.
 - **Calm mode and Find food:** noise measured by riders on each stretch with a sensory preview, and finding a dish from a photo.
 - **How it works:** live counts from the database and every data source with its credit.
