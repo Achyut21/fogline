@@ -122,8 +122,9 @@ export async function weeklyPlansFor(db: Db, now: Date): Promise<WeeklyPlan[]> {
 
 /**
  * "Invite friends" on one of this week's plans (F10.5): a copy as the viewer's own crawl with its
- * own invite link, made once per person; asking again returns the same copy. Leave-by times are worked out for the people who join, like any plan. Null for
- * a plan from another week or one that can't be shown any more.
+ * own invite link, made once per person; asking again returns the same copy (D-076). Leave-by
+ * times are worked out for the people who join, like any plan. Null for a plan from another week
+ * or one that can't be shown any more.
  */
 export async function copyWeeklyPlan(
   db: Db,
