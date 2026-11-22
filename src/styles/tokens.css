@@ -1,0 +1,112 @@
+/* Fogline design tokens (DESIGN.md section 4, direction D-050). Components use these through the
+   Tailwind theme in src/app/globals.css and never repeat raw values. Day is :root, night is .dark. */
+
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef1f4;
+  --rule: #e3e6ea;
+  --ink: #15181c;
+  --ink-muted: #5b636d;
+  --ink-subtle: #6b737d;
+  --accent: #0b7a75;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcefed;
+  --success: #1b7348;
+  --warning: #a35600;
+  --danger: #c2321f;
+  --danger-ink: #ffffff;
+  --focus: #0b7a75;
+  --scrim: rgb(21 24 28 / 0.12);
+
+  --fog: #fcfcfd;
+  --fog-thin: rgb(252 252 253 / 0.45);
+  --map-land: #e6e9ec;
+  --map-water: #b6d0ea;
+  --map-park: #cce6c6;
+  --map-road: #ffffff;
+
+  --line-red: #da291c;
+  --line-orange: #ed8b00;
+  --line-blue: #003da5;
+  --line-green: #00843d;
+  --line-ink: #ffffff;
+  --line-ink-orange: #15181c;
+  --line-red-casing: #ffffff;
+  --line-orange-casing: #15181c;
+  --line-blue-casing: #ffffff;
+  --line-green-casing: #ffffff;
+
+  --elevation-1: 0 1px 3px rgb(16 24 32 / 0.12);
+  --elevation-2: 0 8px 24px rgb(16 24 32 / 0.12);
+  --elevation-3: 0 -8px 30px rgb(16 24 32 / 0.16);
+
+  --type-xs: 0.75rem;
+  --type-sm: 0.875rem;
+  --type-base: 1rem;
+  --type-lg: 1.125rem;
+  --type-xl: 1.375rem;
+  --type-2xl: 1.75rem;
+  --type-3xl: 2.25rem;
+  --type-4xl: 3rem;
+  --type-5xl: 4rem;
+
+  --radius-chip: 0.375rem;
+  --radius-tile: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-sheet: 1.5rem;
+
+  --duration-instant: 80ms;
+  --duration-fast: 160ms;
+  --duration-base: 240ms;
+  --duration-slow: 400ms;
+  --duration-reveal: 900ms;
+  --duration-count: 1200ms;
+  --motion-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --layer-map: 0;
+  --layer-fog: 1;
+  --layer-overlay: 2;
+  --layer-chips: 10;
+  --layer-sheet: 20;
+  --layer-toast: 30;
+  --layer-modal: 40;
+}
+
+.dark {
+  --bg: #0e1013;
+  --surface: #1e2227;
+  --surface-raised: #262b31;
+  --surface-sunken: #2a3037;
+  --rule: #2e343b;
+  --ink: #eef1f4;
+  --ink-muted: #a3acb6;
+  --ink-subtle: #8a939e;
+  --accent: #3bc9be;
+  --accent-ink: #071615;
+  --accent-soft: #233b3a;
+  --success: #4cc38a;
+  --warning: #f2a93b;
+  --danger: #ff7a66;
+  --danger-ink: #071615;
+  --focus: #3bc9be;
+  --scrim: rgb(0 0 0 / 0.3);
+
+  --fog: #08090b;
+  --fog-thin: rgb(8 9 11 / 0.45);
+  --map-land: #1d2126;
+  --map-water: #122030;
+  --map-park: #1b2a21;
+  --map-road: #30353c;
+
+  --line-red-casing: #0e1013;
+  --line-orange-casing: #0e1013;
+  --line-blue-casing: #eef1f4;
+  --line-green-casing: #0e1013;
+
+  --elevation-1: 0 1px 3px rgb(0 0 0 / 0.4);
+  --elevation-2: 0 8px 24px rgb(0 0 0 / 0.5);
+  --elevation-3: 0 -8px 30px rgb(0 0 0 / 0.5);
+}

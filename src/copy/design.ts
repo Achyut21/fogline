@@ -1,0 +1,42 @@
+export const design = {
+  title: "Fogline design system",
+  intro:
+    "Tokens, components and motion for Fogline. Every value here comes from src/styles/tokens.css.",
+  theme: {
+    label: "Theme",
+    system: "System",
+    day: "Day",
+    night: "Night",
+  },
+  sections: {
+    color: "Color",
+    contrast: "Text contrast",
+    type: "Type",
+    spacing: "Spacing",
+    radius: "Radius",
+    elevation: "Elevation",
+    motion: "Motion",
+  },
+  colorGroups: {
+    surfaces: "Surfaces",
+    ink: "Text",
+    accent: "Accent",
+    states: "States",
+    map: "Map and fog",
+    lines: "Subway lines",
+  },
+  contrastColumns: {
+    pair: "Text on background",
+    day: "Day",
+    night: "Night",
+  },
+  contrastNote: "WCAG AA needs 4.5:1 for text. Every pair here is tested.",
+  passes: "Passes AA",
+  fails: "Fails AA",
+  swatch: (day: string, night: string) => `Day ${day}, night ${night}`,
+  pair: (fg: string, bg: string) => `${fg} on ${bg}`,
+  ratio: (value: number) => `${value.toFixed(2)}:1`,
+  milliseconds: (value: number) => `${value} ms`,
+  typeSample: "Leave by 12:14 AM",
+  numberSample: "1,204",
+} as const;
