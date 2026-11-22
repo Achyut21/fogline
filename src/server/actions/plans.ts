@@ -2,8 +2,10 @@
 
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { inviteToken } from "@/lib/invite-token";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
+import { stopSpot } from "@/server/stop-spot";
 import { getDb } from "@/server/db/client";
 import { checkins, planParticipants, planStops, plans, profiles } from "@/server/db/schema";
 import { currentProfile } from "@/server/profile";
@@ -11,20 +13,11 @@ import { currentProfile } from "@/server/profile";
 // Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
 // an invite link, and joining it (F4.7, F4.8). The profile comes from the signed session (F1).
 
-const codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-function randomCode(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return [...bytes].map((b) => codeAlphabet[b % codeAlphabet.length]).join("");
-}
-
 const tokenInput = z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/);
 
-const placeById = (id: string) => data.places().find((p) => p.id === id);
-
 /** A plan with any bar or club stop is 21+ (F4.9). */
-const adultsOnly = (stops: readonly { placeId: string }[]) =>
-  stops.some((s) => placeById(s.placeId)?.ageRule === "21plus");
+const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>
+  stops.some((s) => stopSpot(s.placeId, s.stationId)?.ageRule === "21plus");
 
 function knownStation(id: string): boolean {
   return data.stations().some((s) => s.id === id);
@@ -67,14 +60,14 @@ export async function createPlan(input: unknown) {
   const night = startsAt.getTime() + 12 * 60 * 60_000;
   if (times.some((t, i) => t < startsAt.getTime() || t > night || (i > 0 && t < times[i - 1])))
     return { kind: "unknown-spot" as const };
+  // A stop is a spot near its station, or a puzzle event at its own station (Dinner before).
   for (const stop of chosen) {
-    const place = placeById(stop.placeId);
-    if (!place?.stations.some((s) => s.id === stop.stationId))
-      return { kind: "unknown-spot" as const };
-    if (place.ageRule === "21plus" && creator.ageBand !== "21plus")
+    const spot = stopSpot(stop.placeId, stop.stationId);
+    if (!spot || spot.walkM === null) return { kind: "unknown-spot" as const };
+    if (spot.ageRule === "21plus" && creator.ageBand !== "21plus")
       return { kind: "adults-only" as const };
   }
-  const inviteToken = randomCode(12);
+  const token = inviteToken();
   const id = await getDb().transaction(async (tx) => {
     const [row] = await tx
       .insert(plans)
@@ -84,7 +77,7 @@ export async function createPlan(input: unknown) {
         title: plan.title,
         startsAt,
         status: "planned",
-        inviteToken,
+        inviteToken: token,
         isDemo: creator.isDemo,
       })
       .returning({ id: plans.id });
@@ -107,7 +100,7 @@ export async function createPlan(input: unknown) {
     );
     return row.id;
   });
-  return { kind: "created" as const, id, inviteToken };
+  return { kind: "created" as const, id, inviteToken: token };
 }
 
 /**
@@ -151,13 +144,21 @@ export async function planByInvite(token: unknown) {
   const hidden = adultsOnly(stops) && viewer?.ageBand !== "21plus";
   const stations = new Map(data.stations().map((s) => [s.id, s]));
   const stop = stops.at(0);
-  const place = stop ? placeById(stop.placeId) : undefined;
-  // Leave-by uses the last stop (F5.5), so a crawl's riders leave from where the night ends.
+  const place = stop ? stopSpot(stop.placeId, stop.stationId) : null;
+  // Leave-by uses the last stop (F5.5), so a crawl's riders leave from where the night ends. A
+  // stop can be a puzzle event's venue (Dinner before, weekly plans).
   const route = stops.flatMap((st) => {
-    const at = placeById(st.placeId);
+    const at = stopSpot(st.placeId, st.stationId);
     if (!at) return [];
-    const walkM = at.stations.find((x) => x.id === st.stationId)?.walkM ?? 0;
-    return [{ station: st.stationId, at, walkM, name: at.name, scheduledAt: st.scheduledAt }];
+    return [
+      {
+        station: st.stationId,
+        at,
+        walkM: at.walkM ?? 0,
+        name: at.name,
+        scheduledAt: st.scheduledAt,
+      },
+    ];
   });
   return {
     id: plan.id,
@@ -229,7 +230,7 @@ export async function joinPlan(token: unknown) {
   if (!plan || plan.isDemo !== viewer.isDemo) return { kind: "not-found" as const };
   if (plan.status === "ended") return { kind: "ended" as const };
   const stops = await db
-    .select({ placeId: planStops.placeId })
+    .select({ placeId: planStops.placeId, stationId: planStops.stationId })
     .from(planStops)
     .where(eq(planStops.planId, plan.id));
   if (adultsOnly(stops) && viewer.ageBand !== "21plus") return { kind: "adults-only" as const };

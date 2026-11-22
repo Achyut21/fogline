@@ -5,7 +5,7 @@ import { z } from "zod";
 import { checkInValidity, type CheckinResult } from "@/lib/checkin";
 import { revealAround } from "@/lib/geo/cells";
 import { awardNightBadges } from "@/server/badges";
-import { data } from "@/server/data";
+import { stopSpot } from "@/server/stop-spot";
 import { getDb } from "@/server/db/client";
 import { checkins, planParticipants, planStops, plans, revealedCells } from "@/server/db/schema";
 import { sessionProfileId } from "@/server/session";
@@ -33,6 +33,7 @@ export async function checkIn(
       startsAt: plans.startsAt,
       endedAt: plans.endedAt,
       placeId: planStops.placeId,
+      stationId: planStops.stationId,
       isDemo: plans.isDemo,
     })
     .from(plans)
@@ -42,7 +43,7 @@ export async function checkIn(
       and(eq(planParticipants.planId, plans.id), eq(planParticipants.profileId, me)),
     )
     .where(eq(plans.id, attempt.planId));
-  const place = row ? data.places().find((p) => p.id === row.placeId) : undefined;
+  const place = row ? stopSpot(row.placeId, row.stationId) : null;
   if (!row || !place) return { valid: false, reason: "not-found" };
   const now = new Date();
   const result = checkInValidity(
@@ -54,7 +55,7 @@ export async function checkIn(
     ts: now,
     profileId: me,
     planId: attempt.planId,
-    placeId: place.id,
+    placeId: row.placeId,
     lat: attempt.lat,
     lon: attempt.lon,
     accuracyM: attempt.accuracyM,

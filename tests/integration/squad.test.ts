@@ -1,7 +1,7 @@
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Db } from "@/server/db/client";
-import { profiles, revealedCells } from "@/server/db/schema";
+import { profiles } from "@/server/db/schema";
 import { seedDemo } from "@/server/demo";
 import { squadOf } from "@/server/squad";
 import { createScratchDatabase } from "./scratch-database";
@@ -13,12 +13,20 @@ describe.skipIf(testUrl === "")("squad", () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
   let db: Db;
   let maya = "";
+  let outsiders: string[] = [];
 
   beforeAll(async () => {
     scratch = await createScratchDatabase(testUrl);
     db = createDb(scratch.url);
     await migrate(db, { migrationsFolder: "drizzle" });
+    // Another demo night a day earlier: its people uncovered the same cells first, so a squad
+    // query that leaked outsiders would credit cells to them.
+    const before = await db.select({ id: profiles.id }).from(profiles);
+    await seedDemo(db, new Date(seededAt.getTime() - 86_400_000));
+    const others = await db.select({ id: profiles.id }).from(profiles);
     ({ profileId: maya } = await seedDemo(db, seededAt));
+    const known = new Set(before.map((p) => p.id));
+    outsiders = others.map((p) => p.id).filter((id) => !known.has(id));
   });
 
   afterAll(async () => {
@@ -33,9 +41,10 @@ describe.skipIf(testUrl === "")("squad", () => {
     const ids = new Set(squad.members.map((m) => m.id));
     expect(squad.cells.length).toBeGreaterThan(0);
     expect(squad.cells.every((c) => ids.has(c.by))).toBe(true);
-    const all = await db.selectDistinct({ h3: revealedCells.h3 }).from(revealedCells);
-    expect(squad.cells.length).toBeLessThanOrEqual(all.length);
     expect(new Set(squad.cells.map((c) => c.h3)).size).toBe(squad.cells.length);
+    expect(outsiders.length).toBeGreaterThan(0);
+    expect(squad.members.some((m) => outsiders.includes(m.id))).toBe(false);
+    expect(squad.cells.some((c) => outsiders.includes(c.by))).toBe(false);
   });
 
   it("[F12.3] counts the demo night toward this week's streak", async () => {

@@ -29,6 +29,13 @@
       "when": 1795309130951,
       "tag": "0003_hypertables",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795338241777,
+      "tag": "0004_phase7_weekly_plans",
+      "breakpoints": true
     }
   ]
 }
