@@ -1,8 +1,9 @@
 // Strings for the /design style guide. Times join the hour and AM or PM with a no-break space
-// ( ), so they never split across lines (docs/COPY.md).
+// (U+00A0), so they never split across lines (docs/COPY.md).
 export const design = {
   title: "Fogline design system",
-  intro: "Fogline's design tokens, read from src/styles/tokens.css and src/lib/motion.ts.",
+  intro:
+    "Fogline's design tokens, from src/styles/tokens.css, src/lib/motion.ts and Tailwind's 4 px spacing.",
   theme: {
     label: "Theme",
     system: "System",
@@ -12,7 +13,7 @@ export const design = {
   sections: {
     brand: "Icon and wordmark",
     color: "Color",
-    map: "Lines and fog on the map",
+    map: "Map lines and fog",
     contrast: "Text contrast",
     type: "Type",
     spacing: "Spacing",
@@ -28,7 +29,7 @@ export const design = {
   iconAlt: (mask: string) => `Fogline app icon, ${mask.toLowerCase()} mask`,
   colorGroups: {
     surfaces: "Surfaces",
-    fields: "Fields",
+    fields: "Input fields",
     ink: "Text",
     accent: "Accent",
     states: "States",
@@ -44,19 +45,20 @@ export const design = {
     "map-park": "Park",
     "map-road": "Road",
   },
-  fogStates: "Fog, thin fog and a cleared cell over land",
+  fogStates: "Fog, thin fog and an uncovered cell over land",
   stationSample: "Kenmore",
   contrastColumns: {
     pair: "Text on background",
     day: "Day",
     night: "Night",
   },
-  contrastNote: "Text needs 4.5:1 for WCAG AA. A unit test checks every pair, day and night.",
+  contrastNote:
+    "Fogline holds all text to 4.5:1, WCAG AA for body text. A unit test checks every pair, day and night.",
   passes: "Passes AA",
   fails: "Fails AA",
   pairOn: (bg: string) => `on ${bg}`,
   ratio: (value: number) => `${(Math.floor(value * 100) / 100).toFixed(2)}:1`,
-  sampleNote: "Sample text from the canvas.",
+  sampleNote: "Sample data from the design mockups.",
   typeRoles: {
     hero: { label: "Hero number", sample: "38%" },
     bigHero: { label: "Recap hero", sample: "12.1 mi" },
@@ -65,18 +67,19 @@ export const design = {
     button: { label: "Primary button", sample: "Ride" },
     secondary: { label: "Secondary button and link", sample: "Restore profile" },
     row: { label: "Row title", sample: "Park Street" },
-    body: { label: "Body", sample: "Ride the T and go out with friends to clear it." },
+    body: { label: "Body", sample: "Ride the T and go out with friends to clear the fog." },
     label: { label: "Label", sample: "Your name" },
     meta: { label: "Helper and meta", sample: "Friends see this on plans." },
     caption: { label: "Caption", sample: "on the T" },
   },
   typeSize: (name: string, px: number) => `${name}, ${px} px`,
-  typeSample: "Leave by 12:14 AM",
+  typeSample: "Leave by 12:14\u00a0AM",
   digits: { ones: "1111", zeros: "0000" },
   numberSample: "1,204",
   spacingStep: (step: string, px: number) => `${step}, ${px} px`,
   radiusValue: (name: string, px: number) => `${name}, ${px} px`,
   radiusFull: "full",
+  duration: (name: string) => `duration.${name}`,
   milliseconds: (value: number) => `${value} ms`,
   ease: (name: string) => `ease.${name}`,
   curve: (points: readonly number[]) => `cubic-bezier(${points.join(", ")})`,

@@ -353,7 +353,7 @@ export default function DesignPage() {
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {Object.entries(duration).map(([name, seconds]) => (
             <li key={name} className="flex flex-col rounded-md bg-surface p-3 shadow-sm">
-              <span className="text-sm font-bold">{name}</span>
+              <span className="text-sm font-bold">{design.duration(name)}</span>
               <span className="text-xl font-extrabold tabular-nums">
                 {design.milliseconds(Math.round(seconds * 1000))}
               </span>
