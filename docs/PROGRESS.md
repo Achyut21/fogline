@@ -300,6 +300,19 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - `src/app/p/[id]/page.tsx` now has `generateMetadata` that adds the `og:image` (a small change to A's file). Share fonts moved to `src/server/share-fonts.ts` for both images.
   - Tests: `[F4.8]` `[F4.9]` `[F16.3]` in `tests/unit/plan-preview.test.ts`, and `[F4.8]` in `tests/integration/plan-image.test.ts`.
   - #36 and #44 are merged. #45 is retargeted to `main` with main merged in.
+- 2026-11-22 05:53 ET · Builder A · Phase 9 item 4, PWA polish (`a/pwa-polish`, stacked on `a/plan-extras`):
+  - "Update ready" toast with Refresh when a new service worker waits (Serwist `waiting` and `messageSkipWaiting`; `skipWaiting` stays off, so nothing reloads by itself); `navigator.storage.persist()` on load.
+  - Install (F1.6): Android's `beforeinstallprompt` kept from page load, iOS Safari's Add to Home Screen steps (with "copy your profile code first"), shown only after a finished puzzle, an ended ride or a created plan, with Not now remembered for 7 days.
+  - iOS splash screens for 6 iPhone sizes in day and night (`pnpm splash`, `scripts/pwa-splash.ts`, `src/styles/splash-screens.ts`); `touch-action: manipulation` on controls and `overscroll-behavior: none` on the body. **Note for B (scripts/ is yours):** `scripts/pwa-splash.ts` is new, beside A's `pwa-icons.ts`.
+  - Not done, logged: queuing check-ins and guesses while offline (a queued check-in would carry the wrong time; the offline banner says what works), `visualViewport` keyboard handling (the puzzle has its own keyboard), and why the service worker doesn't activate on protected previews (D-043, D-044). The PWA.md real-device checklist is for the humans.
+  - Tests: `[F1.6]` in `tests/e2e/daily.spec.ts` (synthetic install event; no prompt before the first finished puzzle; Not now remembered), splash links in `tests/e2e/smoke.spec.ts`; 463 pass; e2e 110 passed, 16 skipped.
+
+- 2026-11-22 05:45 ET · Builder A · Phase 9 item 3, plan extras (`a/plan-extras`, stacked on `a/me`):
+  - Plans tab: this week's plans (F10.4) with their stops, hours and legs, and Invite friends copying one into your own plan (F10.5).
+  - Plan page: MBTA alerts on each member's route home as MBTA wrote them, or "Check MBTA alerts" (F5.6); Remind me (F5.8) only when you have a train home, so B's route never shows its JSON errors; in-app alerts 20 and 5 min before your leave-by with a buzz on Android (F5.4); "See the night's recap" once a plan ends.
+  - `/p/[id]/recap?t=`: 1st, 2nd and last, the night in numbers (walked labeled "about"), badges with names, and Share the recap (B's image; Web Share with the file, else a download) (F9).
+  - Tests: `tests/component/weekly-plans.test.tsx` (`[F10.4]` `[F10.5]`), the plans e2e now ends on the recap (`[F9.1]`), `[F1.4]` primer step.
+
 - 2026-11-22 05:39 ET · Builder A · Phase 9 item 2, Me and Settings (`a/me`):
   - Me shows stats (share of Boston to one decimal, miles on the T, stations of the total, stops, lines, nights out) and earned badges from B's `myStats`. Badges whose line needs a number show their name only, because awards don't store the number. **For B:** fill `badges_awarded.meta` (minutes late, ride minutes, minutes to spare, neighborhood) so those lines can show; `myStats` now also returns `shareUncovered`.
   - `/me/settings`: theme, Automatic or Always 2D map (per device; `useFogRenderer` reads it), age band (`updateAgeBand`), and delete my data with a confirmation (`deleteMyData`, `endSession`; F1.7). A deleted person's seat shows as "Former member" with no name or station (`planByInvite` returns `former`).
