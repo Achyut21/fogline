@@ -1,0 +1,8 @@
+route_pattern_id,route_id,direction_id,route_pattern_name,route_pattern_typicality,representative_trip_id
+Red-1-0,Red,0,Alewife - Ashmont,1,canonical-Red-C1-0
+Red-3-0,Red,0,Harvard - Downtown Crossing,3,R8
+Red-4-0,Red,0,Harvard - Park Street,4,D1
+Green-B-1-0,Green-B,0,Park Street - Boston College,1,canonical-Green-B-C1-0
+Green-C-1-0,Green-C,0,Park Street - Cleveland Circle,1,canonical-Green-C-C1-0
+Mattapan-1-0,Mattapan,0,Ashmont - Mattapan,1,canonical-Mattapan-C1-0
+1-1-0,1,0,Harvard - Nubian,1,X1

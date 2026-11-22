@@ -26,9 +26,9 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 1. **`data:gtfs`.** Download GTFS. Keep subway routes only: `route_type` 1 (Red, Orange, Blue) and 0 (Green Line B, C, D, E and Mattapan). Build:
    - `stations.json`: parent stations (`location_type = 1`) with coordinates, served routes and child stop IDs.
-   - `graph.json`: ride and transfer edges and headways per day type and hour bucket (section 3.1).
-   - `timetable.json`: a compact timetable for the last-train search (section 3.3), one entry per service type.
-   - `shapes.json`: simplified shapes per route and direction, plus each stop's distance along its shape (for miles).
+   - `graph.json`: direct rides between station pairs with their median ride, expected wait and routes per day type and hour bucket, plus transfer and walking times (section 3.1).
+   - `timetable.json`: a compact timetable for the last-train search (section 3.3): every subway trip with its service, station pattern and times, plus the services running on each date the feed covers.
+   - `shapes.json`: the shape of each canonical route pattern (`route_patterns.txt` typicality 1, so both Red Line branches), plus each station's distance along it (for miles).
 2. **`data:places`.** Run an Overpass query within 600 m of each station for:
    - `amenity` in restaurant, cafe, fast_food, bar, pub, nightclub, ice_cream, food_court, biergarten, arts_centre, theatre, cinema;
    - `tourism` in museum, gallery;
@@ -50,33 +50,39 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.1 Travel time `t(o, d, dayType, hour)`
 
-- **Graph nodes** are (station, route, direction) pairs. **Ride edges** join consecutive stops, weighted by the median scheduled run time from `stop_times` (arrival at next minus departure from current) for that day type and hour bucket.
-- **Day types:** weekday, Saturday, Sunday. Choose representative `service_id`s from `calendar.txt` and `calendar_dates.txt` for the current week.
+- **Rides.** For every pair of stations `(a, b)` that one train serves in order (boarding allowed at `a`, alighting at `b`), collect every departure from `a` on a train that later stops at `b`, whatever its route or platform. One train ride is one edge, so a trunk shared by branches (Green B, C and D from Kenmore; both Red Line branches) counts every train that goes your way (D-054). Where branches leave from separate platforms this is optimistic: at JFK/UMass northbound the model's wait to Park Street at 9 PM is 3.1 min, against about 6 min for a rider who picks one platform.
+- **Day types:** weekday, Saturday, Sunday. Each uses one representative date from the feed: the date whose set of running subway services is the most common for that day type, so a one-off diversion or holiday doesn't set typical times.
 - **Hour buckets:** one per hour from 5 to 23, plus "late" (00:00 to end of service). Buckets count GTFS service-day time: 24:00:00 and later is late, and times before 05:00:00 use the 5 AM bucket (D-048). A bucket doesn't say whether trains run at that moment, so the solvers check service separately.
 - **Day type** comes from the day of the week, and only picks which representative travel times to use. Which trips run on a given date (holidays, diversions) always comes from `calendar.txt` plus `calendar_dates.txt` for that date, never from the day type.
-- **Headway** per (route, direction, stop, day type, hour) is the median gap between departures. **Expected wait** is half the headway.
-- **Transfer edges** use `min_transfer_time` from `transfers.txt` when present, otherwise 3 minutes, plus the expected wait of the route you transfer to.
-- `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. It runs on request over the edges in `graph.json` (about 125 stations, so well under a millisecond) and returns the minutes plus the lines and transfer stations on the path, which F4.4 shows (D-047).
-- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. Record the comparison in `PROGRESS.md`.
+- **Ride time** per pair and bucket is the median scheduled ride (arrival at `b` minus departure from `a`).
+- **Expected wait** per pair and bucket is the average wait for someone arriving at a random moment: the sum of squared gaps over twice the sum of gaps, where a train's gap is the time since the previous departure (the next one for the first train of the day), capped at an hour. With even service this is half the headway; with uneven service it's longer.
+- **Transfers:** before a ride that follows another ride, add the station's transfer time: the median `min_transfer_time` between its subway platforms in `transfers.txt` (commuter-rail platforms and bus bays don't count), or 3 minutes when it has none. Walks between stations listed in `transfers.txt` (Downtown Crossing and Park Street) take the median over their subway platform pairs on different lines (a train already joins the same line's platforms) and add no further transfer time.
+- `t(o, d)` is the shortest path from `o` to `d` over these rides and walks for the day type and bucket. It runs on request over `graph.json` (about 125 stations, well under a millisecond) and returns the minutes plus each ride's lines and waits, and the transfer stations: where the trip leaves one train for another, perhaps walking to the next station. F4.4 shows these (D-047, D-054). The bucket must be 5 to 23 or late; anything else is an error.
+- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. The reference replays the raw timetable: a rider arriving at each minute of the hour catches the actual next trains, with `transfers.txt` times. `pnpm check:trips` runs it against the committed `graph.json` and fails beyond 3 minutes. Record the comparison in `PROGRESS.md`.
 
 ### 3.2 Fair meetup score (F4.3)
 
-- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`.
+- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`, then by station ID. `t_i` uses the plan's day type and hour bucket (section 3.1).
 - Exclude `d` when any participant can't reach it or any `t_i` is over 75 minutes.
-- Take the top 3 distinct stations, then pick spots within 600 m walking distance (section 3.5) that match the filters.
+- Walk down the ranking and keep the first 3 stations that have at least one spot within 600 m walking (section 3.5) matching the filters (D-056). Spots are listed nearest first.
+- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B): a spot with a grade must meet it, and a spot with no inspection match fails it only in food, coffee and dessert; and the age rule (no bars, clubs or other 21+ spots once any joined participant is under 21, F1.5, F4.9).
+- **No trains:** check that every participant's station has a train to board in the hour before the plan's start on its service date, when friends would ride there (D-048). When one doesn't, the answer is "no trains". A date the timetable doesn't cover is checked against its day type's representative date. Only the plan's own service date is read, so a weekend plan just after 3 AM says "no trains" even if the previous night's last trains are still running; that errs on the safe side.
+- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. If none does alone, relax all three and drop them again from the end (category first) while the rest still give options, and name what's left. When no station is within 75 minutes for everyone, the blocker is time; when everything relaxed still gives no spots, it's spots. The age rule is never relaxed. An unknown station is an error.
 
 ### 3.3 Last train (F5)
 
-- Build a compact timetable for each service type: trips as stop sequences with times in seconds since the service-day origin. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
+- `timetable.json` holds every subway trip as a station pattern with times in seconds since the service-day origin, the services running on each date the feed covers, and the same transfer times and walks as `graph.json`. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
 - Per the GTFS spec, times count from "noon minus 12 hours" of the service date. That keeps DST-change days correct. Use it when converting to wall-clock time in `America/New_York`.
 - **Search:** a backward round-based search (reverse RAPTOR, at most 2 transfers) from the participant's home station `h`, with the end of the service day as the arrival deadline. It finds the latest departure from the plan's station `d` that still reaches `h`. Return the departure time, the trips and the transfer stations.
-- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`. `margin = leave_by − now`.
+- Each round keeps two times per station: the latest train to board there, and the latest arrival by train there. The arrival time is the board time minus the station's transfer time, a walk on to another station's board time, or any time when home is that station or a walk from it. Stops marked no pickup or no drop-off are skipped. The route returned is traced through the same rounds, so every connection in it was checked.
+- **Results:** a train (the last moment to leave the plan's station, which is the start of a walk when the trip begins with one, the first train's departure, the rides, walks and transfer stations); no train needed (home is the same station or a walk away); no timetable (the date is outside the feed, so the last train isn't known); or none (no train reaches home that night, and the plan shows the walk home, F5.7).
+- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`, using the plan's last stop (F5.5). The builder warns when the plan starts after a participant's leave-by (F5.3). `margin = leave_by − now`.
 - A plan whose start time is after midnight and before 3:00 AM belongs to the previous service date (D-047).
-- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. Record them in `PROGRESS.md`.
+- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. `pnpm check:last-trains [date]` compares them with the MBTA's published schedule (V3 API). Record them in `PROGRESS.md`.
 
 ### 3.4 Miles on the T (F3.4, F8.3)
 
-Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile.
+Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile. `shapes.json` stores each station's distance along each canonical pattern, so a ride's miles are the difference between the alighting and boarding stations on a pattern of that route that passes both in that order (`src/lib/geo/miles.ts`).
 
 ### 3.5 Walking distance
 

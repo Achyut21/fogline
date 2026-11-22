@@ -1,0 +1,6 @@
+route_id,agency_id,route_short_name,route_long_name,route_type
+Red,1,,Red Line,1
+Green-B,1,B,Green Line B,0
+Green-C,1,C,Green Line C,0
+Mattapan,1,,Mattapan Line,0
+1,1,1,Harvard Square - Nubian Station,3
