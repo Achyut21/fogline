@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { minutesByT, ridesFor } from "@/lib/crawl";
 import { dinnerBefore } from "@/lib/dinner-before";
 import { walkM, walkMinutes } from "@/lib/geo/distance";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
@@ -95,6 +96,59 @@ describe("Dinner before", () => {
     expect(plan.people.map((p) => p.name)).toEqual(["Priya", "Sam"]);
     expect(planDinnerBefore({ ...input, eventId: "no-such-event" }, files)).toEqual({
       kind: "unknown-event",
+    });
+  });
+
+  it("[F10.6] times a T leg to the venue as the ride plus the walks", () => {
+    const byT = data
+      .events()
+      .map((e) => ({
+        e,
+        r: dinnerBefore(data.graph(), data.timetable(), data.places(), {
+          participants: people,
+          event: e,
+          filters: food,
+          stayMinutes: stay,
+        }),
+      }))
+      .flatMap(({ e, r }) =>
+        r.kind === "dinner" && r.plan.event.leg.mode === "T" ? [{ e, plan: r.plan }] : [],
+      );
+    expect(byT.length).toBeGreaterThan(0);
+    for (const { e, plan } of byT) {
+      const leaves = new Date(new Date(e.startsAt).getTime() - 10 * 60_000);
+      const rides = ridesFor(
+        data.graph(),
+        data.timetable(),
+        new Date(new Date(e.startsAt).getTime() - (stay + 10) * 60_000),
+      );
+      const toStation = minutesByT(rides, plan.dinner.place, leaves).get(e.station.id);
+      if (toStation === undefined) throw new Error("no T time to the venue's station");
+      expect(plan.event.leg.minutes).toBe(Math.ceil(toStation + walkMinutes(e.station.walkM)));
+      expect(walkMinutes(walkM(plan.dinner.place, e))).toBeGreaterThan(
+        toStation + walkMinutes(e.station.walkM),
+      );
+    }
+  });
+
+  it("[F10.6] says when no train runs or no spot is near the venue", () => {
+    const run = (more: Partial<typeof event>) =>
+      dinnerBefore(data.graph(), data.timetable(), data.places(), {
+        participants: people,
+        event: { ...event, ...more },
+        filters: food,
+        stayMinutes: stay,
+      });
+    expect(run({ startsAt: "2026-11-17T05:00:00-05:00" })).toEqual({
+      kind: "none",
+      blockedBy: "no-trains",
+    });
+    // A venue out in the harbor, far from any spot and from its station.
+    expect(
+      run({ lat: 42.33, lon: -70.95, station: { id: event.station.id, walkM: 9000 } }),
+    ).toEqual({
+      kind: "none",
+      blockedBy: "spots",
     });
   });
 });
