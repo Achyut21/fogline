@@ -147,6 +147,7 @@ This is the shared status board for both builders. Update it after every finishe
 ## Open questions
 
 - Move the recorder into Phase 2? See Asks for A under Builder B.
+- Rail-replacement shuttles (Phase 2 item 4, D-055): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006.
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
@@ -214,6 +215,22 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 23:30 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
+  - `src/lib/lasttrain/search.ts` (backward round-based search, at most two transfers, walks, no-pickup and no-drop-off stops) and `leave-by.ts` (F5.2 buffer, F5.3 warning, F5.5 last stop, F5.7 walk home), D-055. `timetable.json` now carries transfer times and walks, regenerated from the same feed.
+  - **Known last trains (PHASES gate).** `pnpm check:last-trains 2026-11-23` against the MBTA V3 schedules API:
+
+    | Last train | Service date | MBTA schedule | Search |
+    |---|---|---|---|
+    | Green Line E, Park Street → Medford/Tufts | Mon 2026-11-23 | 1:20 AM | 1:20 AM |
+    | Red Line, Harvard → Ashmont | Mon 2026-11-23 | 12:37 AM | 12:37 AM |
+    | Orange Line, Downtown Crossing → Forest Hills | Mon 2026-11-23 | 12:45 AM | 12:45 AM |
+
+    All three match to the second. On Saturday 2026-11-28 they match too (2:14 AM, 1:36 AM, 1:45 AM). On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM), but a Red Line diversion turns trains at Broadway with shuttle buses beyond. So the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-055, Open questions).
+  - Tests: 14 unit tests on hand-built timetables.
+    - `[F5.1]` past 24:00:00, transfer time, at most two transfers, a walk between rides, no-board and no-alight stops, holiday service, the 3 AM rule.
+    - `[F5.2]`, `[F5.3]`, `[F5.5]` and `[F5.7]`. No train needed, no timetable, unknown stations, the margin.
+    - `src/lib` line coverage 99.6%.
+  - Next: code-critic, then item 5 (fair solver and miles).
 - 2026-11-21 22:40 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:
   - `pnpm data:gtfs` (tsx) downloads the MBTA feed ("Fall 2026, 2026-11-19T01:01:13+00:00, version D", valid 2026-11-12 to 2026-12-12) and writes `data/stations.json` (125 stations), `graph.json` (3,446 weekday station pairs), `timetable.json` (19,807 trips, 42 station patterns) and `shapes.json` (18 canonical patterns). Representative dates: Mon 2026-11-16, Sat 2026-11-28, Sun 2026-11-29. A second run produced byte-identical files (sha256).
   - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-054).

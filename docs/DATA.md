@@ -68,12 +68,14 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.3 Last train (F5)
 
-- Build a compact timetable for each service type: trips as stop sequences with times in seconds since the service-day origin. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
+- `timetable.json` holds every subway trip as a station pattern with times in seconds since the service-day origin, the services running on each date the feed covers, and the same transfer times and walks as `graph.json`. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
 - Per the GTFS spec, times count from "noon minus 12 hours" of the service date. That keeps DST-change days correct. Use it when converting to wall-clock time in `America/New_York`.
 - **Search:** a backward round-based search (reverse RAPTOR, at most 2 transfers) from the participant's home station `h`, with the end of the service day as the arrival deadline. It finds the latest departure from the plan's station `d` that still reaches `h`. Return the departure time, the trips and the transfer stations.
-- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`. `margin = leave_by − now`.
+- A transfer needs the station's transfer time between arriving and the next departure. A walk between stations needs only the walk. Stops marked no pickup or no drop-off are skipped.
+- **Results:** a train (its departure, rides, walks and transfer stations); no train needed (home is the same station or a walk away); no timetable (the date is outside the feed, so the last train isn't known); or none (no train reaches home that night, and the plan shows the walk home, F5.7).
+- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`, using the plan's last stop (F5.5). The builder warns when the plan starts after a participant's leave-by (F5.3). `margin = leave_by − now`.
 - A plan whose start time is after midnight and before 3:00 AM belongs to the previous service date (D-047).
-- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. Record them in `PROGRESS.md`.
+- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. `pnpm check:last-trains [date]` compares them with the MBTA's published schedule (V3 API). Record them in `PROGRESS.md`.
 
 ### 3.4 Miles on the T (F3.4, F8.3)
 

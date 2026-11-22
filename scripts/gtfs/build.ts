@@ -240,16 +240,18 @@ function buildLegs(
   return legs.sort((a, b) => a.from - b.from || a.to - b.to);
 }
 
-export function buildGraph(feed: Feed, stations: Station[]): Graph {
+/**
+ * Station transfer times and walks between stations, shared by the graph and the timetable. Only
+ * transfers between subway platforms count: parent stations also hold commuter-rail platforms
+ * and bus bays, whose transfer times are longer. A walk between stations only counts between
+ * platforms with no route in common, since a train already joins the others.
+ */
+export function transfersAndWalks(
+  feed: Feed,
+  stations: Station[],
+): { transferSeconds: number[]; walks: Walk[] } {
   const ids = stations.map((s) => s.id);
   const index = new Map(ids.map((id, i) => [id, i]));
-  const stops = tripStops(feed);
-  const dates = representativeDates(feed);
-  const routeSets = new Map<string, number>();
-
-  // Only transfers between subway platforms count: parent stations also hold commuter-rail
-  // platforms and bus bays, whose transfer times are longer. A walk between stations only counts
-  // between platforms with no route in common, since a train already joins the others.
   const subwayStops = new Set(stations.flatMap((s) => s.stops));
   const routeOf = new Map(feed.trips.map((t) => [t.id, t.route]));
   const routesAt = new Map<string, Set<string>>();
@@ -278,6 +280,24 @@ export function buildGraph(feed: Feed, stations: Station[]): Graph {
     })
     .sort((a, b) => a.from - b.from || a.to - b.to);
 
+  return {
+    transferSeconds: ids.map((_, i) => {
+      const values = sameStation.get(i);
+      return values ? median(values) : defaultTransferSeconds;
+    }),
+    walks,
+  };
+}
+
+export function buildGraph(feed: Feed, stations: Station[]): Graph {
+  const ids = stations.map((s) => s.id);
+  const index = new Map(ids.map((id, i) => [id, i]));
+  const stops = tripStops(feed);
+  const dates = representativeDates(feed);
+  const routeSets = new Map<string, number>();
+
+  const { transferSeconds, walks } = transfersAndWalks(feed, stations);
+
   const legs = {
     weekday: buildLegs(feed, stops, index, routeSets, dates.weekday),
     saturday: buildLegs(feed, stops, index, routeSets, dates.saturday),
@@ -289,10 +309,7 @@ export function buildGraph(feed: Feed, stations: Station[]): Graph {
     dates,
     stations: ids,
     routeSets: [...routeSets.keys()].map((key) => key.split(",")),
-    transferSeconds: ids.map((_, i) => {
-      const values = sameStation.get(i);
-      return values ? median(values) : defaultTransferSeconds;
-    }),
+    transferSeconds,
     walks,
     legs,
   };
@@ -339,9 +356,12 @@ export function buildTimetable(feed: Feed, stations: Station[]): Timetable {
     });
   }
 
+  const { transferSeconds, walks } = transfersAndWalks(feed, stations);
   return {
     feedVersion: feed.version,
     stations: ids,
+    transferSeconds,
+    walks,
     services,
     dates: Object.fromEntries(
       dates.map((date) => [

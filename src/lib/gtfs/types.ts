@@ -106,6 +106,8 @@ export type TimetableTrip = z.infer<typeof timetableTripSchema>;
 export const timetableSchema = z.object({
   feedVersion: z.string(),
   stations: z.array(z.string()),
+  transferSeconds: z.array(seconds),
+  walks: z.array(walkSchema),
   services: z.array(z.string()),
   dates: z.record(z.iso.date(), z.array(index)),
   patterns: z.array(z.array(index)),

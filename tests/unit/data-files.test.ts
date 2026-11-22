@@ -34,6 +34,8 @@ describe("committed data files", () => {
     );
     expect(graph.transferSeconds).toHaveLength(ids.length);
     expect(timetable.patterns.flat().every((i) => inRange(i, ids.length))).toBe(true);
+    expect(timetable.transferSeconds).toEqual(graph.transferSeconds);
+    expect(timetable.walks).toEqual(graph.walks);
     for (const trip of timetable.trips) {
       expect(inRange(trip.pattern, timetable.patterns.length)).toBe(true);
       expect(inRange(trip.service, timetable.services.length)).toBe(true);
