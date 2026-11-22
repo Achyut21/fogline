@@ -13,7 +13,7 @@ export const find = {
   },
   home: {
     title: "Taste of home",
-    body: "Name a place or a cuisine. Results quote what reviewers said.",
+    body: "Name a place or a cuisine. Each spot shows what Google's review summary says.",
     label: "Place or cuisine",
     placeholder: "Sichuan, Lagos, Oaxaca",
     submit: "Search",
@@ -25,7 +25,7 @@ export const find = {
   none: "No spots near the T matched. Try another dish or loosen the filters.",
   minutes: (n: number) => `${n} min by T from home`,
   walk: (meters: number) => `about ${Math.max(1, Math.round(meters / 80))} min walk`,
-  review: "From Google Maps reviews, quoted by Gemini",
+  review: "Google Maps review summary",
   mapLabel: (n: number) => `Map with ${n === 1 ? "1 spot" : `${n} spots`} pinned.`,
   errors: {
     "not-food": "That photo doesn't show food. Try another one.",
