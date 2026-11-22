@@ -34,6 +34,22 @@ describe("opening hours", () => {
     expect(openAt("PH,Mo-Su 10:45-22:00", at("2026-11-17T12:00:00"))).toBe("open");
   });
 
+  it("[F10.1] adds rules joined by a comma and replaces on a semicolon", () => {
+    const hours = "Su-We 11:30-23:00, Th-Sa 12:00-24:00, Sa,Su 10:00-14:00";
+    expect(openAt(hours, at("2026-11-21T20:00:00"))).toBe("open");
+    expect(openAt(hours, at("2026-11-21T11:00:00"))).toBe("open");
+    expect(openAt("Mo-Su 10:00-14:00; Sa 18:00-22:00", at("2026-11-21T11:00:00"))).toBe("closed");
+  });
+
+  it("[F10.1] reads hours in Boston time across the daylight saving change", () => {
+    // 2027-03-14: clocks jump from 2:00 to 3:00 AM; 03:15 EDT is 07:15 UTC.
+    expect(openAt("Sa 18:00-02:30", new Date("2027-03-14T07:15:00Z"))).toBe("closed");
+    expect(openAt("Sa 18:00-03:30", new Date("2027-03-14T07:15:00Z"))).toBe("open");
+    // 2026-11-01: 1:00 AM happens twice; both read as 1:15 Sunday.
+    expect(openAt("Sa 18:00-01:30", new Date("2026-11-01T05:15:00Z"))).toBe("open");
+    expect(openAt("Sa 18:00-01:30", new Date("2026-11-01T06:15:00Z"))).toBe("open");
+  });
+
   it("[F10.1] calls hours it can't read unknown", () => {
     for (const text of [
       "sunrise-sunset",

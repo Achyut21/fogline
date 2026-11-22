@@ -1,4 +1,4 @@
-import type { CrawlLeg, CrawlStop } from "@/lib/crawl";
+import { minutesByT, ridesFor, type CrawlLeg, type CrawlStop } from "@/lib/crawl";
 import { walkM, walkMinutes, type LatLon } from "@/lib/geo/distance";
 import type { Graph, Timetable } from "@/lib/gtfs/types";
 import type { PuzzleEvent } from "@/lib/events";
@@ -12,8 +12,7 @@ import {
   type Participant,
   type SpotFilters,
 } from "@/lib/solver/fair";
-import { travelTimesFrom, type Travel } from "@/lib/solver/travel";
-import { dayTypeOf, hourBucketOf, toServiceTime } from "@/lib/time";
+import type { Travel } from "@/lib/solver/travel";
 
 // "Dinner before" a puzzle event (F10.6, DATA 3.16): a 2-stop crawl. The first stop is the
 // fairest spot within 10 minutes of the venue by walk or T, timed so the group leaves it in time
@@ -77,28 +76,16 @@ export function dinnerBefore(
   }
   const fair = new Map(ranked.map((r) => [r.station, r]));
 
-  const { serviceDate, seconds } = toServiceTime(roughDinner);
-  const dayType = dayTypeOf(serviceDate);
-  const bucket = hourBucketOf(seconds);
-  const toVenue = new Map<string, number | undefined>();
-  const rideToVenue = (station: string) => {
-    if (!toVenue.has(station)) {
-      const travel = travelTimesFrom(graph, station, dayType, bucket).get(event.station.id);
-      toVenue.set(station, station === event.station.id ? 0 : travel && travel.seconds / 60);
-    }
-    return toVenue.get(station);
-  };
+  const rides = ridesFor(graph, timetable, roughDinner);
+  // The group leaves dinner at most a full leg before the event; T legs are timed from then.
+  const leaves = new Date(eventStart.getTime() - maxLegMinutes * minute);
 
   const ordered: Candidate[] = [];
   for (const place of places) {
     if (!matchesFilters(place, filters)) continue;
     const walk = walkMinutes(walkM(place, event));
-    let ride = Infinity;
-    for (const near of place.stations) {
-      const minutes = rideToVenue(near.id);
-      if (minutes === undefined) continue;
-      ride = Math.min(ride, walkMinutes(near.walkM) + minutes + walkMinutes(event.station.walkM));
-    }
+    const toStation = minutesByT(rides, place, leaves).get(event.station.id);
+    const ride = toStation === undefined ? Infinity : toStation + walkMinutes(event.station.walkM);
     const minutes = Math.min(walk, ride);
     if (minutes > maxLegMinutes) continue;
     const leg: CrawlLeg = { mode: walk <= ride ? "walk" : "T", minutes: Math.ceil(minutes) };

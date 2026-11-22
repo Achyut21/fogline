@@ -592,8 +592,8 @@ Consequences: live trains (F3.1, F3.2) and train-lost (F3.6) come after the gate
 **D-071 · 2026-11-22 · Squad, crawls and Dinner before (Phase 7, F10.1–F10.3, F10.6, F12.2, F12.3).**
 Decision:
 - A squad is defined per person: you and your mates (DATA 3.12). The streak counts Monday-to-Sunday weeks with an ended plan you shared with a mate, and an empty current week doesn't break it until the week ends. This settles D-063's open question.
-- Crawls follow DATA 3.15: fairness for the first stop only, then the nearest matching spot within 10 minutes by walk or T, and last trains from the last stop. A crawl is dropped when anyone has to leave before reaching the last stop.
-- Opening hours come from OSM's `opening_hours`, read by a small parser for the common forms; anything else is "unknown" and flagged, as F10.1 allows. 967 of the 1,000 spots with hours parse.
+- Crawls follow DATA 3.15: fairness for the first stop only, then the nearest matching spot within 10 minutes by walk or T, and last trains from the last stop. A crawl is dropped when anyone has to leave before the full stay at the last stop ends, so nobody turns around on arrival. T legs need a train still boarding at that hour.
+- Opening hours come from OSM's `opening_hours`, read by a small parser for the common forms (";" replaces, "," adds, as OSM defines); anything else is "unknown" and flagged, as F10.1 allows. 967 of the 1,000 spots with hours parse.
 - Dinner before follows DATA 3.16: the fairest food spot within 10 minutes of the venue.
 - Vibe and calm (F10.2) aren't crawl filters yet: places carry no vibe tags (D-057), and calm mode (F13) is an Extra.
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.

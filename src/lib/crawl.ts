@@ -1,4 +1,5 @@
 import { walkM, walkMinutes, type LatLon } from "@/lib/geo/distance";
+import { boardingSpans } from "@/lib/gtfs/service";
 import type { Graph, Timetable } from "@/lib/gtfs/types";
 import { leaveByFor, type LeaveBy } from "@/lib/lasttrain/leave-by";
 import { openAt, type OpenState } from "@/lib/places/hours";
@@ -12,13 +13,13 @@ import {
   type RankedStation,
   type SpotFilters,
 } from "@/lib/solver/fair";
-import { travelTimesFrom } from "@/lib/solver/travel";
-import { dayTypeOf, hourBucketOf, toServiceTime } from "@/lib/time";
+import { travelTimesFrom, type Travel } from "@/lib/solver/travel";
+import { dayTypeOf, hourBucketOf, serviceDayOrigin, toServiceTime } from "@/lib/time";
 
 // Crawls (F10.1–F10.3, DATA 3.15): 2–4 stops. The first stop is picked by fairness like a meetup;
 // each next stop is the nearest matching spot within 10 minutes by walk or T; a spot known to be
-// closed at its time is skipped and unknown hours are flagged; and nobody's last train home from
-// the last stop may leave before the crawl gets there.
+// closed at its time is skipped and unknown hours are flagged; and everyone can stay the full
+// time at the last stop before their last train home.
 
 export const crawlStops = { min: 2, max: 4 } as const;
 const maxLegMinutes = 10;
@@ -61,20 +62,51 @@ export type CrawlRequest = {
 
 const minute = 60_000;
 
-/** The fewest minutes from a spot to board-side arrival at each station, walking to any nearby one. */
-function minutesToStations(graph: Graph, from: Place, at: Date): Map<string, number> {
+/** What the T legs need: travel times by station, and when trains board at each station. */
+export type Rides = {
+  graph: Graph;
+  /** The crawl's service-day origin; boarding spans count seconds from it. */
+  origin: Date;
+  spans: Map<string, { first: number; last: number }>;
+  travel: Map<string, Map<string, Travel>>;
+};
+
+export function ridesFor(graph: Graph, timetable: Timetable, startsAt: Date): Rides {
+  const { serviceDate } = toServiceTime(startsAt);
+  const checked =
+    serviceDate in timetable.dates ? serviceDate : graph.dates[dayTypeOf(serviceDate)];
+  return {
+    graph,
+    origin: serviceDayOrigin(serviceDate),
+    spans: boardingSpans(timetable, checked),
+    travel: new Map(),
+  };
+}
+
+/**
+ * The fewest minutes from a spot to each station by T: a walk to a nearby station where a train
+ * still boards then, and at least one ride (DATA 3.1 times; service checked per DATA 3.15).
+ */
+export function minutesByT(rides: Rides, from: Place, at: Date): Map<string, number> {
   const { serviceDate, seconds } = toServiceTime(at);
   const dayType = dayTypeOf(serviceDate);
   const bucket = hourBucketOf(seconds);
   const best = new Map<string, number>();
-  const keep = (station: string, minutes: number) => {
-    if (minutes < (best.get(station) ?? Infinity)) best.set(station, minutes);
-  };
   for (const near of from.stations) {
     const walk = walkMinutes(near.walkM);
-    keep(near.id, walk);
-    for (const [station, travel] of travelTimesFrom(graph, near.id, dayType, bucket)) {
-      keep(station, walk + travel.seconds / 60);
+    const boards = (at.getTime() - rides.origin.getTime()) / 1000 + walk * 60;
+    const span = rides.spans.get(near.id);
+    if (!span || boards < span.first || boards > span.last) continue;
+    const key = `${near.id}|${dayType}|${bucket}`;
+    let times = rides.travel.get(key);
+    if (!times) {
+      times = travelTimesFrom(rides.graph, near.id, dayType, bucket);
+      rides.travel.set(key, times);
+    }
+    for (const [station, travel] of times) {
+      if (!travel.steps.some((step) => step.kind === "ride")) continue;
+      const minutes = walk + travel.seconds / 60;
+      if (minutes < (best.get(station) ?? Infinity)) best.set(station, minutes);
     }
   }
   return best;
@@ -83,7 +115,7 @@ function minutesToStations(graph: Graph, from: Place, at: Date): Map<string, num
 type Next = { stop: CrawlStop; minutes: number };
 
 function nextStop(
-  graph: Graph,
+  rides: Rides,
   places: Place[],
   prev: CrawlStop,
   filters: SpotFilters,
@@ -91,7 +123,7 @@ function nextStop(
   used: Set<string>,
 ): CrawlStop | null {
   const leaves = new Date(prev.scheduledAt.getTime() + stayMinutes * minute);
-  const byT = minutesToStations(graph, prev.place, leaves);
+  const byT = minutesByT(rides, prev.place, leaves);
   let best: Next | null = null;
   for (const place of places) {
     if (used.has(place.id) || place.stations.length === 0) continue;
@@ -138,7 +170,7 @@ function better(a: Next, b: Next): boolean {
 /**
  * Up to three crawls, each starting at a different fair station (F10.3), or what blocks them:
  * "time" when no station is within 75 minutes for everyone, "no-trains" when no train runs then,
- * "last-train" when every crawl found ends after someone's last train home has left, and "spots"
+ * "last-train" when every crawl found ends after someone has to leave for their last train, and "spots"
  * when no chain of open spots fits.
  */
 export function buildCrawls(
@@ -157,6 +189,7 @@ export function buildCrawls(
     return { kind: "none", blockedBy: "no-trains" };
   }
 
+  const rides = ridesFor(graph, timetable, startsAt);
   const crawls: Crawl[] = [];
   let missedLastTrain = false;
   let tried = 0;
@@ -181,7 +214,7 @@ export function buildCrawls(
       const used = new Set([start.place.id]);
       for (const filters of stops.slice(1)) {
         const prev = chain[chain.length - 1];
-        const next = nextStop(graph, places, prev, filters, stayMinutes, used);
+        const next = nextStop(rides, places, prev, filters, stayMinutes, used);
         if (!next) break;
         chain.push(next);
         used.add(next.place.id);
@@ -198,8 +231,9 @@ export function buildCrawls(
           { station: p.station, at: p.home },
         ),
       }));
+      const lastStayEnds = new Date(last.scheduledAt.getTime() + stayMinutes * minute);
       const tooLate = leaveBy.some(
-        ({ leaveBy: l }) => l.kind === "train" && l.leaveBy < last.scheduledAt,
+        ({ leaveBy: l }) => l.kind === "train" && l.leaveBy < lastStayEnds,
       );
       if (tooLate) {
         missedLastTrain = true;

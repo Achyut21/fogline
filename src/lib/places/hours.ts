@@ -2,7 +2,7 @@ import { zone } from "@/lib/time";
 
 // OpenStreetMap opening hours, the common subset (DATA 3.15): "24/7", and rules like
 // "Mo-Fr 09:00-20:00; Sa,Su 10:00-16:00", "Fr-Sa 11:00-01:00, Su-Th 11:00-24:00" or "Mo off".
-// A later rule replaces earlier ones on the days it names. Anything else (months, sunrise,
+// A rule after ";" replaces earlier ones on the days it names; one after "," adds to them. Anything else (months, sunrise,
 // comments, fallbacks) is unknown, and the crawl builder flags it (F10.1).
 
 export type OpenState = "open" | "closed" | "unknown";
@@ -17,11 +17,9 @@ const day = String.raw`(?:Mo|Tu|We|Th|Fr|Sa|Su|PH)`;
 const dayPart = String.raw`${day}(?:\s*-\s*${day})?`;
 const daySelector = new RegExp(String.raw`^(${dayPart}(?:\s*,\s*${dayPart})*)\s+`);
 const span = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/;
-// Splits "Fr-Sa 10:30-01:00, Su-Th 10:30-24:00" at a comma after a time that starts a new day
-// selector, so "Mo, We-Sa 11:30-21:00" stays one rule.
-const ruleBreak = new RegExp(
-  String.raw`\s*;\s*|(?<=\d)\s*,\s*(?=${dayPart}(?:\s*,\s*${dayPart})*\s+\d)`,
-);
+// A comma after a time that starts a new day selector adds a rule ("Fr-Sa 10:30-01:00, Su-Th
+// 10:30-24:00"); a comma inside a selector doesn't ("Mo, We-Sa 11:30-21:00").
+const addedRule = new RegExp(String.raw`(?<=\d)\s*,\s*(?=${dayPart}(?:\s*,\s*${dayPart})*\s+\d)`);
 
 const dayIndex = (name: string) => days.findIndex((d) => d === name);
 
@@ -64,14 +62,20 @@ export function parseHours(text: string): Week | null {
   const trimmed = text.trim();
   if (trimmed === "24/7") return days.map(() => [[0, dayMinutes]]);
   const week: Week = days.map(() => []);
-  const rules = trimmed.split(ruleBreak).filter((rule) => rule !== "");
-  if (rules.length === 0) return null;
-  for (const rule of rules) {
-    const selector = daySelector.exec(rule);
-    const picked = selector ? dayIndexes(selector[1].replace(/\s+/g, "")) : [0, 1, 2, 3, 4, 5, 6];
-    const open = spans(selector ? rule.slice(selector[0].length) : rule);
-    if (!picked || !open) return null;
-    for (const i of picked) week[i] = open;
+  // OSM: a rule after ";" replaces earlier rules on its days; a rule after "," adds to them.
+  const groups = trimmed.split(/\s*;\s*/).filter((group) => group !== "");
+  if (groups.length === 0) return null;
+  for (const group of groups) {
+    const touched = new Map<number, [number, number][]>();
+    for (const rule of group.split(addedRule)) {
+      const selector = daySelector.exec(rule);
+      const picked = selector ? dayIndexes(selector[1].replace(/\s+/g, "")) : [0, 1, 2, 3, 4, 5, 6];
+      const open = spans(selector ? rule.slice(selector[0].length) : rule);
+      if (!picked || !open) return null;
+      for (const i of picked)
+        touched.set(i, open.length === 0 ? [] : [...(touched.get(i) ?? []), ...open]);
+    }
+    for (const [i, open] of touched) week[i] = open;
   }
   return week;
 }

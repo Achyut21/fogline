@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildCrawls, type CrawlRequest } from "@/lib/crawl";
+import { buildCrawls, minutesByT, ridesFor, type CrawlRequest } from "@/lib/crawl";
 import { walkM, walkMinutes } from "@/lib/geo/distance";
+import { boardingSpans } from "@/lib/gtfs/service";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { openAt } from "@/lib/places/hours";
 import type { PlaceCategory } from "@/lib/places/types";
@@ -105,7 +106,7 @@ describe("crawl builder", () => {
     }
   });
 
-  it("[F10.3] drops crawls that end after someone's last train has left", () => {
+  it("[F10.3] drops crawls where someone can't stay the full time at the last stop", () => {
     const result = buildCrawls(
       data.graph(),
       data.timetable(),
@@ -116,6 +117,69 @@ describe("crawl builder", () => {
       }),
     );
     expect(result).toEqual({ kind: "none", blockedBy: "last-train" });
+  });
+
+  it("[F10.1] times a T leg as the walk to a boarding station, the ride and the walk on", () => {
+    const crawls = crawl();
+    const legs = crawls.flatMap((c) =>
+      c.stops.slice(1).map((stop, i) => ({ stop, prev: c.stops[i] })),
+    );
+    const byT = legs.filter(({ stop }) => stop.leg?.mode === "T");
+    expect(byT.length).toBeGreaterThan(0);
+    const rides = ridesFor(data.graph(), data.timetable(), friday7pm);
+    for (const { stop, prev } of byT) {
+      const leaves = new Date(prev.scheduledAt.getTime() + 60 * 60_000);
+      const toStation = minutesByT(rides, prev.place, leaves).get(stop.station);
+      if (toStation === undefined) throw new Error("no T time to the stop's station");
+      expect(stop.leg?.minutes).toBe(Math.ceil(toStation + walkMinutes(stop.walkM)));
+      expect(walkMinutes(walkM(prev.place, stop.place))).toBeGreaterThan(
+        toStation + walkMinutes(stop.walkM),
+      );
+    }
+  });
+
+  it("[F10.1] walks once trains stop for the night", () => {
+    // A date past the timetable: no last train is known, so only the leg check guards the T.
+    const late = new Date("2027-01-15T23:30:00-05:00");
+    const result = buildCrawls(
+      data.graph(),
+      data.timetable(),
+      data.places(),
+      request({
+        startsAt: late,
+        stops: [filters("food"), filters("food"), filters("food"), filters("food")],
+      }),
+    );
+    if (result.kind !== "options") throw new Error(`expected crawls, got ${result.blockedBy}`);
+    const spans = boardingSpans(data.timetable(), data.graph().dates.weekday);
+    const origin = new Date("2027-01-15T00:00:00-05:00").getTime();
+    for (const { stops } of result.crawls) {
+      stops.slice(1).forEach((stop, i) => {
+        if (stop.leg?.mode !== "T") return;
+        const leaves = stops[i].scheduledAt.getTime() + 60 * 60_000;
+        const latest = Math.max(...[...spans.values()].map((s) => s.last));
+        expect((leaves - origin) / 1000).toBeLessThanOrEqual(latest);
+      });
+    }
+  });
+
+  it("[F10.1] says when no train runs, or when no spots fit", () => {
+    expect(
+      buildCrawls(
+        data.graph(),
+        data.timetable(),
+        data.places(),
+        request({ startsAt: new Date("2026-11-17T04:00:00-05:00") }),
+      ),
+    ).toEqual({ kind: "none", blockedBy: "no-trains" });
+    expect(
+      buildCrawls(
+        data.graph(),
+        data.timetable(),
+        data.places(),
+        request({ stops: [filters("club"), filters("bar")] }),
+      ),
+    ).toEqual({ kind: "none", blockedBy: "spots" });
   });
 
   it("[F10.1] rejects a crawl with fewer than 2 or more than 4 stops", () => {

@@ -17,7 +17,7 @@ export const dinnerBeforeInput = z.object({
   budget: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
   minGrade: z.enum(["A", "B"]).nullable(),
   under21: z.boolean(),
-  stayMinutes: z.number().int().min(30).max(180),
+  stayMinutes: z.number().int().min(30).max(180).default(60),
 });
 export type DinnerBeforeInput = z.infer<typeof dinnerBeforeInput>;
 
