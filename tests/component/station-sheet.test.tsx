@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { expect, it } from "vitest";
 import { StationSheet } from "@/components/map/station-sheet";
-import { map, system } from "@/copy";
+import { legal, map, system } from "@/copy";
 import type { MapData } from "@/server/map-data";
 import { server } from "../msw/server";
 
@@ -71,7 +71,7 @@ it("[F2.5] shows the station, its lines, minutes from home and live trains by di
   const east = screen.getByRole("region", { name: map.sheet.direction("Green-C", 1) });
   expect(within(east).getByText("Government Center").closest("li")).toHaveTextContent("6 min");
   expect(screen.getByText(system.stale(0))).toBeInTheDocument();
-  expect(screen.getByText(map.sheet.credit)).toBeInTheDocument();
+  expect(screen.getByText(legal.mbta)).toBeInTheDocument();
 });
 
 it("[F2.5] marks train times older than 90 s as stale and shows their age", async () => {
@@ -82,13 +82,14 @@ it("[F2.5] marks train times older than 90 s as stale and shows their age", asyn
   expect(screen.getByText(map.sheet.empty.title)).toBeInTheDocument();
 });
 
-it("[F2.5] says train times failed and keeps the spots when the feed doesn't answer", async () => {
+it("[F2.5] [F11.3] says train times failed and keeps the spots, with the unofficial grade label", async () => {
   server.use(http.get("*/api/mbta/predictions", () => new HttpResponse(null, { status: 502 })));
   open();
   expect(await screen.findByText(map.sheet.error.title)).toBeInTheDocument();
   expect(screen.getByText("Pavement Coffeehouse").closest("li")).toHaveTextContent(
-    `${map.sheet.category.coffee} · ${map.sheet.walk(160)} · ${map.sheet.grade("A")}`,
+    `${map.sheet.meta([map.sheet.category.coffee, map.sheet.walk(160), map.sheet.grade("A")])}`,
   );
+  expect(screen.getByText(legal.grade)).toBeInTheDocument();
 });
 
 it("[F2.5] shows the stop card only once the station is uncovered", async () => {
@@ -108,6 +109,6 @@ it("[F2.5] drops trains that already left, even when the times are old", async (
     { route: "Green-D", direction: 0, destination: "place-river", departs: now - 300 },
   ]);
   open();
-  expect(await screen.findByText(map.sheet.empty.title)).toBeInTheDocument();
+  expect(await screen.findByText(map.sheet.agedOut(10))).toBeInTheDocument();
   expect(screen.queryByText("Riverside")).toBeNull();
 });

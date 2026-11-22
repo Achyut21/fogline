@@ -27,7 +27,7 @@ export const map = {
   // The station sheet (F2.5), worded as on the canvas station artboard.
   sheet: {
     home: "Your home station",
-    fromHome: (minutes: number) => `${minutes} min from home`,
+    fromHome: (minutes: number) => `${minutes} min by T from home`,
     trains: "Next trains",
     loading: "Loading train times",
     minutes: (minutes: number) => (minutes < 1 ? "Now" : `${minutes} min`),
@@ -39,19 +39,20 @@ export const map = {
     },
     empty: {
       title: "No trains listed",
-      body: "The MBTA isn't showing trains from here right now. Service may be over for the night.",
+      body: "The MBTA feed lists no departures from here. Late at night, service may be over.",
     },
     error: {
       title: "Train times didn't load",
-      body: "The MBTA feed isn't answering. Spots nearby still work.",
+      body: "The MBTA feed isn't answering. Nearby spots still show below.",
     },
     offline: "You're offline. Train times come back when you reconnect.",
-    credit: "Live times from the MBTA. Not affiliated with the MBTA.",
+    offlineCached: "You're offline. These are the last times you loaded.",
+    agedOut: (minutes: number) =>
+      `Train data is ${minutes} min old. The MBTA feed isn't answering.`,
     card: "Stop card",
-    source: (title: string) => `From Wikipedia: ${title}`,
-    photo: (author: string, license: string) => `Photo: ${author}, ${license}`,
+    source: (title: string) => `Based on Wikipedia: ${title}, CC BY-SA`,
     nearby: "Nearby",
-    walk: (meters: number) => `${Math.max(1, Math.round(meters / 80))} min walk`,
+    walk: (meters: number) => `about ${Math.max(1, Math.round(meters / 80))} min walk`,
     grade: (letter: string) => `Grade ${letter}`,
     category: {
       food: "Food",
@@ -62,7 +63,8 @@ export const map = {
       culture: "Culture",
       park: "Park",
     },
-    noSpots: "No spots listed within a 600 m walk.",
+    noSpots: (meters: number) => `No spots within about ${(meters / 1609.344).toFixed(1)} mi.`,
+    meta: (parts: readonly string[]) => parts.join(" · "),
     close: "Close",
   },
 } as const;

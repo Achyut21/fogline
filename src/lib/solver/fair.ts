@@ -12,7 +12,7 @@ import { dayTypeOf, hourBucketOf, toServiceTime } from "@/lib/time";
 import { travelTimesFrom, type Travel } from "./travel";
 
 const maxTravelSeconds = 75 * 60;
-const maxWalkM = 600;
+export const maxWalkM = 600;
 const optionCount = 3;
 
 export type Participant = { id: string; station: string };

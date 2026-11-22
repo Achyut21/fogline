@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/drawer";
 import { IconButton } from "@/components/ui/icon-button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { map } from "@/copy";
+import { legal, map } from "@/copy";
+import { maxWalkM } from "@/lib/solver/fair";
 import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
 
@@ -94,9 +95,11 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <StaleChip minutes={age / 60_000} stale={age > staleMs} />
-        {offline && <span className="text-sm text-ink-muted">{s.offline}</span>}
+        {offline && <span className="text-sm text-ink-muted">{s.offlineCached}</span>}
       </div>
-      {groups.size === 0 ? (
+      {groups.size === 0 && age > staleMs && query.data.departures.length > 0 ? (
+        <p className="text-ink-muted">{s.agedOut(Math.floor(age / 60_000))}</p>
+      ) : groups.size === 0 ? (
         <EmptyState icon={TrainFront} title={s.empty.title} body={s.empty.body} />
       ) : (
         [...groups].map(([direction, departures]) => (
@@ -119,7 +122,7 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
           </section>
         ))
       )}
-      <p className="text-xs text-ink-muted">{s.credit}</p>
+      <p className="text-xs text-ink-muted">{legal.mbta}</p>
     </div>
   );
 }
@@ -134,7 +137,13 @@ function StopCard({ card }: { card: NonNullable<Station["card"]> }) {
       <figure className="flex flex-col gap-2 overflow-hidden rounded-lg bg-surface-sunken">
         {card.image && (
           <div className="relative aspect-video w-full">
-            <Image src={card.image.url} alt="" fill unoptimized className="object-cover" />
+            <Image
+              src={card.image.url}
+              alt={card.story.title}
+              fill
+              unoptimized
+              className="object-cover"
+            />
           </div>
         )}
         <figcaption className="flex flex-col gap-1 px-3 pb-3">
@@ -144,7 +153,7 @@ function StopCard({ card }: { card: NonNullable<Station["card"]> }) {
           </a>
           {card.image && (
             <a href={card.image.page} className="text-xs text-ink-muted underline">
-              {s.photo(card.image.author, card.image.license)}
+              {legal.photo(card.image.author, card.image.license)}
             </a>
           )}
         </figcaption>
@@ -160,25 +169,26 @@ function Spots({ spots }: { spots: Station["spots"] }) {
         {s.nearby}
       </h3>
       {spots.length === 0 ? (
-        <p className="text-ink-muted">{s.noSpots}</p>
+        <p className="text-ink-muted">{s.noSpots(maxWalkM)}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-rule rounded-lg bg-surface-sunken">
           {spots.map((spot) => (
             <li key={spot.id} className="flex min-h-11 flex-col justify-center px-3 py-2">
               <span className="font-bold">{spot.name}</span>
               <span className="text-sm text-ink-muted">
-                {[
-                  s.category[spot.category],
-                  s.walk(spot.walkM),
-                  spot.grade ? s.grade(spot.grade) : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+                {s.meta(
+                  [
+                    s.category[spot.category],
+                    s.walk(spot.walkM),
+                    spot.grade ? s.grade(spot.grade) : "",
+                  ].filter(Boolean),
+                )}
               </span>
             </li>
           ))}
         </ul>
       )}
+      {spots.some((spot) => spot.grade) && <p className="text-xs text-ink-muted">{legal.grade}</p>}
     </section>
   );
 }
