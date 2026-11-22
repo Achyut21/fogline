@@ -13,4 +13,6 @@ export const schools = [
   { name: "Wentworth", lat: 42.3367, lon: -71.0952 },
   { name: "Simmons", lat: 42.3391, lon: -71.0999 },
   { name: "UMass Boston", lat: 42.3135, lon: -71.0377 },
+  { name: "MassArt", lat: 42.3374, lon: -71.099 },
+  { name: "Other" },
 ] as const;

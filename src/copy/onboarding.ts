@@ -20,6 +20,8 @@ export const onboarding = {
     body: "Where your trips home end. The fog clears here first.",
     near: (school: string) => `Near ${school}`,
     suggested: "Suggested",
+    other: "Another station",
+    pick: "Pick a station",
   },
   age: {
     title: "Your age",

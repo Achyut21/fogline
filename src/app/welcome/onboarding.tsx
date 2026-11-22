@@ -22,7 +22,13 @@ const o = onboarding;
 
 // F1.1: four screens (name, school, home station, age). The answers ride along in hidden inputs,
 // so the last step sends them all to createProfile at once.
-export function Onboarding({ schools }: { schools: readonly SchoolChoice[] }) {
+export function Onboarding({
+  schools,
+  allStations,
+}: {
+  schools: readonly SchoolChoice[];
+  allStations: readonly { id: string; name: string }[];
+}) {
   const [state, action, pending] = useActionState(createProfile, { error: null });
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
@@ -110,29 +116,48 @@ export function Onboarding({ schools }: { schools: readonly SchoolChoice[] }) {
               {o.station.title}
             </h1>
             <p className="text-ink-muted">{o.station.body}</p>
-            <p className="text-sm font-bold text-ink-muted">{o.station.near(chosen.name)}</p>
-            <ChoiceList
-              label={o.station.title}
-              choices={chosen.stations.map((s, i) => ({
-                value: s.id,
-                label: (
-                  <>
+            {chosen.stations.length > 0 && (
+              <>
+                <p className="text-sm font-bold text-ink-muted">{o.station.near(chosen.name)}</p>
+                <ChoiceList
+                  label={o.station.title}
+                  choices={chosen.stations.map((s, i) => ({
+                    value: s.id,
+                    label: (
+                      <>
+                        {s.name}
+                        {s.lines.map((line) => (
+                          <LineBadge key={line} line={line} />
+                        ))}
+                      </>
+                    ),
+                    detail:
+                      i === 0 ? (
+                        <span className="shrink-0 rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold">
+                          {o.station.suggested}
+                        </span>
+                      ) : undefined,
+                  }))}
+                  value={chosen.stations.some((s) => s.id === station) ? station : ""}
+                  onValueChange={setStation}
+                />
+              </>
+            )}
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-bold">{o.station.other}</span>
+              <select
+                value={station}
+                onChange={(e) => setStation(e.target.value)}
+                className="h-12 w-full rounded-md border border-field-border bg-field px-4 text-base font-semibold text-ink"
+              >
+                <option value="">{o.station.pick}</option>
+                {allStations.map((s) => (
+                  <option key={s.id} value={s.id}>
                     {s.name}
-                    {s.lines.map((line) => (
-                      <LineBadge key={line} line={line} />
-                    ))}
-                  </>
-                ),
-                detail:
-                  i === 0 ? (
-                    <span className="shrink-0 rounded-full bg-surface-sunken px-3 py-1 text-xs font-bold">
-                      {o.station.suggested}
-                    </span>
-                  ) : undefined,
-              }))}
-              value={station}
-              onValueChange={setStation}
-            />
+                  </option>
+                ))}
+              </select>
+            </label>
           </>
         )}
 

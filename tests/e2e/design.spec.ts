@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { app, design, system } from "@/copy";
+import { design, onboarding, system } from "@/copy";
 import { themeColor } from "@/styles/theme-color";
 
 const night = /\bdark\b/;
@@ -87,7 +87,9 @@ test.describe("/design", () => {
     });
 
     await page.getByRole("link", { name: system.notFound.home }).click();
-    await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: onboarding.welcome.title }),
+    ).toBeVisible();
     expect(await page.evaluate(() => "sameDocument" in window)).toBe(true);
     // Next swaps in fresh theme-color tags with the server values after the route commits.
     await expect(page.locator('meta[name="theme-color"][data-before]')).toHaveCount(0);
