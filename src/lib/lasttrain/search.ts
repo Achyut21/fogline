@@ -103,9 +103,11 @@ export function lastTrain(
           nextBoard[stations[i]] = time;
           nextBoardParent[stations[i]] = { trip, board: i, alight, round };
         }
-        // Stay on to home (or a walk from it) rather than change trains on the way.
+        // Get off at home when the train stops there; otherwise stay on to a station a walk
+        // from home rather than change trains on the way.
         const settled = alight !== -1 && deadline[stations[alight]] === Infinity;
-        if (canAlight(trip, i) && time <= deadline[stations[i]] && !settled) alight = i;
+        const valid = canAlight(trip, i) && time <= deadline[stations[i]];
+        if (valid && (!settled || stations[i] === target)) alight = i;
       }
     }
 

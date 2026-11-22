@@ -57,9 +57,13 @@ function timetable(trips: TimetableTrip[], dates: Record<string, number[]> = {})
   };
 }
 
-/** Every leg must be possible: rides on their trips, transfers and walks with enough time. */
+/**
+ * Every leg must be possible (rides on their trips, transfers and walks with enough time), and no
+ * ride may pass home before getting off.
+ */
 function expectFeasible(tt: Timetable, from: string, home: string, result: LastTrain) {
   if (result.kind !== "train") throw new Error(`expected a train, got ${result.kind}`);
+  const homeIndex = tt.stations.indexOf(home);
   let at = from;
   let ready = result.departs;
   let rodeIn = false;
@@ -71,6 +75,12 @@ function expectFeasible(tt: Timetable, from: string, home: string, result: LastT
     } else {
       const transfer = rodeIn ? tt.transferSeconds[tt.stations.indexOf(at)] : 0;
       expect(leg.departs).toBeGreaterThanOrEqual(ready + transfer);
+      const trip = tt.trips.find((x) => x.id === leg.trip);
+      if (!trip) throw new Error(`unknown trip ${leg.trip}`);
+      const stops = tt.patterns[trip.pattern].map((i) => tt.stations[i]);
+      const board = stops.indexOf(leg.from);
+      const alight = stops.indexOf(leg.to, board + 1);
+      expect(stops.slice(board + 1, alight)).not.toContain(tt.stations[homeIndex]);
       ready = leg.arrives;
       rodeIn = true;
     }
@@ -182,6 +192,30 @@ describe("lastTrain", () => {
     expect(result.kind === "train" && result.legs.map((leg) => leg.kind)).toEqual(["ride", "walk"]);
     expectFeasible(tt, "A", "C", result);
     expect(lastTrain(tt, "F", "C", "2026-11-20")).toEqual({ kind: "no-train-needed" });
+  });
+
+  it("[F5.1] gets off at home rather than riding on to a station a walk away", () => {
+    const tt: Timetable = {
+      ...timetable([]),
+      patterns: [[A, C, F]],
+      trips: [
+        {
+          id: "acf",
+          route: "Red",
+          direction: 0,
+          service: 0,
+          pattern: 0,
+          start: t("24:00:00"),
+          offsets: [0, 300, 480],
+        },
+      ],
+    };
+    const result = lastTrain(tt, "A", "C", "2026-11-20");
+    expect(result).toMatchObject({ kind: "train", departs: t("24:00:00") });
+    expect(result.kind === "train" && result.legs.map((leg) => [leg.kind, leg.to])).toEqual([
+      ["ride", "C"],
+    ]);
+    expectFeasible(tt, "A", "C", result);
   });
 
   it("[F5.1] starts with a walk when the plan's station is a walk from a later train", () => {

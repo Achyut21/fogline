@@ -229,13 +229,14 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
     - All three match to the second. On Saturday 2026-11-28 they match too (2:14 AM, 1:36 AM, 1:45 AM).
     - On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM). A Red Line diversion turns trains at Broadway with shuttle buses beyond, so the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-055, Open questions, deferred).
-  - Tests: 21 unit tests on hand-built timetables, plus a check that every route returned for sampled real station pairs is possible.
+  - Tests: 22 unit tests: 21 on hand-built timetables, and 1 checking that every route returned for sampled real station pairs is possible and never rides past home.
     - `[F5.1]`: past 24:00:00, transfer time, at most two transfers, a walk without the transfer time, a route checked through the right rounds, a walk on when a transfer is too tight, walking home, a walk at the start, no-board and no-alight stops, a tie, holiday service, the 3 AM rule.
     - `[F5.2]` (including the night the clocks fall back), `[F5.3]`, `[F5.5]`, `[F5.7]`. No train needed, no timetable, unknown stations, the margin.
   - code-critic: first pass FAIL. Two BLOCKING items fixed:
     - The trace could return a connection the search never checked (Kenmore → Assembly listed a 2-minute change at Park Street).
     - Walks into home were skipped (Boylston → Downtown Crossing on Friday said 1:21 AM; it's 2:16 AM).
-    The two-time rewrite also fixes the SHOULD FIX about mixing board and walk times. Also fixed: the walk test can now fail, a DST and a tie case, and a broken trace throws. The live check matches by headsign and defaults to a date inside the feed.
+    The two-time rewrite also fixes the SHOULD FIX about mixing board and walk times. Also fixed: the walk test can now fail, a DST and a tie case, and a broken trace throws. The live check matches by headsign and defaults to the next Monday inside the feed.
+  - Second pass: FAIL on one new BLOCKING item, fixed: the rewrite let a station a walk from home win over home as the stop to get off. South Station → Downtown Crossing rode on to Park Street and walked back. Home now always wins, and the route check fails any ride that passes home.
   - Next: code-critic second pass, then item 5's fixes.
 
 - 2026-11-21 22:40 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:

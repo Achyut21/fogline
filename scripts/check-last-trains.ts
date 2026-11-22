@@ -3,11 +3,11 @@ import { z } from "zod";
 import { log } from "@/lib/log";
 import { timetableSchema } from "@/lib/gtfs/types";
 import { lastTrain } from "@/lib/lasttrain/search";
-import { toServiceTime } from "@/lib/time";
+import { serviceDateOf, toServiceTime } from "@/lib/time";
 
 // The Phase 2 gate's check of DATA 3.3: the last-train search on the committed timetable against
 // the MBTA's published schedule (V3 API, no key) for known last trains. Pass a service date
-// (YYYY-MM-DD); without one it uses the first Monday the timetable covers.
+// (YYYY-MM-DD); without one it uses the next Monday the timetable covers.
 
 type Known = { route: string; stop: string; direction: 0 | 1; headsign: string; home: string };
 
@@ -42,10 +42,11 @@ const scheduleSchema = z.object({
 });
 
 const timetable = timetableSchema.parse(JSON.parse(readFileSync("data/timetable.json", "utf8")));
-const firstMonday = Object.keys(timetable.dates)
+const today = serviceDateOf(new Date());
+const nextMonday = Object.keys(timetable.dates)
   .sort()
-  .find((d) => new Date(`${d}T12:00:00Z`).getUTCDay() === 1);
-const date = process.argv[2] ?? firstMonday;
+  .find((d) => d >= today && new Date(`${d}T12:00:00Z`).getUTCDay() === 1);
+const date = process.argv[2] ?? nextMonday;
 if (!date) throw new Error("The timetable covers no Monday; pass a service date");
 
 let failures = 0;
