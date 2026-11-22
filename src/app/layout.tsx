@@ -1,7 +1,6 @@
 import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
-import { DemoMark } from "@/components/app/demo-mark";
 import { AppUpdates } from "@/components/system/app-updates";
 import { InstallListener } from "@/components/system/install";
 import { MotionProvider } from "@/components/system/motion-provider";
@@ -57,7 +56,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           <ThemeProvider>
             <MotionProvider>{children}</MotionProvider>
-            <DemoMark />
             <AppUpdates />
             <InstallListener />
             {/* Every screen has an offline state (DESIGN). The banner floats just above the

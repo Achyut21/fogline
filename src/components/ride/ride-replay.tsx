@@ -13,6 +13,7 @@ import { ride } from "@/copy";
 import { duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { recordReplayStop } from "@/server/actions/ride";
+import { DemoMark } from "@/components/app/demo-mark";
 import { InstallPrompt } from "@/components/system/install";
 import type { SheetCard } from "@/server/station-sheet";
 
@@ -146,6 +147,7 @@ export function RideReplay({
           <span className="rounded-full bg-surface-sunken px-2 py-1 text-xs">
             {ride.replay.label}
           </span>
+          <DemoMark className="ml-auto" />
         </p>
         <h1 className="text-2xl font-extrabold tracking-tight" aria-live="polite">
           {here.name}

@@ -194,7 +194,8 @@ export function ComponentsDemo() {
       </Group>
 
       <Group title={d.nav}>
-        <div className="overflow-hidden rounded-lg">
+        {/* The transform makes this frame the fixed nav's containing block. */}
+        <div className="transform-gpu overflow-hidden rounded-lg">
           <BottomNav path="/" />
         </div>
       </Group>
