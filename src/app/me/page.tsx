@@ -1,10 +1,9 @@
-import { UsersRound } from "lucide-react";
+import { ChevronRight, Ear, Info, UsersRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/app/bottom-nav";
-import { Button } from "@/components/ui/button";
-import { onboarding, squad } from "@/copy";
+import { app, onboarding, squad } from "@/copy";
 import { currentProfile } from "@/server/profile";
 import { formatProfileCode } from "@/server/profile-code";
 import { stationById } from "@/server/stations";
@@ -42,12 +41,23 @@ export default async function MePage() {
           </p>
           <p className="text-sm text-ink-muted">{m.codeHelp}</p>
         </section>
-        <Button asChild variant="secondary" className="self-start">
-          <Link href="/me/squad">
-            <UsersRound aria-hidden="true" />
-            {squad.open}
-          </Link>
-        </Button>
+        <nav aria-label={app.more.label}>
+          <ul className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm">
+            {[
+              { href: "/me/squad", label: squad.open, icon: UsersRound },
+              { href: "/calm", label: app.more.calm, icon: Ear },
+              { href: "/how-it-works", label: app.more.howItWorks, icon: Info },
+            ].map(({ href, label, icon: Icon }) => (
+              <li key={href}>
+                <Link href={href} className="flex min-h-12 items-center gap-3 px-4 font-semibold">
+                  <Icon aria-hidden="true" className="size-5 text-accent" />
+                  <span className="flex-1">{label}</span>
+                  <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </main>
       <BottomNav />
     </div>

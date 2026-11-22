@@ -14,7 +14,7 @@ export default async function Home() {
   if (!profile) redirect("/welcome");
   return (
     <div className="flex h-dvh flex-col">
-      <MapScreen data={await mapData(profile)} />
+      <MapScreen data={await mapData(profile)} homeStation={profile.homeStationId} />
       <BottomNav />
     </div>
   );

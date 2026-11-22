@@ -105,10 +105,10 @@ export function FogFallback({
               key={i}
               cx={u * width}
               cy={v * height}
-              r={9}
+              r={22}
               fill="var(--accent)"
               stroke="var(--surface)"
-              strokeWidth={3}
+              strokeWidth={6}
             />
           );
         })}

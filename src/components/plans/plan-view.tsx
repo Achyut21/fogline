@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, Link2, MapPin } from "lucide-react";
+import { Link2, MapPin } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
@@ -147,14 +148,7 @@ export function PlanView({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/plans">
-            <ArrowLeft aria-hidden="true" />
-            {p.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/plans", label: p.back }} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-1">
           {live && (

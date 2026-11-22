@@ -10,4 +10,9 @@ export const app = {
     plans: "Plans",
     me: "Me",
   },
+  more: {
+    label: "More",
+    calm: "Calm mode",
+    howItWorks: "How it works",
+  },
 } as const;
