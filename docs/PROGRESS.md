@@ -8,7 +8,7 @@ This is the shared status board for both builders. Update it after every finishe
 |---|---|---|
 | 0 Foundations | Passed 2026-11-21 (gate table below) | A |
 | 1 Design | In progress (plan approved 2026-11-21) | A (both approve) |
-| 2 Data and domain logic | In progress (plan approved 2026-11-21) | B |
+| 2 Data and domain logic | Gate passed for code 2026-11-22 (two human checks open, see log) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
 | 5 Daily puzzle and demo mode | Not started | B + A |
@@ -222,6 +222,25 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:25 ET · Builder B · **Phase 2 gate** on `b/core-loop` (the whole stack, items 1–10, plus the core-loop server work):
+  - `pnpm typecheck` and `pnpm lint` pass. `pnpm test` with the test database: 253 passed, 1 skipped (the live Tiger check), with integration tests running; `src/lib` line coverage 99.85%. `pnpm build` passes.
+  - Evidence:
+    - known trips within 3 minutes (item 3);
+    - known last trains match the MBTA schedule (item 4);
+    - grade calibration recorded in D-057;
+    - every pipeline rebuilds byte-identical files.
+  - test-auditor: FAIL on F11.3 only, which moved to Phase 7 (D-057). Its weak tests are fixed.
+  - Still open, both for B's human:
+    - apply migrations 0002 and 0003 to fogline-db once #16 merges, so the hypertables exist on Tiger;
+    - check the 47 demo-line station cards listed in the item 9 entry.
+- 2026-11-22 00:25 ET · Builder B · Prototype track (D-062), server side on `b/core-loop`:
+  - `src/server/actions/core-loop.ts`: `findMeetup` (fair options with each friend's trip and leave-by time), `todaysPuzzle`, `playPuzzle` (the answer never leaves the server).
+  - `src/server/actions/plans.ts`: `createProfile` (cookie, no auth), `myProfile`, `createPlan`, `planByInvite` (with everyone's leave-by), `joinPlan`.
+  - `src/server/actions/live.ts`: `checkIn` (validity rules, reveals 2 rings of cells), `endPlan` (awards night badges).
+  - `src/server/actions/me.ts`: `myStats` (miles, stops, stations, percent of Boston, neighborhoods, lines, nights out, badges).
+  - `/api/cron/record-vehicles` every minute (`vercel.json`), protected by `CRON_SECRET`.
+  - Data loads from `data/*.json` through `process.cwd()`. **Ask for A:** on Vercel, add `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
+  - Tests: 6 unit tests (meetup, puzzle, recorder). The database actions haven't been run against Tiger yet; they need migrations 0002 and 0003.
 - 2026-11-22 00:15 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
   - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-061).
   - The Gemini sentences come from `gemini-3.1-flash-lite`, and code checks them: 140 characters, one sentence, no banned words, and every number must be in the Wikipedia intro. Articles about bars, nightclubs and violent events are left out (F1.5).
