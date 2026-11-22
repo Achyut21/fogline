@@ -408,6 +408,9 @@ Decision:
 - `src/lib/geo/regions.ts` gives each region's uncovered share, Boston's share as the union of its neighborhoods, and "Beyond" for any other cell, with no share.
 Why: DATA named Cambridge and Somerville portals that were never checked, and Brookline had no source. TIGERweb answers for all three in one query and is public domain. Assigning shared cells once keeps each percentage honest.
 Consequences:
-- 29 regions and 1,593 cells, 1,158 of them in Boston (about 122 km², close to Boston's land area). The smallest neighborhoods, Bay Village and the Leather District, have one cell each, so their percentage jumps from 0 to 100%.
+- 29 regions and 1,593 cells, 1,158 of them in Boston (about 122 km², close to Boston's land area). The smallest neighborhoods, Bay Village and the Leather District, are smaller than one cell and have one cell each, so their percentage jumps from 0 to 100%.
+- First Light (F8.2) counts only regions of 3 cells or more, where reaching 50% takes at least 2 cells. Otherwise a home station at South Station or a ride past Arlington would earn it for a neighborhood the person never entered. Only Bay Village and the Leather District are left out. Rides alone can still clear small neighborhoods such as Chinatown; that is the game working, since riding clears fog.
+- A region's ID is its name as a slug, and `badges_awarded.scope` stores it for First Light. If BPDA renames a neighborhood, keep its old ID.
+- `data:neighborhoods` refuses to write a file in which a region has no cell.
 - A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
 

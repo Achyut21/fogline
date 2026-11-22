@@ -11,7 +11,7 @@
 | MBTA V3 API: `https://api-v3.mbta.com` | key optional (20 req/min without, 1,000 with; a key can take a day) | checked | optional; prefer the CDN feeds | MBTA |
 | MBTA LAMP performance data: `https://performancedata.mbta.com/` | no key | checked | optional: real travel-time medians, replay of past days (daily parquet, subway on-time performance) | MBTA |
 | MBTA Open Data Portal (ArcGIS Hub) | no key | checked (dataset list) | Gated Station Entries for crowding by hour (F13). Verify granularity | MBTA |
-| Analyze Boston (CKAN): `https://data.boston.gov/api/3/action/` with `datastore_search` and `datastore_search_sql` | no key | checked | Food Establishment Inspections (909,653 rows; fields include `result`, `violdesc`, `viol_level`, `resultdttm`, address), food licenses, neighborhood boundaries (verify dataset) | City of Boston open data; credit "City of Boston" |
+| Analyze Boston (CKAN): `https://data.boston.gov/api/3/action/` with `datastore_search` and `datastore_search_sql` | no key | checked | Food Establishment Inspections (909,653 rows; fields include `result`, `violdesc`, `viol_level`, `resultdttm`, address), food licenses, BPDA neighborhood boundaries (`bpda-neighborhood-boundaries`, ODC-PDDL) | City of Boston open data; credit "City of Boston" |
 | OpenStreetMap via Overpass: `https://overpass-api.de/api/interpreter` | no key, rate-limited | verify usage limits | places near stations (food, bars, activities) | ODbL; credit "© OpenStreetMap contributors" |
 | Wikipedia API (geosearch, extracts, page images) and Wikimedia Commons (`imageinfo` + `extmetadata`) | no key | verify | stop-card facts and photos | text CC BY-SA; images per file license; show author and license |
 | OpenFreeMap tiles and styles (`https://tiles.openfreemap.org/styles/liberty`) | no key | verify | basemap | credit OpenFreeMap and OpenStreetMap contributors |
@@ -139,7 +139,7 @@ Valid when the distance from the reported position to the spot is 150 m or less,
 
 | Badge | Rule |
 |---|---|
-| First Light | first squad member to reach 50% uncovered in a neighborhood (one per neighborhood) |
+| First Light | first squad member to reach 50% uncovered in a neighborhood (one per neighborhood). Regions under 3 cells don't count (D-058) |
 | All Four Lines | board events on Red, Orange, Blue and Green |
 | 50 Stations | 50 distinct stations boarded, passed, alighted, or nearest to a valid check-in |
 | Every Green Branch | board or pass events on Green-B, Green-C, Green-D and Green-E |

@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { z } from "zod";
+import { regionSchema } from "@/lib/geo/regions";
 import { log } from "@/lib/log";
 import { geometrySchema, toRegions, type RegionShape } from "./neighborhoods/regions";
 
@@ -62,7 +63,8 @@ const shapes: RegionShape[] = [
     return { id: slug(town), name: town, city: town, geometry: feature.geometry };
   }),
 ];
-const regions = toRegions(shapes);
+// A boundary edit can leave a small neighborhood without a cell center; refuse to write that file.
+const regions = z.array(regionSchema).parse(toRegions(shapes));
 await writeFile("data/neighborhoods-h3.json", `${JSON.stringify(regions, null, 1)}\n`);
 
 log.info("data:neighborhoods wrote data/neighborhoods-h3.json", {

@@ -13,6 +13,7 @@ import {
   regionShares,
   type Region,
 } from "@/lib/geo/regions";
+import { stationSchema } from "@/lib/gtfs/types";
 import { cellsOf, toRegions, type Geometry } from "../../scripts/neighborhoods/regions";
 
 // Squares about 1 km across near Park Street, in GeoJSON [lon, lat] order.
@@ -85,24 +86,28 @@ describe("region helpers", () => {
     { id: "fenway", name: "Fenway", city: "Boston", cells: ["e", "f"] },
     { id: "cambridge", name: "Cambridge", city: "Cambridge", cells: ["g", "h"] },
   ];
+  // Shares differ by region so that averaging shares, or counting other cities or Beyond, would
+  // give a different number than the union of Boston's cells.
   const states = new Map<string, CellState>([
     ["a", "seen"],
     ["b", "visited"],
     ["e", "seen"],
+    ["f", "visited"],
     ["g", "visited"],
+    ["h", "seen"],
     ["z", "visited"],
   ]);
 
   it("[F2.4] gives each region's uncovered share", () => {
     expect(regionShares(regions, states)).toEqual([
       { id: "back-bay", name: "Back Bay", share: 0.5 },
-      { id: "fenway", name: "Fenway", share: 0.5 },
-      { id: "cambridge", name: "Cambridge", share: 0.5 },
+      { id: "fenway", name: "Fenway", share: 1 },
+      { id: "cambridge", name: "Cambridge", share: 1 },
     ]);
   });
 
   it("[F2.4] counts Boston as the union of its neighborhoods, leaving other cities out", () => {
-    expect(bostonShare(regions, states)).toBe(3 / 6);
+    expect(bostonShare(regions, states)).toBe(4 / 6);
   });
 
   it("[F2.4] puts cells in no region in Beyond, which has no share", () => {
@@ -114,9 +119,43 @@ describe("region helpers", () => {
 });
 
 describe("committed neighborhoods-h3.json", () => {
+  const read = (name: string): unknown =>
+    JSON.parse(readFileSync(path.join(import.meta.dirname, "../../data", name), "utf8"));
+  const regions = z.array(regionSchema).parse(read("neighborhoods-h3.json"));
+
   it("[F2.4] has Boston's 26 neighborhoods and 3 cities, each cell in one region", () => {
-    const file = path.join(import.meta.dirname, "../../data/neighborhoods-h3.json");
-    const regions = z.array(regionSchema).parse(JSON.parse(readFileSync(file, "utf8")));
+    // IDs are stored as First Light's scope, so a renamed neighborhood must keep its ID (D-058).
+    expect(regions.map((r) => r.id).sort()).toEqual([
+      "allston",
+      "back-bay",
+      "bay-village",
+      "beacon-hill",
+      "brighton",
+      "brookline",
+      "cambridge",
+      "charlestown",
+      "chinatown",
+      "dorchester",
+      "downtown",
+      "east-boston",
+      "fenway",
+      "harbor-islands",
+      "hyde-park",
+      "jamaica-plain",
+      "leather-district",
+      "longwood",
+      "mattapan",
+      "mission-hill",
+      "north-end",
+      "roslindale",
+      "roxbury",
+      "somerville",
+      "south-boston",
+      "south-boston-waterfront",
+      "south-end",
+      "west-end",
+      "west-roxbury",
+    ]);
     expect(regions.filter((r) => r.city === "Boston")).toHaveLength(26);
     expect(regions.filter((r) => r.city !== "Boston").map((r) => r.name)).toEqual([
       "Cambridge",
@@ -126,7 +165,21 @@ describe("committed neighborhoods-h3.json", () => {
     const cells = regions.flatMap((r) => r.cells);
     expect(new Set(cells).size).toBe(cells.length);
     expect(cells.every((cell) => getResolution(cell) === 9)).toBe(true);
-    const parkStreet = latLngToCell(42.356395, -71.062424, 9);
-    expect(regionOf(regionIndex(regions), parkStreet)).not.toBe(beyond);
+  });
+
+  it("[F2.4] puts known stations in the right region", () => {
+    const stations = z.array(stationSchema).parse(read("stations.json"));
+    const index = regionIndex(regions);
+    const regionAt = (id: string) => {
+      const station = stations.find((s) => s.id === id);
+      if (!station) throw new Error(`No station ${id}`);
+      return regionOf(index, latLngToCell(station.lat, station.lon, 9));
+    };
+    expect(regionAt("place-harsq")).toBe("cambridge");
+    expect(regionAt("place-davis")).toBe("somerville");
+    expect(regionAt("place-cool")).toBe("brookline");
+    expect(regionAt("place-kencl")).toBe("fenway");
+    expect(regionAt("place-pktrm")).toBe("downtown");
+    expect(regionAt("place-qnctr")).toBe(beyond);
   });
 });
