@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { GradeBadge } from "@/components/display/grade-badge";
 import { LeaveByChip } from "@/components/display/leave-by-chip";
 import { LineBadge, type Line } from "@/components/display/line-badge";
 import { Button } from "@/components/ui/button";
-import { map, plans } from "@/copy";
+import { legal, map, plans } from "@/copy";
+import { gradedCategories } from "@/lib/places/types";
 import type { LeaveBy } from "@/lib/lasttrain/leave-by";
 import type { MeetupOption } from "@/server/meetup";
 
@@ -105,16 +107,17 @@ export function OptionCard({
             <span className="flex flex-1 flex-col">
               <span className="font-semibold">{s.name}</span>
               <span className="text-sm text-ink-muted">
-                {map.sheet.meta([
-                  map.sheet.category[s.category],
-                  b.walk(s.walkM),
-                  ...(s.grade ? [map.sheet.grade(s.grade)] : []),
-                ])}
+                {map.sheet.meta([map.sheet.category[s.category], b.walk(s.walkM)])}
               </span>
+              {gradedCategories.includes(s.category) && (
+                <GradeBadge letter={s.grade} inspected={s.inspected} />
+              )}
             </span>
           </label>
         ))}
       </fieldset>
+
+      {option.spots.some((s) => s.grade) && <p className="text-xs text-ink-muted">{legal.grade}</p>}
 
       <Button disabled={creating || !spot} onClick={() => onChoose(spot)}>
         {creating ? b.creating : b.choose}

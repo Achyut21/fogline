@@ -1,7 +1,9 @@
 "use server";
 
 import { calendarDateOf } from "@/lib/time";
+import { crawlInput, planCrawl, type CrawlPlan } from "@/server/crawl";
 import { data } from "@/server/data";
+import { dinnerBeforeInput, planDinnerBefore, type DinnerBeforePlan } from "@/server/dinner-before";
 import { currentProfile } from "@/server/profile";
 import { meetupInput, planMeetup, type MeetupResult } from "@/server/meetup";
 import { guessInput, playGuesses, puzzleBoard, type PuzzlePlay } from "@/server/puzzle";
@@ -21,6 +23,37 @@ export async function findMeetup(input: unknown): Promise<MeetupResult> {
       graph: data.graph(),
       timetable: data.timetable(),
       places: data.places(),
+    },
+  );
+}
+
+/** Crawl options (F10.1–F10.3), with the age rule from the session's profile like findMeetup. */
+export async function findCrawl(input: unknown): Promise<CrawlPlan> {
+  const viewer = await currentProfile();
+  const request = crawlInput.omit({ under21: true }).parse(input);
+  return planCrawl(
+    { ...request, under21: viewer?.ageBand !== "21plus" },
+    {
+      stations: data.stations(),
+      graph: data.graph(),
+      timetable: data.timetable(),
+      places: data.places(),
+    },
+  );
+}
+
+/** Dinner before a puzzle event (F10.6), with the age rule from the session's profile. */
+export async function findDinnerBefore(input: unknown): Promise<DinnerBeforePlan> {
+  const viewer = await currentProfile();
+  const request = dinnerBeforeInput.omit({ under21: true }).parse(input);
+  return planDinnerBefore(
+    { ...request, under21: viewer?.ageBand !== "21plus" },
+    {
+      stations: data.stations(),
+      graph: data.graph(),
+      timetable: data.timetable(),
+      places: data.places(),
+      events: data.events(),
     },
   );
 }

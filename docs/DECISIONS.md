@@ -598,3 +598,13 @@ Decision:
 - Hanken Grotesk 400/700/800 static TTFs (OFL) are vendored in `assets/fonts/`, because next/og takes only ttf, otf or woff. The build traces them into the function.
 Why: F9.3 wants a 1080×1350 image with the recap's numbers; the three critics' first pass (all FAIL) asked for the Ghost, 21+ and overflow fixes.
 Consequences: a new og image reuses `share-colors.ts` and adds its own file to the exempt list.
+
+**D-071 · 2026-11-22 · Squad, crawls and Dinner before (Phase 7, F10.1–F10.3, F10.6, F12.2, F12.3).**
+Decision:
+- A squad is defined per person: you and your mates (DATA 3.12). The streak counts Monday-to-Sunday weeks with an ended plan you shared with a mate, and an empty current week doesn't break it until the week ends. This settles D-063's open question.
+- Crawls follow DATA 3.15: fairness for the first stop only, then the nearest matching spot within 10 minutes by walk or T, and last trains from the last stop. A crawl is dropped when anyone has to leave before the full stay at the last stop ends, so nobody turns around on arrival. T legs need a train still boarding at that hour.
+- Opening hours come from OSM's `opening_hours`, read by a small parser for the common forms (";" replaces, "," adds, as OSM defines); anything else is "unknown" and flagged, as F10.1 allows. 967 of the 1,000 spots with hours parse.
+- Dinner before follows DATA 3.16: the fairest food spot within 10 minutes of the venue.
+- Vibe and calm (F10.2) aren't crawl filters yet: places carry no vibe tags (D-057), and calm mode (F13) is an Extra.
+Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
+Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).

@@ -95,7 +95,13 @@ describe.skipIf(testUrl === "")("plan Server Actions", () => {
     const { inviteToken } = await planAt(bar);
     session.viewer = people.teen;
     const seen = await planByInvite(inviteToken);
-    expect(seen).toMatchObject({ adultsOnly: true, spot: null, station: null });
+    expect(seen).toMatchObject({
+      adultsOnly: true,
+      spot: null,
+      station: null,
+      title: null,
+      stops: [],
+    });
     expect(await joinPlan(inviteToken)).toEqual({ kind: "adults-only" });
     session.viewer = people.stranger;
     expect((await planByInvite(inviteToken))?.spot?.id).toBe(bar.id);

@@ -164,6 +164,10 @@ A ride's own summary (F3.4, F3.5) counts its events, replay or not, so a replay 
 
 Two profiles are squad mates once both have a valid check-in on the same ended plan (`src/lib/squad.ts`). The relation isn't transitive: a mate's mate is not a mate.
 
+- **Your squad** is you and your mates (D-071).
+- **Squad map (F12.2):** the union of the squad's revealed cells. A cell is visited when any member visited it, and it's credited to the member who uncovered it first (ties by profile ID), for the color-by-person option.
+- **Squad streak (F12.3):** consecutive weeks, Monday to Sunday by service date in Boston, with at least one ended plan where you and a mate both have a valid check-in. This week counts once it has such a night; until then the count runs to last week, so a streak breaks only when a week ends without one.
+
 ### 3.13 Next departures (F2.5, F3.1)
 
 From `TripUpdates_enhanced.json` (`src/lib/predictions.ts`):
@@ -182,6 +186,24 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - Between two rows, each station mark on the shape is reached at a time linear in its distance between the two positions. A train within 150 m of a mark is at that station.
 - The ride starts at the boarding station; the first stop is `board`, the last `alight`, the rest `pass`. A trip makes a replay when it passes at least three stops after boarding. Trips older than 24 hours aren't listed.
 - Miles come from `rideMiles` along the same shape.
+
+### 3.15 Crawls (F10.1–F10.3)
+
+- A crawl has 2 to 4 stops. Each stop has its own categories; budget, minimum grade and the age rule apply to every stop (F10.2). Vibe and calm aren't filters yet: places have no vibe tags (D-057) and calm mode (F13) isn't built.
+- **First stop:** stations ranked by the fair score (section 3.2) at the crawl's start. The first stop is a matching spot within 600 m of that station, nearest first (F10.3).
+- **Next stops:** matching spots not already in the crawl and within 600 m of some station, with a leg from the previous spot of 10 minutes or less (F10.1). A leg is the shorter of walking (section 3.5) and the T: walk to a station near the previous spot where a train still boards then (between its first and last boardable departure that service date), at least one ride (section 3.1, for the hour the group leaves), and the walk from the station near the next spot. Among them, spots with known hours come first, then the shorter leg, then name and ID. Whether a leg is walked is stored with the stop (section 3.11).
+- **Times:** the first stop is at the start time. Each next stop is at the previous stop's time, plus the stay (60 minutes unless the request says otherwise, 30 to 180), plus the leg rounded up to whole minutes.
+- **Hours:** a spot is checked at its scheduled time against its OpenStreetMap `opening_hours`. A spot that is closed then is skipped. A spot whose hours are missing or can't be read is kept but flagged as unknown (F10.1). The reader (`src/lib/places/hours.ts`) handles days, day ranges and lists, several spans a day, closings past midnight (written "01:00" or "25:00"), "off" and "24/7". A rule after ";" replaces earlier rules on its days, and one after "," adds to them. It skips "PH" and calls anything else unknown (months, sunrise, comments, fallbacks): 967 of the 1,000 spots with hours parse.
+- **Last train:** each person's leave-by uses the last stop (section 3.3, F10.3). A crawl is dropped when anyone with a train home has to leave before the full stay at the last stop ends.
+- **Options:** up to 3 crawls, each starting at a different station, fairest first. For each station the builder tries its 5 nearest open first spots, and it stops after 10 stations with a matching first spot, so a request that fits nothing answers quickly. With no crawl, the blocker is "time" (no station within 75 minutes for everyone), "no-trains" (section 3.2), "last-train" (every crawl found ends too late) or "spots".
+
+### 3.16 Dinner before (F10.6)
+
+- A 2-stop crawl for a puzzle event: dinner (food, with the plan's budget, grade and age filters), then the event.
+- Candidates are matching spots within 10 minutes of the venue by walk or T (legs as in section 3.15, timed as if leaving 10 minutes before the event, the T leg ending with the walk from the event's station to the venue).
+- Each candidate is scored by the fair score (section 3.2) of the group to the station near it, computed for a dinner that starts the stay plus 10 minutes before the event. The fairest wins, then the shorter leg to the venue, then name and ID.
+- Dinner is at the event's start minus the stay minus the leg. A spot closed then is skipped; unknown hours are flagged.
+- Leave-by times run from the event's station (section 3.3). A dinner is dropped when anyone with a train home has to leave before the event starts. With none left, the blocker is "time", "no-trains", "last-train" or "spots", as for crawls.
 
 ## 4. Edge cases every algorithm test covers
 

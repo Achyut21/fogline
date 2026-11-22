@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { expect, it } from "vitest";
 import { StationSheet } from "@/components/map/station-sheet";
-import { legal, map, system } from "@/copy";
+import { grades, legal, map, system } from "@/copy";
 import type { MapData } from "@/server/map-data";
 import { server } from "../msw/server";
 
@@ -17,8 +17,22 @@ const kenmore: Station = {
   home: false,
   minutes: 4,
   spots: [
-    { id: "osm:1", name: "Pavement Coffeehouse", category: "coffee", walkM: 160, grade: "A" },
-    { id: "osm:2", name: "Fenway Park", category: "park", walkM: 400, grade: null },
+    {
+      id: "osm:1",
+      name: "Pavement Coffeehouse",
+      category: "coffee",
+      walkM: 160,
+      grade: "A",
+      inspected: "2026-04-09",
+    },
+    {
+      id: "osm:2",
+      name: "Fenway Park",
+      category: "park",
+      walkM: 400,
+      grade: null,
+      inspected: null,
+    },
   ],
   card: {
     story: {
@@ -86,9 +100,12 @@ it("[F2.5] [F11.3] says train times failed and keeps the spots, with the unoffic
   server.use(http.get("*/api/mbta/predictions", () => new HttpResponse(null, { status: 502 })));
   open();
   expect(await screen.findByText(map.sheet.error.title)).toBeInTheDocument();
-  expect(screen.getByText("Pavement Coffeehouse").closest("li")).toHaveTextContent(
-    `${map.sheet.meta([map.sheet.category.coffee, map.sheet.walk(160), map.sheet.grade("A")])}`,
+  const coffee = screen.getByText("Pavement Coffeehouse").closest("li");
+  expect(coffee).toHaveTextContent(
+    map.sheet.meta([map.sheet.category.coffee, map.sheet.walk(160)]),
   );
+  expect(coffee).toHaveTextContent(`${grades.letter("A")}, ${grades.inspected("2026-04-09")}`);
+  expect(screen.getByText("Fenway Park").closest("li")).not.toHaveTextContent(grades.noMatch);
   expect(screen.getByText(legal.grade)).toBeInTheDocument();
 });
 
