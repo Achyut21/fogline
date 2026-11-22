@@ -140,6 +140,10 @@ This is the shared status board for both builders. Update it after every finishe
   - Then `/phase-gate 2`.
 - **Decisions:** B confirms D-013 to D-044, with D-031 amended (demo rows flagged in the hypertables) and D-018's school list taken by B (D-045). B's Phase 2 answers are D-046 (data model) and D-047 (graph, service-date cutoff, demo lines).
 - **Asks for A:**
+  - **Prototype by 4:00 AM (D-062), from B's human.** Please do three things:
+    1. Merge B's stack now, in order: #16 (then B's human applies migrations 0002 and 0003), #17, #18, #19, #21, #22, #23, #26, then the station-cards PR.
+    2. Say whether you agree to the core-loop scope and to building feature UI before the Phase 1 gate.
+    3. If yes, build the screens: profile with home station, map with fog in 2D, plan builder with options and leave-by, puzzle. B wires Server Actions and route handlers to the existing `src/lib` rules.
   - B's session has no Vercel login, so B can't run `vercel ls` or `vercel inspect`. After each of B's merges, please run the production deployment check in TEAM.md's merge checklist. B starts the preview check from the PR's Vercel status URL with `gh workflow run`.
   - The recorder: move it from Phase 3 into Phase 2, right after the hypertable migration, so replay has more recorded trips? It changes PHASES and adds a cron to `vercel.json`, so both humans decide. B agrees.
 - **Blocked:** none. Vercel still won't build B-authored commits, so A merges B's PRs with an admin override after CI and the critics pass, then an A docs PR deploys production (D-052). B has no previews; B's human can join the Vercel team later to change that.
@@ -218,6 +222,59 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:15 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
+  - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-061).
+  - The Gemini sentences come from `gemini-3.1-flash-lite`, and code checks them: 140 characters, one sentence, no banned words, and every number must be in the Wikipedia intro. Articles about bars, nightclubs and violent events are left out (F1.5).
+  - Tests: 11 unit tests, including the committed file (one card per station, all-ages spots).
+  - code-critic: one pass (D-062). Its blocking findings are fixed: bar articles, ungrounded numbers. Deferred under D-062: a reviewed exclusion list beyond the violent-event filter.
+  - **Demo-line cards for B's check** (Red Line and Green Line E, 47 cards). Each line is the station, then the article and its fact, then the spot:
+    - Alewife | Alewife Brook Reservation: Established in 1900, this Massachusetts state park and urban wild is located in Cambridge, Arlington, and Somerville. | Dunkin' (food)
+    - Andrew | Old Harbor Housing Project: The 27-acre Mary Ellen McCormack Project is located opposite Joe Moakley Park in South Boston. | Dunkin' (food A)
+    - Arlington | Arlington Street Church: The main sanctuary space has 16 large-scale stained-glass windows installed by Tiffany Studios from 1899 to 1930. | Tatte Bakery & Cafe (coffee A)
+    - Ashmont | Parish of All Saints Ashmont: The Parish of All Saints is located at 209 Ashmont Street in the Dorchester neighborhood of Boston. | Peabody Square (park)
+    - Ball Square | Powder House Square: The square is a six-way intersection of College Avenue, Broadway, Warner Street, and Powder House Boulevard. | Kelly's Diner (food)
+    - Back of the Hill | Mission Hill, Boston: The neighborhood population was estimated at 15,883 in 2011. | Dunkin' (food A)
+    - Boylston | Colonial Theatre (Boston): Opened in 1900, the Colonial Theatre is located at 106 Boylston Street on Boston Common. | Boston Common (park)
+    - Broadway | South Bay Interchange: The South Bay Interchange occupies a 10-acre site between Chinatown and the Leather District. | Dunkin' (food A)
+    - Brigham Circle | Boston Children's Hospital: It is the main pediatric training and research hospital of Harvard Medical School. | Thea and James M. Stoneman Centennial Park (park)
+    - Braintree | Braintree, Massachusetts: The population of Braintree was 39,143 at the 2020 census. | Daily Soccer Field (park)
+    - Charles/MGH | Massachusetts General Hospital: Massachusetts General Hospital is the third-oldest general hospital in the United States with a patient capacity of 999 beds. | Dunkin' (food A)
+    - Central | Harvard Graduate Students Union: The bargaining unit comprises about 5,000 student employees at Harvard University. | Veterans of Foreign Wars Memorial Park (park)
+    - Copley | Boston Public Library: Founded in 1848, the Boston Public Library contains approximately 24 million items. | Chick-fil-A (food A)
+    - Davis | Davis Square: The Red Line was extended to Davis in 1984. | Somerville Theater (culture)
+    - Downtown Crossing | Jordan Marsh: Eben Dyer Jordan and Benjamin L. Marsh founded the department store chain in 1841. | Winthrop Square (park)
+    - East Somerville | Inner Belt District: The Inner Belt District is a 126-acre industrial district located in the southeastern portion of Somerville, Massachusetts. | Life Drawing Boston (culture)
+    - Fenwood Road | Harvard T.H. Chan School of Public Health: The school was named after Chan Tseng-hsi in 2014 following a US$350 million donation. | Thea and James M. Stoneman Centennial Park (park)
+    - Fields Corner | Fields Corner Municipal Building: Built in 1875, this building is located at 1 Arcadia Street and 195 Adams Street in the Dorchester neighborhood of Boston. | AKOKO - Coco Leaf Dorchester (coffee A)
+    - Gilman Square | Somerville, Massachusetts: The city had a total population of 81,045 people as of the 2020 United States census. | Central Hill Memorial Park (park)
+    - Government Center | Boston City Hall: Groundbreaking for the nine-story building took place on September 18, 1963. | Old City Hall Grounds (park)
+    - Haymarket | John F. Kennedy Federal Building: Completed in 1966, this building consists of two 26-story towers and a four-story low-rise wing. | Civic Amphitheatre Steps (culture)
+    - Harvard | Harvard John A. Paulson School of Engineering and Applied Sciences: The school assumed its current structure in 2007 and was renamed after John Paulson in June 2015 following his US$400 million gift. | Kyōyo Haus (dessert)
+    - Heath Street | New England Baptist Hospital: New England Baptist Hospital is a 141-bed adult medical-surgical hospital in Boston specializing in orthopedic care. | Dunkin' (food A)
+    - JFK/UMass | Dorchester, Boston: Dorchester was annexed to Boston in 1870 when it had a population of 12,000. | Sharon's Park (park)
+    - Kendall/MIT | Abdul Latif Jameel Poverty Action Lab: As of 2020, the J-PAL network consisted of 500 researchers and 400 staff, and its programs had impacted over 400 million people globally. | Ripple Cafe (coffee)
+    - Lechmere | Hult International Business School: The Arthur D. Little School of Management was founded in 1964 in Cambridge, Massachusetts. | The Common at CX (park)
+    - Longwood Medical Area | Isabella Stewart Gardner Museum theft: On March 18, 1990, 13 works of art were stolen from the Isabella Stewart Gardner Museum. | Dunkin' (food A)
+    - Medford/Tufts | Tufts University: Tufts University was founded in 1852 as Tufts College. | Dunkin' (food)
+    - Museum of Fine Arts | Museum of Fine Arts, Boston: The museum was founded in 1870 in Copley Square and moved to its current Fenway location in 1909. | Dunkin' (food A)
+    - Magoun Square | Magoun Square: Playwright John Shea is a notable resident of this neighborhood. | Zaruma Gold (coffee)
+    - Mission Park | Beth Israel Deaconess Medical Center: Beth Israel Deaconess Medical Center was formed out of the 1996 merger of Beth Israel Hospital and New England Deaconess Hospital. | Brookline Avenue Playground (park)
+    - North Station | Boston Garden: The arena opened on November 17, 1928, and was demolished in 1998. | Chip City Cookies West End (dessert A)
+    - North Quincy | North Quincy High School: North Quincy High School serves grades 9 through 12 and has an enrollment of over 1,200 students. | Bear Hug Park (park)
+    - Northeastern University | New England Conservatory of Music: Approximately 750 students pursue undergraduate and graduate studies at the New England Conservatory of Music. | Boston Shawarma (food A)
+    - Park Street | Boston Christmas Tree: A tree has been lit each year since 1941. | Old City Hall Grounds (park)
+    - Porter | Yume Wo Katare: Yume Wo Katare is a ramen shop located at 1923 Massachusetts Avenue in the Porter Square neighborhood of Cambridge, Massachusetts. | Phinista Café Cambridge (food)
+    - Prudential | WBMX: The 104.1 MHz facility went on the air in 1958 as WBCN. | Thornton's Restaurant (food A)
+    - Quincy Adams | S. H. Barnicoat Monuments: The granite workshop at 114 Columbia Street featured a derrick more than 90 feet tall. | Paul Vincent Grasso Memorial Park (park)
+    - Quincy Center | Quincy College: Founded in 1958, this public community college enrolls approximately 3,500 students at campuses in Quincy and Plymouth, Massachusetts. | The QArts Gallery (culture)
+    - Riverway | Boston Psychopathic Hospital: The Boston Psychopathic Hospital was established at 74 Fenwood Road in 1912. | Brookline Avenue Playground (park)
+    - Savin Hill | Cristo Rey Boston High School: The school has 376 students in grades 9-12. | McKenna's Cafe (coffee A)
+    - Shawmut | Dorchester High School for Girls: Dorchester High School for Girls served students in ninth through twelfth grades from 1925 to 1953. | Dr. Loesch Family Park (park)
+    - Science Park/West End | Ether Dome: The Ether Dome served as the hospital's operating room from 1821 until 1867. | Dunkin' (food A)
+    - South Station | Occupy Boston: Protesters settled on Dewey Square in the Financial District on September 30, 2011. | Gong Cha (coffee A)
+    - Symphony | Matthews Arena: Matthews Arena was the original home of the NHL's Boston Bruins, the NBA's Boston Celtics, and the WHA's New England Whalers. | Symphony Hall (culture)
+    - Union Square | Union Square (Somerville): Union Square served as a recruitment and mustering site for the Union Army during the Civil War. | Life Alive (food)
+    - Wollaston | Wollaston (Quincy, Massachusetts): Wollaston Station is served by the B branch of the MBTA Red Line. | Fairy Cafe (coffee)
 - 2026-11-21 23:30 ET · Builder B · Phase 2 item 8, puzzle, on `b/puzzle-data` (stacked on `b/badges-stats`), in progress:
   - `src/lib/puzzle.ts`: the puzzle for a New York date, guess checks, feedback with repeated letters, game state and reveals, the share grid, streaks (F7.1, F7.2, F7.5, F7.6, F7.7). `calendarDateOf` and `addDays` in `src/lib/time.ts`.
   - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-060).
