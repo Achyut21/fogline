@@ -79,17 +79,25 @@ test.describe("/design", () => {
       .click();
     await page.goto("/no-such-page");
     await expect(page.locator("html")).toHaveClass(night);
-    await page.evaluate(() => Object.assign(window, { sameDocument: true }));
+    await page.evaluate(() => {
+      Object.assign(window, { sameDocument: true });
+      document
+        .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+        .forEach((meta) => (meta.dataset.before = ""));
+    });
 
     await page.getByRole("link", { name: system.notFound.home }).click();
     await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
     expect(await page.evaluate(() => "sameDocument" in window)).toBe(true);
-    // Next rewrites the viewport metas after the route commits, so give it time to do that.
-    await page.waitForTimeout(500);
-    expect(await themeColors(page)).toEqual([
-      { media: "(prefers-color-scheme: light)", content: themeColor.night },
-      { media: "(prefers-color-scheme: dark)", content: themeColor.night },
-    ]);
+    // Next swaps in fresh theme-color tags with the server values after the route commits.
+    await expect(page.locator('meta[name="theme-color"][data-before]')).toHaveCount(0);
+    await expect(page.locator('meta[name="theme-color"]')).toHaveCount(2);
+    await expect
+      .poll(() => themeColors(page))
+      .toEqual([
+        { media: "(prefers-color-scheme: light)", content: themeColor.night },
+        { media: "(prefers-color-scheme: dark)", content: themeColor.night },
+      ]);
   });
 
   test("has no horizontal scroll", async ({ page }) => {

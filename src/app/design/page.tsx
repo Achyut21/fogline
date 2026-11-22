@@ -201,7 +201,6 @@ export default function DesignPage() {
               className="w-full overflow-hidden rounded-md"
             >
               <rect width="160" height="96" fill="var(--map-land)" />
-              <CasedLines />
               <polygon points={hexagon(34, 48, 30)} fill="var(--fog)" />
               <polygon points={hexagon(86, 48, 30)} fill="var(--fog-thin)" />
               <polygon
@@ -210,6 +209,7 @@ export default function DesignPage() {
                 stroke="var(--fog-edge)"
                 strokeWidth={3}
               />
+              <CasedLines />
               <text
                 x="80"
                 y="88"

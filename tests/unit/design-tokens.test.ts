@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { contrast } from "@/lib/contrast";
 import { duration, ease } from "@/lib/motion";
 import { parseTokens } from "@/lib/tokens";
-import { lines, textPairs } from "@/styles/pairs";
+import { controlPairs, lines, textPairs } from "@/styles/pairs";
 import { colorGroups } from "@/styles/swatches";
 import { themeColor } from "@/styles/theme-color";
 import { scan } from "../support/token-scan";
@@ -69,7 +69,10 @@ describe("design tokens", () => {
       "arbitrary Tailwind property",
     );
     expect(rules("style={{ marginTop: 12 }}")).toEqual(["inline style length"]);
-    expect(rules('style={{ padding: "0.3rem" }}')).toContain("rem value");
+    expect(rules('style={{ padding: "0.3rem" }}')).toContain("length value");
+    expect(rules("margin: 0.3em; width: 50vw;")).toEqual(["length value", "length value"]);
+    expect(rules('transition={{ type: "spring", stiffness: 300 }}')).toEqual(["raw spring"]);
+    expect(rules("transition={{ delay: i * 0.05 }}")).toEqual(["raw duration"]);
     expect(rules('className="z-50"')).toEqual(["raw layer"]);
     expect(rules("zIndex: 40,")).toEqual(["raw layer"]);
     expect(rules('className="divide-gray-200 border-t-red-500 caret-white"')).toEqual([
@@ -85,6 +88,9 @@ describe("design tokens", () => {
     expect(scan('<a href="#add">')).toEqual([]);
     expect(scan("transition={{ duration: duration.fast, ease: ease.standard }}")).toEqual([]);
     expect(scan('style={{ background: "var(--fog)", flex: 1 }}')).toEqual([]);
+    expect(scan('style={{ width: "100%", top: "50%" }}')).toEqual([]);
+    expect(scan('"in your 20s", "the 1990s", "3s left"')).toEqual([]);
+    expect(scan("transition={{ ...spring.smooth, delay: i * stagger.list }}")).toEqual([]);
   });
 
   it.each(Object.entries(themes))("meets WCAG AA for every text pair in %s", (_, tokens) => {
@@ -93,6 +99,16 @@ describe("design tokens", () => {
       .filter(({ ratio }) => ratio < 4.5);
     expect(failing).toEqual([]);
   });
+
+  it.each(Object.entries(themes))(
+    "keeps input borders and focus rings at 3:1 in %s (WCAG 1.4.11)",
+    (_, tokens) => {
+      const failing = controlPairs
+        .map(({ fg, bg }) => ({ pair: `${fg} on ${bg}`, ratio: contrast(tokens[fg], tokens[bg]) }))
+        .filter(({ ratio }) => ratio < 3);
+      expect(failing).toEqual([]);
+    },
+  );
 
   it("[F2.3] keeps the official MBTA line colors", () => {
     expect([day["line-red"], day["line-orange"], day["line-blue"], day["line-green"]]).toEqual([

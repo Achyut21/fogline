@@ -45,7 +45,7 @@ export const design = {
     "map-park": "Park",
     "map-road": "Road",
   },
-  fogStates: "Fog, thin fog and an uncovered cell over land",
+  fogStates: "Lines above fog, thin fog and an uncovered cell",
   stationSample: "Kenmore",
   contrastColumns: {
     pair: "Text on background",

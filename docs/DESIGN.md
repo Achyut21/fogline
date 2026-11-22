@@ -91,8 +91,9 @@ Values live in `src/styles/tokens.css` as CSS variables: day in `:root`, night i
 
 Contrast rules (each one is a unit test):
 - Every text pair in `src/styles/pairs.ts` meets WCAG 2.2 AA (4.5:1) in both themes. Add a pair there before using a new text and background combination.
+- Input borders and focus rings reach 3:1 against what sits next to them (`controlPairs` in `src/styles/pairs.ts`, WCAG 1.4.11). `--field-border` drops to about 3:1 on `--surface-sunken`, so inputs sit on `--surface`.
 - White on the Orange Line fails AA, so orange badges use `--line-ink-orange`. White on red (4.87:1), green (4.81:1) and blue (9.50:1) passes.
-- Every T line reaches 3:1 against land, water, park, road and fog in both themes (WCAG 1.4.11), or against its casing where a ground is too close. A cased line's adjacent color is its casing. Orange gets an ink casing by day, blue a light casing by night, and the others dark casings by night, as on the canvas. The line colors don't change. `/design` draws every line on every ground.
+- Every T line reaches 3:1 against land, water, park, road and fog in both themes (WCAG 1.4.11), or against its casing where a ground is too close. A cased line's adjacent color is its casing. Orange gets an ink casing by day, blue a light casing by night, and the others dark casings by night, as on the canvas. The line colors don't change. `/design` draws every line on every ground, and above the fog (F2.3).
 
 ### Type
 

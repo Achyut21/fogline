@@ -1,6 +1,7 @@
-// The design-token check (PHASES standing checks, D-054): raw colors, lengths, times and layers,
-// arbitrary Tailwind values, Tailwind's default palette and off-scale spacing are findings. It reads
-// one line at a time, so an inline style or Motion transition split over lines can slip through.
+// The design-token check (PHASES standing checks, D-054): raw colors, lengths, times, springs and
+// layers, arbitrary Tailwind values, Tailwind's default palette and off-scale spacing are findings.
+// It reads one line at a time, so an inline style or Motion transition split over lines can slip
+// through. Whole seconds ("1s") pass, so copy like "the 1990s" doesn't trip it.
 
 export type Finding = { line: number; rule: string; match: string };
 
@@ -20,8 +21,8 @@ const rules: { rule: string; pattern: RegExp; allow?: (m: RegExpMatchArray) => b
   },
   { rule: "color function", pattern: /\b(?:rgba?|hsla?|oklch|oklab|lab|lch|color-mix)\(/g },
   { rule: "pixel value", pattern: /\b\d+(?:\.\d+)?px\b/g },
-  { rule: "rem value", pattern: /(?<![\w.-])\d*\.?\d+rem\b/g },
-  { rule: "time value", pattern: /(?<![\w.-])\d*\.?\d+m?s\b/g },
+  { rule: "length value", pattern: /(?<![\w.-])\d*\.?\d+(?:rem|em|vw|vh|dvh|svh|lvh)\b/g },
+  { rule: "time value", pattern: /(?<![\w.-])(?:\d*\.?\d+ms|\d*\.\d+s)\b/g },
   {
     rule: "arbitrary Tailwind value",
     pattern: /(?<![\w-])[a-z][\w:-]*-\[[^\]\s]*[\d#][^\]\s]*\](?!:)/g,
@@ -43,7 +44,7 @@ const rules: { rule: string; pattern: RegExp; allow?: (m: RegExpMatchArray) => b
   { rule: "raw duration", pattern: /(?<![\w-])(?:duration|delay)-\d+\b/g },
   {
     rule: "raw duration",
-    pattern: /\btransition\s*[:=]\s*\{\{?[^}]*\b(?:duration|delay)\s*:\s*\d/g,
+    pattern: /\btransition\s*[:=]\s*\{\{?[^}]*\b(?:duration|delay)\s*:\s*[^,}]*\d/g,
   },
   {
     rule: "raw duration",
@@ -52,10 +53,11 @@ const rules: { rule: string; pattern: RegExp; allow?: (m: RegExpMatchArray) => b
   {
     rule: "inline style length",
     pattern: new RegExp(
-      `style=\\{\\{[^}]*\\b(?:${lengthProps})[A-Za-z]*\\s*:\\s*["'\`]?-?\\d*\\.?[1-9]`,
+      `style=\\{\\{[^}]*\\b(?:${lengthProps})[A-Za-z]*\\s*:\\s*["'\`]?-?\\d*\\.?[1-9]\\d*(?![\\d.]*%)`,
       "g",
     ),
   },
+  { rule: "raw spring", pattern: /\b(?:stiffness|damping|mass|bounce)\s*:\s*\d/g },
   { rule: "raw layer", pattern: /(?<![\w-])-?z-\d+\b|\bzIndex\s*:\s*-?\d/g },
 ];
 

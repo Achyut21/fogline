@@ -32,4 +32,14 @@ export const textPairs = [
   { fg: "line-ink-orange", bg: "line-orange" },
 ] as const;
 
+// Control boundaries and focus rings against what sits next to them, held to 3:1 (WCAG 1.4.11).
+export const controlPairs = [
+  { fg: "field-border", bg: "surface" },
+  { fg: "field-border", bg: "field" },
+  { fg: "focus", bg: "bg" },
+  { fg: "focus", bg: "surface" },
+  { fg: "focus", bg: "surface-sunken" },
+  { fg: "focus", bg: "field" },
+] as const;
+
 export const lines = ["red", "orange", "blue", "green"] as const;
