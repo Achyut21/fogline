@@ -124,7 +124,7 @@ describe("committed neighborhoods-h3.json", () => {
   const regions = z.array(regionSchema).parse(read("neighborhoods-h3.json"));
 
   it("[F2.4] has Boston's 26 neighborhoods and 3 cities, each cell in one region", () => {
-    // IDs are stored as First Light's scope, so a renamed neighborhood must keep its ID (D-058).
+    // IDs are stored as First Light's scope, so a renamed neighborhood must keep its ID (D-062).
     expect(regions.map((r) => r.id).sort()).toEqual([
       "allston",
       "back-bay",

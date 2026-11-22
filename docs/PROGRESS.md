@@ -147,10 +147,10 @@ This is the shared status board for both builders. Update it after every finishe
 ## Open questions
 
 - Move the recorder into Phase 2? See Asks for A under Builder B.
-- Replays and fog (Phase 3, D-059): F3.5 says replay reveals cells like a live ride, so replays clear fog without riding. A replay's own ride summary counts its events, as F3.5 asks, but its events earn no badges and don't count in night or lifetime totals. The cells it clears do count toward percent uncovered and First Light. Keep that, or make replays reveal nothing? Decide before Phase 3's ride work.
-- Prices (Phase 2 item 6, D-057): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. The budget filter therefore excludes nothing today. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
-- Vibe and the F4 category list (Phase 2 item 5, D-056): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
-- Rail-replacement shuttles (Phase 2 item 4, D-055): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
+- Replays and fog (Phase 3, D-063): F3.5 says replay reveals cells like a live ride, so replays clear fog without riding. A replay's own ride summary counts its events, as F3.5 asks, but its events earn no badges and don't count in night or lifetime totals. The cells it clears do count toward percent uncovered and First Light. Keep that, or make replays reveal nothing? Decide before Phase 3's ride work.
+- Prices (Phase 2 item 6, D-061): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. The budget filter therefore excludes nothing today. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
+- Vibe and the F4 category list (Phase 2 item 5, D-057): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
+- Rail-replacement shuttles (Phase 2 item 4, D-056): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
@@ -220,8 +220,8 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
 - 2026-11-21 23:30 ET · Builder B · Phase 2 item 8, puzzle, on `b/puzzle-data` (stacked on `b/badges-stats`), in progress:
   - `src/lib/puzzle.ts`: the puzzle for a New York date, guess checks, feedback with repeated letters, game state and reveals, the share grid, streaks (F7.1, F7.2, F7.5, F7.6, F7.7). `calendarDateOf` and `addDays` in `src/lib/time.ts`.
-  - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-060).
-  - `pnpm data:events`: publishes only checked, all-ages events near a station, one per date (D-060).
+  - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-064).
+  - `pnpm data:events`: publishes only checked, all-ages events near a station, one per date (D-064).
   - Tests: 16 unit tests, including the midnight reset under a UTC server clock and on both DST days, repeated letters, streaks, and every reason `data:events` refuses.
   - `data/events.json`: 14 events, one a day from Nov 22 to Dec 5. They include city tree lightings, a holiday market, Bruins, Celtics, Messiah, the Holiday Pops, a Harvard Book Store talk and the Huntington's new opera. Every answer is distinct.
   - Event check: Claude's research found 2 to 4 candidates a day and confirmed each 2026 date on the organizer's page. B accepted that list to save time, without opening each link, and the entries are marked checked on that basis. 13 of the 14 pages print the 2026 date. The Holiday Pops page (Dec 4) shows the date without a year; its address says 2026. Few pages state an age policy; none of these events is 21+. Thanksgiving's puzzle points to Messiah on Nov 27.
@@ -231,7 +231,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - `src/lib/rides.ts`: rides, lines and visited stations from ride events, and `live()` to leave replays out of totals and badges.
   - `src/lib/badges.ts`: the 8 night badges and 4 explorer badges, including when a region reached 50% for First Light (F8.1, F8.2).
   - `src/lib/stats.ts`: miles on the T, stops, lines, miles walked, nights out, last trains caught (F8.3). `src/lib/squad.ts`: squad mates (F12.1).
-  - Rules the docs left open are in D-059:
+  - Rules the docs left open are in D-063:
     - comparing badges need 2 people in their own comparison, and how ties share
     - the ride home starts after the last check-in and the last stop's time
     - a late last train counts within 10 minutes
@@ -246,7 +246,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - `[F8.3]`: rides, miles, stops, lines, walking, nights out, last trains.
     - `[F12.1]`: squads.
   - Full suite 199 passed; `src/lib` line coverage 99.8%.
-  - code-critic: the first pass failed. The docs said replays never count, though First Light and percent uncovered follow fog that replays clear; the ride home could be a crawl ride; a late last train didn't count; and the Night Owl test passed with a server-time bug. All fixed, with tests (D-059).
+  - code-critic: the first pass failed. The docs said replays never count, though First Light and percent uncovered follow fog that replays clear; the ride home could be a crawl ride; a late last train didn't count; and the Night Owl test passed with a server-time bug. All fixed, with tests (D-063).
   - code-critic, second pass: failed. F3.5 needs a replay's own ride summary to count, the 10-minute grace accepted a different trip, and Closest Call ran before the rides home. Now:
     - a ride summary counts replays; totals and badges use live events;
     - the grace needs the last train's trip;
@@ -256,21 +256,21 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - code-critic, third pass: PASS. Its notes are done too: home-station cells don't count for First Light, F8.1 names the cron rerun for Closest Call, and stale replay notes are fixed.
   - Next: item 8 (events, words and puzzle).
 - 2026-11-21 21:34 ET · Builder B · Phase 2 item 7, neighborhoods, on `b/neighborhoods` (stacked on `b/places-grades`):
-  - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-058).
+  - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-062).
   - `src/lib/geo/regions.ts`: region lookup, each region's uncovered share, and Boston's share as the union of its neighborhoods (F2.4).
   - A second run produced a byte-identical file.
   - Tests: 8 unit tests.
     - `[F2.4]` polygon fill, holes and multipolygons, the first region keeping a shared cell.
     - Region shares, Boston's union, Beyond.
     - The committed file: 26 neighborhoods and 3 cities, each cell once, unique IDs, and six known stations in the right region (Harvard, Davis, Coolidge Corner, Kenmore, Park Street, and Quincy Center in Beyond).
-  - code-critic: the share tests used one share for every region, so wrong formulas still passed. They now use different shares. The script now validates the file before writing it, and First Light leaves out the two regions smaller than a cell (D-058).
+  - code-critic: the share tests used one share for every region, so wrong formulas still passed. They now use different shares. The script now validates the file before writing it, and First Light leaves out the two regions smaller than a cell (D-062).
   - Next: item 10 (check-ins, badges and stats), then item 8 (events, words and puzzle).
 - 2026-11-21 21:31 ET · Builder B · Phase 2 item 6, places and grades, on `b/places-grades` (stacked on `b/fair-solver`):
   - `pnpm data:places` writes `data/places.json`: 2,327 named spots within 600 m walking of a station, from 5,154 OSM elements (data of 2026-11-22T02:19Z).
     - By category: food 1,341, coffee 320, park 290, bar 162, culture 154, dessert 43, club 17.
     - Every nearby station is kept with its walking distance.
-  - `pnpm data:grades` adds inspection grades from Analyze Boston. `src/lib/grades.ts` holds points, cutoffs, name and street normalization, Jaro-Winkler and matching (D-057).
-  - **Grade distribution (PHASES gate, also in D-057):**
+  - `pnpm data:grades` adds inspection grades from Analyze Boston. `src/lib/grades.ts` holds points, cutoffs, name and street normalization, Jaro-Winkler and matching (D-061).
+  - **Grade distribution (PHASES gate, also in D-061):**
     - Citywide, 4,092 active establishments: A 2,991 (73.1%), B 705 (17.2%), C 396 (9.7%).
     - Matched to spots: 809 of 1,883 inspectable spots, A 516, B 167, C 126.
     - The plain latest inspection would have given 98.8% A, because re-inspections mark violations corrected; the grade uses the latest routine inspection instead.
@@ -280,7 +280,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The inspection SQL had no test.
     - Whole-name similarity left false matches.
     - Bars that OSM tags as restaurants were all-ages.
-    - All fixed with tests: an integration test runs the inspection SQL on Postgres, and the reruns and calibration above are from the fixed code (D-057).
+    - All fixed with tests: an integration test runs the inspection SQL on Postgres, and the reruns and calibration above are from the fixed code (D-061).
   - code-critic, second pass: failed on OSM `min_age=21` being ignored (Lolita was all-ages). Also fixed: more bar words, short words must match exactly ("Mario's" no longer matches "Maria's"), the city's counter numbers dropped, and blank comments not counted as a second citation. Rebuilt twice with identical output.
   - Reproducible: rerunning either pipeline from the cache gave byte-identical `places.json`.
   - Environment note: the Claude Code sandbox blocks `overpass-api.de` and two mirrors. The one reachable mirror answered 504 when busy, so `data:places` ran once with the sandbox off. `.cache/` is ignored by git (shared file `.gitignore`).
@@ -292,7 +292,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The committed `places.json` checked against its schema.
   - Next: code-critic, then item 7 (neighborhoods).
 - 2026-11-21 20:55 ET · Builder B · Phase 2 item 5, fair solver and miles, on `b/fair-solver` (stacked on `b/last-train`):
-  - `src/lib/solver/fair.ts`: `rankStations`, `spotsNear` and `fairOptions` (D-056).
+  - `src/lib/solver/fair.ts`: `rankStations`, `spotsNear` and `fairOptions` (D-057).
     - `rankStations`: S(d), with the sum and then the station as tie-breaks, and the 75-minute cut. Unknown stations throw.
     - `spotsNear`: grades, and no bars, clubs or 21+ spots for under-21 groups.
     - `fairOptions`: 3 stations that have matching spots. When nothing fits it names a blocker, a pair of blockers, or no trains.
@@ -323,7 +323,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
 - 2026-11-21 20:42 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
   - `src/lib/lasttrain/search.ts`: backward round-based search with two times per station (board, arrive by train), at most two transfers, walks into home and between stations, and no-pickup or no-drop-off stops skipped.
-  - `src/lib/lasttrain/leave-by.ts`: the F5.2 buffer, the F5.3 warning, the F5.5 last stop, the F5.7 walk home. Results also give `firstTrain`. D-055.
+  - `src/lib/lasttrain/leave-by.ts`: the F5.2 buffer, the F5.3 warning, the F5.5 last stop, the F5.7 walk home. Results also give `firstTrain`. D-056.
   - `timetable.json` now carries transfer times and walks, regenerated from the same feed.
   - **Known last trains (PHASES gate).** `pnpm check:last-trains 2026-11-23` against the MBTA V3 schedules API, matching by headsign:
 
@@ -334,7 +334,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     | Orange Line, Downtown Crossing → Forest Hills | Mon 2026-11-23 | 12:45 AM | 12:45 AM |
 
     - All three match to the second. On Saturday 2026-11-28 they match too (2:14 AM, 1:36 AM, 1:45 AM).
-    - On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM). A Red Line diversion turns trains at Broadway with shuttle buses beyond, so the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-055, Open questions, deferred).
+    - On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM). A Red Line diversion turns trains at Broadway with shuttle buses beyond, so the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-056, Open questions, deferred).
   - Tests: 22 unit tests: 21 on hand-built timetables, and 1 checking that every route returned for sampled real station pairs is possible and never rides past home.
     - `[F5.1]`: past 24:00:00, transfer time, at most two transfers, a walk without the transfer time, a route checked through the right rounds, a walk on when a transfer is too tight, walking home, a walk at the start, no-board and no-alight stops, a tie, holiday service, the 3 AM rule.
     - `[F5.2]` (including the night the clocks fall back), `[F5.3]`, `[F5.5]`, `[F5.7]`. No train needed, no timetable, unknown stations, the margin.
@@ -348,7 +348,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
 - 2026-11-21 20:17 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:
   - `pnpm data:gtfs` (tsx) downloads the MBTA feed ("Fall 2026, 2026-11-19T01:01:13+00:00, version D", valid 2026-11-12 to 2026-12-12) and writes `data/stations.json` (125 stations), `graph.json` (3,446 weekday station pairs), `timetable.json` (19,807 trips, 42 station patterns) and `shapes.json` (18 canonical patterns). Representative dates: Mon 2026-11-16, Sat 2026-11-28, Sun 2026-11-29. A second run produced byte-identical files (sha256).
-  - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-054).
+  - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-055).
   - **Known trips (PHASES gate).** `pnpm check:trips` compares the model with a replay of the raw timetable: a rider arriving at each minute of the hour catches the actual next trains along the usual path, with `transfers.txt` times. Minutes:
 
     | Trip | When | Model | Timetable replay | Difference |
@@ -361,7 +361,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     | Sullivan Square → Lechmere (Orange, then Green at North Station) | Mon 6 PM | 16.8 | 16.0 | +0.8 |
     | Savin Hill → North Quincy (Ashmont branch, then Braintree at JFK/UMass) | Mon 6 PM | 19.4 | 16.6 | +2.8 |
 
-    All seven are within 3 minutes. JFK/UMass is the closest because the model assumes a random wait after a transfer, while the schedule times the Ashmont-to-Braintree connection: 6.0 min modeled for the walk and wait at JFK against 3.5 in the replay. Harvard → Kenmore is high for the same reason (D-054).
+    All seven are within 3 minutes. JFK/UMass is the closest because the model assumes a random wait after a transfer, while the schedule times the Ashmont-to-Braintree connection: 6.0 min modeled for the walk and wait at JFK against 3.5 in the replay. Harvard → Kenmore is high for the same reason (D-055).
   - Data notes: Symphony is marked "no drop-off" on all but one trip in this feed, so it's never a destination or a home with a last train. 1,221 Green Line E trips carry that `noAlight`. Items 4 and 5 should say so rather than fail.
   - Tests: 28 unit tests on a synthetic GTFS slice (`tests/fixtures/gtfs/`) and a hand-built graph.
     - Feed: the subway filter, quoted fields, missing columns, Thanksgiving's `calendar_dates` swap, a diversion on the first Monday and Saturday, canonical trips on a service that never runs.
@@ -377,7 +377,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The known-trip check is committed, with North Station and JFK trips.
     - Combining platforms is kept and documented with the JFK figure.
     Nits fixed too: one `bucketIndex`, the dead tie-break, `tripStops` built once, and typed loading through Zod.
-  - Second pass: PASS. Its SHOULD FIX corrected the reason given for the JFK trip, above and in D-054. Nits fixed:
+  - Second pass: PASS. Its SHOULD FIX corrected the reason given for the JFK trip, above and in D-055. Nits fixed:
     - Walks only count platform pairs on different lines.
     - The data-file test checks every index range.
     - One default transfer constant, a `meters` schema, and a warning log.
