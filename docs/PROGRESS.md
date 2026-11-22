@@ -286,6 +286,14 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:33 ET · Builder A · Phase 9 item 1, app shell and navigation (`a/shell`):
+  - `PageHeader` (one back-link pattern) on Calm, Find food, the ride list, the plan builder, the plan page and Squad; Calm goes back to Me.
+  - Me links Squad, Calm mode and How it works, so every feature has a way in; the map has a Ride button (DESIGN section 5) to recorded trips from the home station.
+  - The offline banner is in the root layout, above every screen, in the page flow (it pushes the screen down rather than covering its title).
+  - Map: new `states` update the fog without a reload (a check-in or puzzle reveal fades in where it is), the map reloads its colors on a theme change, the first-reveal card shows once per device (localStorage, with a fallback when storage is blocked), Find food's pins are readable.
+  - Tried and dropped: an app-wide `loading.tsx`. It makes the no-profile redirect happen in the browser after the page streams, which broke 15 e2e tests and would flash a skeleton.
+  - Tests: `[F2.4]` once-per-device card and Ride link; 456 unit/component/integration pass; e2e 105 passed, 15 skipped (by design). Screenshots at 390×844 in both themes and offline.
+
 - 2026-11-22 06:00 ET · Builder B · Phase 4 leftovers on `b/leftovers` (stacked on `b/crawls`, #44):
   - Checked A's work first: server-side puzzle results (`puzzle_results`) and the countdown's 20/5-minute colors are done. Nothing else from B's Phase 4/5 list was built.
   - **F6.4 plan end:** `/api/cron/end-plans` every 15 minutes (`endDuePlans`), with `ended_at` at the rule's time; badges awarded. DATA 3.19.

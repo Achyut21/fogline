@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { Measure } from "@/components/calm/measure";
 import { isLine, LineBadge } from "@/components/display/line-badge";
-import { Button } from "@/components/ui/button";
-import { calm } from "@/copy";
+import { app, calm } from "@/copy";
 import { loudnessOf } from "@/lib/noise";
 import { getDb } from "@/server/db/client";
 import { measuredSegments, nextStops } from "@/server/noise";
@@ -28,14 +26,7 @@ export default async function CalmPage() {
   const ranked = [...segments].sort((a, b) => a.db - b.db);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/">
-            <ArrowLeft aria-hidden="true" />
-            {calm.pageTitle}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/me", label: app.nav.me }} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-extrabold tracking-tight">{calm.title}</h1>

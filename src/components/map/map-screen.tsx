@@ -1,11 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { TrainFront } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { LineBadge } from "@/components/display/line-badge";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { map } from "@/copy";
+import { map, ride } from "@/copy";
 import type { MapData } from "@/server/map-data";
 import { QueryProvider } from "@/components/system/query-provider";
 import { StationSheet } from "./station-sheet";
@@ -16,6 +18,28 @@ const MapPane = dynamic(() => import("./map-pane").then((m) => m.MapPane), {
   loading: () => <div className="h-full w-full bg-(--map-land)" />,
 });
 
+// The first-reveal card shows once per device. Storage may be blocked (private mode), and then
+// the card shows each visit until the first ride clears more fog.
+const introKey = "fogline-intro-seen";
+const noop = () => () => {};
+
+function introSeen() {
+  try {
+    return localStorage.getItem(introKey) === "1";
+  } catch (e) {
+    if (e instanceof DOMException) return false;
+    throw e;
+  }
+}
+
+function rememberIntro() {
+  try {
+    localStorage.setItem(introKey, "1");
+  } catch (e) {
+    if (!(e instanceof DOMException)) throw e;
+  }
+}
+
 const views = [
   { value: "map", label: map.view.map },
   { value: "list", label: map.view.list },
@@ -23,9 +47,11 @@ const views = [
 
 // The map home (F2): Boston's uncovered share on top, the fog map or the list view (F2.7)
 // below, and the first-reveal card until it is dismissed.
-export function MapScreen({ data }: { data: MapData }) {
+export function MapScreen({ data, homeStation }: { data: MapData; homeStation: string }) {
   const [view, setView] = useState<"map" | "list">("map");
-  const [intro, setIntro] = useState(data.firstVisit);
+  const seen = useSyncExternalStore(noop, introSeen, () => true);
+  const [dismissed, setDismissed] = useState(false);
+  const intro = data.firstVisit && !seen && !dismissed;
   const states = useMemo(() => new Map(data.cells), [data.cells]);
   const names = useMemo(() => new Map(data.stations.map((s) => [s.id, s.name])), [data.stations]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -59,6 +85,18 @@ export function MapScreen({ data }: { data: MapData }) {
             label={map.label(data.share)}
             onStation={setSelected}
           />
+          {!intro && (
+            <Button
+              asChild
+              size="lg"
+              className="absolute right-4 bottom-16 z-(--layer-chips) shadow-md"
+            >
+              <Link href={`/ride?from=${encodeURIComponent(homeStation)}`}>
+                <TrainFront aria-hidden="true" />
+                {ride.mapButton}
+              </Link>
+            </Button>
+          )}
           {intro && (
             <section
               aria-labelledby="first-reveal"
@@ -68,7 +106,14 @@ export function MapScreen({ data }: { data: MapData }) {
                 {map.firstReveal.title}
               </h2>
               <p className="text-ink-muted">{map.firstReveal.body}</p>
-              <Button variant="secondary" className="self-start" onClick={() => setIntro(false)}>
+              <Button
+                variant="secondary"
+                className="self-start"
+                onClick={() => {
+                  setDismissed(true);
+                  rememberIntro();
+                }}
+              >
                 {map.firstReveal.dismiss}
               </Button>
             </section>
