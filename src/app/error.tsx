@@ -17,7 +17,7 @@ export default function ErrorPage({ retry }: { error: unknown; retry: () => void
         {system.error.retry}
       </Button>
       {!onHomePage && (
-        <Button asChild size="lg" variant="outline">
+        <Button asChild size="lg" variant="secondary">
           <Link href="/">{system.error.home}</Link>
         </Button>
       )}

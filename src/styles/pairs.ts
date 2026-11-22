@@ -1,0 +1,45 @@
+// Every foreground and background token pair used for text, as CSS variable names. /design shows
+// their ratios, and a unit test holds each to WCAG AA (4.5:1) in day and night.
+export const textPairs = [
+  { fg: "ink", bg: "bg" },
+  { fg: "ink", bg: "surface" },
+  { fg: "ink", bg: "surface-raised" },
+  { fg: "ink", bg: "surface-sunken" },
+  { fg: "ink", bg: "accent-soft" },
+  { fg: "ink-muted", bg: "bg" },
+  { fg: "ink-muted", bg: "surface" },
+  { fg: "ink-muted", bg: "surface-sunken" },
+  { fg: "ink-subtle", bg: "surface" },
+  { fg: "accent", bg: "bg" },
+  { fg: "accent", bg: "surface" },
+  { fg: "accent", bg: "surface-sunken" },
+  { fg: "accent-ink", bg: "accent" },
+  { fg: "ink", bg: "field" },
+  { fg: "ink-muted", bg: "field" },
+  { fg: "success", bg: "bg" },
+  { fg: "success", bg: "surface" },
+  { fg: "success", bg: "surface-sunken" },
+  { fg: "warning", bg: "bg" },
+  { fg: "warning", bg: "surface" },
+  { fg: "warning", bg: "surface-sunken" },
+  { fg: "danger", bg: "bg" },
+  { fg: "danger", bg: "surface" },
+  { fg: "danger", bg: "surface-sunken" },
+  { fg: "danger-ink", bg: "danger" },
+  { fg: "line-ink", bg: "line-red" },
+  { fg: "line-ink", bg: "line-green" },
+  { fg: "line-ink", bg: "line-blue" },
+  { fg: "line-ink-orange", bg: "line-orange" },
+] as const;
+
+// Control boundaries and focus rings against what sits next to them, held to 3:1 (WCAG 1.4.11).
+export const controlPairs = [
+  { fg: "field-border", bg: "surface" },
+  { fg: "field-border", bg: "field" },
+  { fg: "focus", bg: "bg" },
+  { fg: "focus", bg: "surface" },
+  { fg: "focus", bg: "surface-sunken" },
+  { fg: "focus", bg: "field" },
+] as const;
+
+export const lines = ["red", "orange", "blue", "green"] as const;

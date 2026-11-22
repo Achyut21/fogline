@@ -26,5 +26,6 @@ export default defineConfig([
     "test-results/**",
     "next-env.d.ts",
     ".claude/skills/**",
+    ".claude/worktrees/**",
   ]),
 ]);

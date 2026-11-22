@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#14202e"/>
-  <g fill="#e8eef4">
-    <rect x="128" y="170" width="256" height="28" rx="14" opacity="0.35"/>
-    <rect x="160" y="242" width="192" height="28" rx="14" opacity="0.6"/>
-    <rect x="128" y="314" width="256" height="28" rx="14" opacity="0.9"/>
-  </g>
+  <!-- Token colors: night bg, night accent-soft (cleared), day fog, night accent. Every shape sits inside the central 80%, the maskable safe zone. -->
+  <rect width="512" height="512" fill="#0e1013"/>
+  <path fill="#233b3a" d="M256.0 189.3 L313.8 222.7 L313.8 289.3 L256.0 322.7 L198.2 289.3 L198.2 222.7 Z M319.7 299.7 L377.5 333.1 L377.5 399.7 L319.7 433.1 L262.0 399.7 L262.0 333.0 Z"/>
+  <path fill="#fcfcfd" fill-opacity="0.45" d="M383.5 189.3 L441.2 222.7 L441.2 289.3 L383.5 322.7 L325.7 289.3 L325.7 222.7 Z M192.3 299.7 L250.0 333.1 L250.0 399.7 L192.3 433.1 L134.5 399.7 L134.5 333.0 Z"/>
+  <path fill="#fcfcfd" d="M192.3 78.9 L250.0 112.3 L250.0 179.0 L192.3 212.3 L134.5 179.0 L134.5 112.3 Z M319.7 78.9 L377.5 112.3 L377.5 179.0 L319.7 212.3 L262.0 179.0 L262.0 112.3 Z M128.5 189.3 L186.3 222.7 L186.3 289.3 L128.5 322.7 L70.8 289.3 L70.8 222.7 Z"/>
+  <line x1="256" y1="256" x2="341.5" y2="404.1" stroke="#3bc9be" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="22" fill="#fcfcfd" stroke="#0e1013" stroke-width="8"/>
 </svg>

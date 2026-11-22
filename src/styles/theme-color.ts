@@ -1,6 +1,6 @@
-// Browser chrome colors for the manifest and the theme-color meta tags. Phase 1 replaces these
-// with values from src/styles/tokens.css.
+// Browser chrome colors for the manifest and the theme-color meta tags, which need literal
+// colors (D-043). They equal --bg in src/styles/tokens.css; a unit test keeps them equal.
 export const themeColor = {
-  day: "#ffffff",
-  night: "#0a0a0a",
+  day: "#f4f5f7",
+  night: "#0e1013",
 } as const;
