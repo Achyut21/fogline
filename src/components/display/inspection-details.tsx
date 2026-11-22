@@ -31,7 +31,18 @@ export function InspectionDetails({ spotId }: { spotId: string }) {
         {grades.details}
       </summary>
       {pending && <p className="text-ink-muted">{grades.loading}</p>}
-      {failed && <p className="text-danger">{grades.failed}</p>}
+      {failed && (
+        <p className="flex items-center gap-3 text-danger">
+          {grades.failed}
+          <button
+            type="button"
+            onClick={() => load(true)}
+            className="min-h-11 font-semibold text-accent underline"
+          >
+            {grades.retry}
+          </button>
+        </p>
+      )}
       {inspection && (
         <div className="flex flex-col gap-2 pb-2">
           <p className="font-semibold">

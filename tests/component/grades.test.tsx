@@ -20,7 +20,7 @@ describe("grades", () => {
     expect(screen.getByText(grades.noMatch)).toBeInTheDocument();
   });
 
-  it("[F11.2] lists the cited violations when opened", async () => {
+  it("lists the city's cited violations when opened (F11.2's plain-English rewrite is still to come)", async () => {
     inspection.mockResolvedValue({
       letter: "C",
       date: "2026-04-09",
@@ -39,4 +39,16 @@ describe("grades", () => {
     expect(screen.getByText(grades.level["***"])).toBeInTheDocument();
     expect(inspection).toHaveBeenCalledWith("osm:node/1");
   });
+});
+
+it("offers a retry when the inspection fails to load", async () => {
+  inspection.mockRejectedValueOnce(new Error("offline"));
+  inspection.mockResolvedValueOnce({ letter: "A", date: "2026-04-09", violations: [] });
+  const { container } = render(<InspectionDetails spotId="osm:node/2" />);
+  const details = container.querySelector("details");
+  if (!details) throw new Error("no details");
+  details.open = true;
+  fireEvent(details, new Event("toggle"));
+  fireEvent.click(await screen.findByRole("button", { name: grades.retry }));
+  expect(await screen.findByText(grades.none)).toBeInTheDocument();
 });
