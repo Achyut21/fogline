@@ -580,8 +580,16 @@ Decision:
 Why: F2.5 asks for live departures within 2 s and the stop card if seen; the feed's shape decides the rest.
 Consequences: DATA 3.13 added. The map page's RSC payload measured 187 KB uncompressed for a new profile, about 40 KB of it the 361 nearby spots; cards come only for uncovered stations. The 110 KB of line shapes in the same payload (code-critic on #32) is the bigger cost. F3.1's trains list reuses the route.
 
+**D-069 · 2026-11-22 · Ride replay timeline (Phase 3 item 4).**
+Decision:
+- A recorded trip is one `vehicle_positions` row a minute, so a train moves several stops between rows. Every station on the route's shape between two rows counts as passed, timed by its distance between them (DATA 3.14). This settles the "passed" open question.
+- The Red Line branch comes from the shape that holds the most stations the trip was seen at.
+- A replay lists trips that left the station in the last 24 hours and pass at least three more stops.
+- Each stop goes through `recordReplayStop`, which rebuilds the ride on the server from the recorded rows, so the client only sends how far it got. It writes a `ride_events` row with `is_replay` and marks the k=1 cells as seen. D-063 stands: replays clear fog, earn no badges and stay out of night and lifetime totals.
+Why: F3.5 needs a ride to work at any hour, and one-a-minute positions can't time each stop directly.
+Consequences: live trains (F3.1, F3.2) and train-lost (F3.6) come after the gate. Replaying the same trip twice writes its ride events again; they stay out of totals.
 
-**D-069 · 2026-11-22 · Recap share image (Phase 6, F9.3).**
+**D-070 · 2026-11-22 · Recap share image (Phase 6, F9.3).**
 Decision:
 - `/api/og/recap/[planId]` renders with next/og, which can't read CSS variables or Tailwind classes. Its colors live in `src/styles/share-colors.ts`, literal copies of the day tokens kept equal by a unit test, like `theme-color.ts` (D-043). Its sizes are literal.
 - The token check exempts `src/styles/share-colors.ts` and that one route file, nothing wider (this extends D-054's exempt list).

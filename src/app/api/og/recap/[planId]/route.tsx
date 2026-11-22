@@ -9,7 +9,7 @@ import { shareColors as c } from "@/styles/share-colors";
 // F9.3: the night recap as a 1080×1350 share image, with the same facts as the recap page. Only
 // participants get it (F9.4): the browser sends the session cookie when the page fetches it to
 // share or download. Satori can't read CSS variables or Tailwind classes, so sizes are literal
-// and colors come from share-colors (D-069). Titles, names and the spot line are clamped and the
+// and colors come from share-colors (D-070). Titles, names and the spot line are clamped and the
 // badge list is capped, so nothing runs off the canvas. The worst case fills it exactly: any added
 // height (another stat row, bigger chips) clips the badges again.
 
