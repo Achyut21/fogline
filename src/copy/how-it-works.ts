@@ -6,6 +6,11 @@ export const howItWorks = {
   intro:
     "Fogline runs on live MBTA data and a TimescaleDB database. These numbers update every minute.",
   liveHeading: "Live from the database",
+  liveError: {
+    title: "Live numbers didn't load",
+    body: "The database didn't answer. The data sources below still work.",
+  },
+  quiet: "No check-ins or rides yet. They show here once people go out.",
   rows: {
     vehicle_positions: "Train positions recorded",
     checkins: "Check-ins",

@@ -133,7 +133,16 @@ describe.skipIf(testUrl === "")("How it works numbers", () => {
 
   it("[F15.2] serves the same numbers for 60 s, then queries again", async () => {
     const first = await cachedHowItWorks(db, 1_000_000);
-    expect(await cachedHowItWorks(db, 1_059_000)).toBe(first);
-    expect(await cachedHowItWorks(db, 1_061_000)).not.toBe(first);
+    expect((await cachedHowItWorks(db, 1_059_000))?.numbers).toBe(first?.numbers);
+    expect((await cachedHowItWorks(db, 1_061_000))?.numbers).not.toBe(first?.numbers);
+  });
+
+  it("[F15.2] keeps the last numbers with their age when the database stops answering", async () => {
+    const latest = await cachedHowItWorks(db, 2_000_000);
+    const closed = createDb(scratch.url);
+    await closed.$client.end();
+    const stale = await cachedHowItWorks(closed, 2_100_000);
+    expect(stale?.numbers).toBe(latest?.numbers);
+    expect(stale?.readAt.getTime()).toBe(2_000_000);
   });
 });
