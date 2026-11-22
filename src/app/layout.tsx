@@ -2,6 +2,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { MotionProvider } from "@/components/system/motion-provider";
+import { QueryProvider } from "@/components/system/query-provider";
 import { ThemeProvider } from "@/components/system/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { app } from "@/copy";
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           cacheOnNavigation={false}
         >
           <ThemeProvider>
-            <MotionProvider>{children}</MotionProvider>
+            <MotionProvider>
+              <QueryProvider>{children}</QueryProvider>
+            </MotionProvider>
             <Toaster />
           </ThemeProvider>
         </SerwistProvider>

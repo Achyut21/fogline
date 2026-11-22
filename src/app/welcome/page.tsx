@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { lines, type Line } from "@/components/display/line-badge";
+import { isLine } from "@/components/display/line-badge";
 import { onboarding } from "@/copy";
 import { haversineM } from "@/lib/geo/distance";
 import { currentProfile } from "@/server/profile";
@@ -9,8 +9,6 @@ import { stations } from "@/server/stations";
 import { Onboarding } from "./onboarding";
 
 export const metadata: Metadata = { title: onboarding.pageTitle };
-
-const isLine = (route: string): route is Line => lines.some((line) => line === route);
 
 // The five stations nearest each campus, nearest first: the home-station step suggests the first.
 // "Other" has no campus, so it gets no suggestions; every school can pick any station.

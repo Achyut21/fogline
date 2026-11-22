@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { map } from "@/copy";
 import type { MapData } from "@/server/map-data";
+import { StationSheet } from "./station-sheet";
 
 // MapLibre and three.js load in the browser only, after first paint (DESIGN section 9).
 const MapPane = dynamic(() => import("./map-pane").then((m) => m.MapPane), {
@@ -25,6 +26,9 @@ export function MapScreen({ data }: { data: MapData }) {
   const [view, setView] = useState<"map" | "list">("map");
   const [intro, setIntro] = useState(data.firstVisit);
   const states = useMemo(() => new Map(data.cells), [data.cells]);
+  const names = useMemo(() => new Map(data.stations.map((s) => [s.id, s.name])), [data.stations]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const station = data.stations.find((s) => s.id === selected) ?? null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -52,6 +56,7 @@ export function MapScreen({ data }: { data: MapData }) {
             stations={data.mapStations}
             center={data.home}
             label={map.label(data.share)}
+            onStation={setSelected}
           />
           {intro && (
             <section
@@ -95,29 +100,33 @@ export function MapScreen({ data }: { data: MapData }) {
             </h2>
             <ul className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm">
               {data.stations.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex min-h-11 items-center justify-between gap-3 px-4 py-2"
-                >
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold">{s.name}</span>
-                    {s.lines.map((line) => (
-                      <LineBadge key={line} line={line} />
-                    ))}
-                  </span>
-                  <span
-                    className={
-                      s.uncovered ? "text-sm font-bold text-accent" : "text-sm text-ink-muted"
-                    }
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelected(s.id)}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2 text-left"
                   >
-                    {s.uncovered ? map.list.uncovered : map.list.fog}
-                  </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold">{s.name}</span>
+                      {s.lines.map((line) => (
+                        <LineBadge key={line} line={line} />
+                      ))}
+                    </span>
+                    <span
+                      className={
+                        s.uncovered ? "text-sm font-bold text-accent" : "text-sm text-ink-muted"
+                      }
+                    >
+                      {s.uncovered ? map.list.uncovered : map.list.fog}
+                    </span>
+                  </button>
                 </li>
               ))}
             </ul>
           </section>
         </div>
       )}
+      <StationSheet station={station} names={names} onClose={() => setSelected(null)} />
     </div>
   );
 }
