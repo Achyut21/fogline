@@ -37,12 +37,13 @@ const demoMaxAge = 60 * 60 * 24;
 
 export async function startSession(id: string, demo = false) {
   const jar = await cookies();
+  // A demo copy is deleted after 24 hours, so its session ends with it.
   jar.set(cookieName, sign(id), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.VERCEL === "1",
     path: "/",
-    maxAge,
+    maxAge: demo ? demoMaxAge : maxAge,
   });
   if (demo) {
     jar.set(demoCookie, "1", {

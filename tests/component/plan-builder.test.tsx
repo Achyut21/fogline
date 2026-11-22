@@ -74,7 +74,8 @@ describe("LeaveByLine", () => {
         }}
       />,
     );
-    expect(screen.getByText(b.noTrain("Sam", leaveBy))).toBeInTheDocument();
+    // Testing Library reads the no-break space before AM/PM as a plain one.
+    expect(screen.getByText(b.noTrain("Sam", leaveBy).replace(/\s/g, " "))).toBeInTheDocument();
   });
 
   it("[F5.7] shows the walk home and a rideshare when no train runs", () => {
