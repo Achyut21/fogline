@@ -294,6 +294,13 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 07:50 ET · Builder B · Weekly plan fixes from A's notes ([#50](https://github.com/Achyut21/fogline/pull/50), `b/weekly-fixes`, D-076):
+  - "Invite friends" on a weekly plan makes one copy per person and returns it again on a repeat tap. An advisory lock stops simultaneous taps; the 8-at-once test fails without the lock and passes with it.
+  - The weekly cron runs Mondays 6–11 AM New York time (`0 10-16 * * 1`), so a failed 6 AM run is retried; a run that finds the week made stops.
+  - Docs: DATA 3.17, ARCHITECTURE section 11, D-076 (replaces D-025's single run).
+  - code-critic: FAIL (stale docs, a race test that didn't exercise the lock), fixed; re-check running.
+  - Also open: #47 (invite preview, retargeted to `main`). Phase 10 started on `b/phase10` (plan on the board; the timing-safe cron secret is done).
+
 - 2026-11-22 06:45 ET · Builder A · Phase 9 item 5, design pass (`a/design-pass`), continued from the 06:20 handoff:
   - Recap page compiles with the miles and stops tiles. Recap choreography now follows DESIGN section 8 (`ff19207`): the podium rises last to first, then names, then the numbers count up, then badges, then Share, by about 3 s; a tap or key press anywhere shows the final state at once; with reduced motion the final state shows with no animation (F9.2). New `Reveal` and `RevealStage` (`src/components/display/reveal.tsx`); StatCounter starts with its stage. The podium list is in place order for screen readers.
   - The offline page's test now expects the "Go to the map" link added in the WIP commit.
@@ -306,6 +313,13 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - design-critic SHOULD FIX, new (not done, for the next pass): /welcome hero isn't the canvas's full-bleed fog map with a floating card; /plans lists Past above This week; /me's name outranks its numbers; RideProgress stats are `text-lg`, not the Stat role; /find shows the browser's "Choose File" strings; the How it works heading wraps around its chip. NIT: no h1 on the map, puzzle keys under 44 px (record an exception), /offline buttons not aligned.
   - Also merged B's #47 (`1ebede9`) and #50 (`62253e1`, after bringing `main` in; CI green). Removed the `b-merge` scratch worktree. #54 (B's Phase 10) is in code-critic.
   - Next: merge `main` in, PR, code-critic, then `/phase-gate 9`.
+
+- 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
+  - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
+  - The image is the same for every link holder, so a 21+ plan always hides its title and venue.
+  - `src/app/p/[id]/page.tsx` now has `generateMetadata` that adds the `og:image` (a small change to A's file). Share fonts moved to `src/server/share-fonts.ts` for both images.
+  - Tests: `[F4.8]` `[F4.9]` `[F16.3]` in `tests/unit/plan-preview.test.ts`, and `[F4.8]` in `tests/integration/plan-image.test.ts`.
+  - #36 and #44 are merged. #45 is retargeted to `main` with main merged in.
 
 - 2026-11-22 06:20 ET · Builder A · Handoff (session limit; the next session runs under A's personal Claude account):
   - **Order for the next session, from A's human:**

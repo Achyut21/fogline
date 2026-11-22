@@ -56,12 +56,13 @@ export function mealAt(at: Date): "breakfast" | "lunch" | "dinner" {
 }
 
 /**
- * Whether the weekly cron should run now: Mondays at 6 AM in Boston. Vercel calls it at 10:00
- * and 11:00 UTC, so exactly one of the two lands at 6 AM in both EST and EDT.
+ * Whether the weekly cron should run now: Mondays from 6 to 11 AM in Boston. Vercel calls it
+ * hourly from 10:00 to 16:00 UTC, which covers 6 AM in both EST and EDT; the hours after the
+ * first are retries, and a run finds the week already made and stops (F10.4).
  */
 export function weeklyCronDue(now: Date): boolean {
   const { weekday, hour } = bostonClock(now);
-  return weekday === "Mon" && hour === 6;
+  return weekday === "Mon" && hour >= 6 && hour <= 11;
 }
 
 export const storedStopSchema = z.object({

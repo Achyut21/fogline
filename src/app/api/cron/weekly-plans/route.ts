@@ -4,8 +4,8 @@ import { weeklyCronDue } from "@/lib/weekly";
 import { getDb } from "@/server/db/client";
 import { makeWeeklyPlans } from "@/server/weekly";
 
-// Vercel Cron, Mondays at 10:00 and 11:00 UTC (F10.4). It works only in the run that's 6 AM in
-// New York, which one of the two is in both EST and EDT (ARCHITECTURE section 11).
+// Vercel Cron, Mondays hourly from 10:00 to 16:00 UTC (F10.4). It works from 6 to 11 AM in New
+// York, so a failed 6 AM run is retried; once the week's plans exist, later runs change nothing.
 
 const headers = { "cache-control": "no-store" };
 

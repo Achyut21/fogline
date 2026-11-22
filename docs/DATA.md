@@ -208,11 +208,11 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 
 ### 3.17 Weekly plans (F10.4, F10.5)
 
-- A Vercel Cron job (`0 10,11 * * 1`) runs Mondays at 10:00 and 11:00 UTC and works only in the one that's 6 AM in New York. It makes up to 3 plans for the week (Monday to Sunday by service date), once: a second run that week adds nothing.
+- A Vercel Cron job (`0 10-16 * * 1`) runs Mondays hourly from 10:00 to 16:00 UTC and works from 6 to 11 AM in New York, so a failed 6 AM run is retried. It makes up to 3 plans for the week (Monday to Sunday by service date), once: a run that finds the week's plans already made stops.
 - Fairness and last trains are worked out for a group from five campuses: Kendall/MIT, Harvard, Boston University Central, Northeastern University and Medford/Tufts (D-073). Every plan is all-ages, so it suits any viewer.
 - The first plan is a meal before (section 3.16) the earliest event this week that hasn't started and has a valid meal; later events are tried in order. The meal is breakfast before 11 AM, lunch before 4 PM, and dinner after, by when it starts. Then crawl templates fill the rest in order: dinner, then dessert (Friday 7 PM); coffee, then museum or show (Saturday 2 PM); brunch, then a park walk (Sunday 11 AM). A template is the categories of its stops and a start time; the crawl builder (section 3.15) picks the fairest crawl for it. A slot already past, or one with no valid crawl, is skipped.
 - A weekly plan is shown and copied only while every stop is still in the data and all-ages, its title is in the copy, and it's in its own week. A meal-before title names the venue when it's 3 words or fewer with no comma ("Dinner, then Symphony Hall"), and "the event" otherwise. The event's own title isn't sent, since it can give away a coming day's puzzle word. It stores its stops (spot or event ID, station, walk from the station, time, hours known or not, and the leg from the previous stop).
-- "Invite friends" (F10.5) copies a weekly plan into the viewer's own crawl: their plan with the same title, time and stops, their own invite link, and whether each leg is walked (section 3.11). Leave-by times are worked out for the people who join, like any plan.
+- "Invite friends" (F10.5) copies a weekly plan into the viewer's own crawl, once per person (asking again, from a double tap or another tab, returns the same copy until it ends): their plan with the same title, time and stops, their own invite link, and whether each leg is walked (section 3.11). Leave-by times are worked out for the people who join, like any plan.
 
 ### 3.18 Alerts on the way home (F5.6)
 
@@ -225,6 +225,13 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 
 - **Automatic end:** a cron job every 15 minutes awards the night's badges and then ends an open plan, whose start has passed, 2 hours after the last valid check-in at its last stop, or 4 hours after the last stop's scheduled time when nobody checked in there. `ended_at` is that time, not the cron's, so the check-in window and the recap cover the night. Awarding first means a failed award leaves the plan open for the next run.
 - **Remind me:** a calendar file (`text/calendar`) for the signed-in participant only. One event at their leave-by from the last stop, 5 minutes long, with display alarms 20 and 5 minutes before. Times are in UTC so every calendar shows local time. The description names the first train home: its line, boarding station and time. No file when there's no train to catch (home is a walk away, no train runs, or the date is past the timetable) or the plan has ended.
+
+### 3.20 Invite link preview (F4.8)
+
+- `/api/og/plan/[planId]?t=[token]` draws a 1200×630 image for the plan's invite link: title, day and time, the first stop (with "+N more stops" for a crawl), and the number of people (every seat that hasn't said no, so it says "4 people", not "going").
+- Link previews are fetched without cookies and with short timeouts, so the token in the URL grants access (the plan ID must match it), and the image reads only the plan, its stops and its seats. It never waits on the alerts feed.
+- The image is the same for everyone who holds the link, so caches can share it for 5 minutes. A 21+ plan therefore always shows "A 21+ night out" and "21+ spot" (F4.9). A demo plan carries the Demo label.
+- The plan page's metadata points `og:image` and the large Twitter card at it, and gives the same facts as `og:title` and `og:description` for apps that show a small cropped thumbnail or none, when the link carries a valid token.
 
 ## 4. Edge cases every algorithm test covers
 
