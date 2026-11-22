@@ -21,3 +21,4 @@ export { find } from "./find";
 export { reminder } from "./reminder";
 export { alerts } from "./alerts";
 export { planImage } from "./plan-image";
+export { me } from "./me";

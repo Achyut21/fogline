@@ -194,8 +194,10 @@ export async function planByInvite(token: unknown) {
           scheduledAt: r.scheduledAt.toISOString(),
         })),
     people: people.flatMap((p) => {
+      // A seat whose profile was deleted keeps no name or station (F1.7).
+      const former = p.profileId === null && p.placeholderName === null;
       const name = p.displayName ?? p.placeholderName;
-      if (!name) return [];
+      if (!name && !former) return [];
       const stationId = member ? (p.homeStationId ?? p.originStationId) : null;
       const home = stationId ? stations.get(stationId) : undefined;
       const leaveBy =
@@ -210,9 +212,10 @@ export async function planByInvite(token: unknown) {
       return [
         {
           id: p.id,
-          name,
+          name: former ? null : name,
+          former,
           you: viewer !== null && p.profileId === viewer.id,
-          placeholder: p.profileId === null,
+          placeholder: p.profileId === null && !former,
           rsvp: p.rsvp,
           station: home?.id ?? null,
           leaveBy,

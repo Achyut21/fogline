@@ -35,6 +35,12 @@ export type RevealAt = { point: { lat: number; lon: number }; serial: number };
 // Turbopack serves MapLibre 6's worker from this URL (MapLibre docs, "Turbopack (Next.js)").
 const workerUrl = new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString();
 
+function sameMask(a: Uint8Array, b: Uint8Array) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
 function token(name: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
 }
@@ -271,15 +277,22 @@ export function FogMap({
     };
   }, [renderer, maxDpr]);
 
+  // A reveal animates from its point. Cells cleared elsewhere (a check-in, the puzzle) arrive with
+  // new `states` and no point, and fade in where they are.
   useEffect(() => {
     const current = live.current;
-    if (!revealAt || !current) return;
+    if (!current) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (current.field && current.mask) {
       const mask = rasterizeFog(states, fogBounds, maskSize);
-      const center = maskUv(revealAt.point.lon, revealAt.point.lat);
+      if (sameMask(mask, current.mask)) return;
+      const at = revealAt?.point ?? {
+        lat: current.map.getCenter().lat,
+        lon: current.map.getCenter().lng,
+      };
+      const center = maskUv(at.lon, at.lat);
       const reach = revealReach(current.mask, mask, maskSize, center, maskAspect);
-      current.field.reveal(maskTexture(mask, maskSize), center, reach, reduced);
+      current.field.reveal(maskTexture(mask, maskSize), center, reach, reduced || !revealAt);
       current.mask = mask;
       current.map.triggerRepaint();
     } else {

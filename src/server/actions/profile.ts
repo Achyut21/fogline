@@ -1,14 +1,15 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { onboarding } from "@/copy";
 import { getDb } from "@/server/db/client";
-import { ageBands } from "@/server/db/schema";
+import { ageBands, profiles } from "@/server/db/schema";
 import { insertProfile, profileIdByCode } from "@/server/profile";
 import { parseProfileCode } from "@/server/profile-code";
 import { schools } from "@/server/schools";
-import { startSession } from "@/server/session";
+import { endSession, sessionProfileId, startSession } from "@/server/session";
 import { stationById } from "@/server/stations";
 
 export type ActionState = { error: string | null };
@@ -36,4 +37,28 @@ export async function restoreProfile(_: ActionState, form: FormData): Promise<Ac
   if (!id) return { error: onboarding.restore.notFound };
   await startSession(id);
   redirect("/");
+}
+
+const ageInput = z.enum(ageBands);
+
+/** Changes the profile's age band from Settings (F1.5). Plans already joined stay joined. */
+export async function updateAgeBand(band: unknown): Promise<{ kind: "saved" | "no-profile" }> {
+  const ageBand = ageInput.parse(band);
+  const id = await sessionProfileId();
+  if (!id) return { kind: "no-profile" };
+  await getDb().update(profiles).set({ ageBand }).where(eq(profiles.id, id));
+  return { kind: "saved" };
+}
+
+/**
+ * Deletes the profile and everything that belongs to it (F1.7): the foreign keys cascade to cells,
+ * check-ins, rides, readings, badges and puzzle results, and set the person's plan seats and the
+ * plans they organized to no one, so those plans stay for the others with a "Former member".
+ */
+export async function deleteMyData(): Promise<{ kind: "no-profile" }> {
+  const id = await sessionProfileId();
+  if (!id) return { kind: "no-profile" };
+  await getDb().delete(profiles).where(eq(profiles.id, id));
+  await endSession();
+  redirect("/welcome");
 }

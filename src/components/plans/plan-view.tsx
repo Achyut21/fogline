@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, Link2, MapPin } from "lucide-react";
+import { Link2, MapPin } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
@@ -33,6 +34,17 @@ const tick = (onChange: () => void) => {
 };
 const now = () => Math.floor(Date.now() / 15_000) * 15_000;
 
+/** The location permission's state, or "prompt" where the browser can't say (some WebViews). */
+async function locationPermission(): Promise<PermissionState> {
+  if (!navigator.permissions) return "prompt";
+  try {
+    return (await navigator.permissions.query({ name: "geolocation" })).state;
+  } catch (e) {
+    if (e instanceof TypeError || e instanceof DOMException) return "prompt";
+    throw e;
+  }
+}
+
 function position(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -61,6 +73,7 @@ export function PlanView({
   const [pending, start] = useTransition();
   const [checkInLine, setCheckInLine] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [primer, setPrimer] = useState(false);
   const clock = useSyncExternalStore(signedIn ? tick : noop, now, () => null);
 
   const startsAt = new Date(plan.startsAt);
@@ -108,6 +121,13 @@ export function PlanView({
     toast(p.copied);
   }
 
+  // The primer explains the location request before the browser asks (F1.4), until it's granted.
+  async function startCheckIn() {
+    const state = await locationPermission();
+    if (state === "granted") void checkInHere();
+    else setPrimer(true);
+  }
+
   async function checkInHere() {
     setChecking(true);
     setCheckInLine(null);
@@ -147,14 +167,7 @@ export function PlanView({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/plans">
-            <ArrowLeft aria-hidden="true" />
-            {p.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/plans", label: p.back }} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-1">
           {live && (
@@ -228,9 +241,30 @@ export function PlanView({
               </span>
               <Countdown to={countdownTo} className="text-4xl font-extrabold tracking-tight" />
             </div>
-            <Button size="lg" disabled={checking} onClick={checkInHere}>
-              {checking ? p.checkingIn : p.checkIn}
-            </Button>
+            {primer ? (
+              <div
+                role="dialog"
+                aria-labelledby="primer"
+                className="flex flex-col gap-2 rounded-md bg-surface-sunken p-4"
+              >
+                <h3 id="primer" className="font-extrabold">
+                  {p.primer.title}
+                </h3>
+                <p className="text-sm">{p.primer.body}</p>
+                <Button
+                  onClick={() => {
+                    setPrimer(false);
+                    void checkInHere();
+                  }}
+                >
+                  {p.primer.continue}
+                </Button>
+              </div>
+            ) : (
+              <Button size="lg" disabled={checking} onClick={startCheckIn}>
+                {checking ? p.checkingIn : p.checkIn}
+              </Button>
+            )}
             {checkInLine && (
               <p role="status" className="text-sm font-semibold">
                 {checkInLine}
@@ -264,12 +298,16 @@ export function PlanView({
             {plan.people.map((person) => (
               <li key={person.id} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-bold">{person.name}</span>
+                  <span className={person.former ? "text-ink-muted" : "font-bold"}>
+                    {person.name ?? p.formerMember}
+                  </span>
                   {person.placeholder && (
                     <span className="text-xs text-ink-muted">{p.placeholder}</span>
                   )}
                 </div>
-                {person.leaveBy && <LeaveByLine name={person.name} leaveBy={person.leaveBy} />}
+                {person.leaveBy && person.name && (
+                  <LeaveByLine name={person.name} leaveBy={person.leaveBy} />
+                )}
               </li>
             ))}
           </ul>
