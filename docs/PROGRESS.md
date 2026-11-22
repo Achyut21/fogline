@@ -237,7 +237,8 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - Walks into home were skipped (Boylston → Downtown Crossing on Friday said 1:21 AM; it's 2:16 AM).
     The two-time rewrite also fixes the SHOULD FIX about mixing board and walk times. Also fixed: the walk test can now fail, a DST and a tie case, and a broken trace throws. The live check matches by headsign and defaults to the next Monday inside the feed.
   - Second pass: FAIL on one new BLOCKING item, fixed: the rewrite let a station a walk from home win over home as the stop to get off. South Station → Downtown Crossing rode on to Park Street and walked back. Home now always wins, and the route check fails any ride that passes home.
-  - Next: code-critic second pass, then item 5's fixes.
+  - Third pass: PASS. Against an independent two-time search over all 15,500 station pairs on six dates, it found no later or earlier departure and no impossible route. Its nits are fixed: the route check also confirms each ride's stations and times on its trip.
+  - Next: item 5's fixes.
 
 - 2026-11-21 22:40 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:
   - `pnpm data:gtfs` (tsx) downloads the MBTA feed ("Fall 2026, 2026-11-19T01:01:13+00:00, version D", valid 2026-11-12 to 2026-12-12) and writes `data/stations.json` (125 stations), `graph.json` (3,446 weekday station pairs), `timetable.json` (19,807 trips, 42 station patterns) and `shapes.json` (18 canonical patterns). Representative dates: Mon 2026-11-16, Sat 2026-11-28, Sun 2026-11-29. A second run produced byte-identical files (sha256).

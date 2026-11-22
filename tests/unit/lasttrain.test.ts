@@ -80,6 +80,12 @@ function expectFeasible(tt: Timetable, from: string, home: string, result: LastT
       const stops = tt.patterns[trip.pattern].map((i) => tt.stations[i]);
       const board = stops.indexOf(leg.from);
       const alight = stops.indexOf(leg.to, board + 1);
+      expect(board).toBeGreaterThanOrEqual(0);
+      expect(alight).toBeGreaterThan(board);
+      expect([leg.departs, leg.arrives]).toEqual([
+        trip.start + trip.offsets[board],
+        trip.start + trip.offsets[alight],
+      ]);
       expect(stops.slice(board + 1, alight)).not.toContain(tt.stations[homeIndex]);
       ready = leg.arrives;
       rodeIn = true;
