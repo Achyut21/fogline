@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { TrainFront, X } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { isLine, LineBadge } from "@/components/display/line-badge";
 import { ErrorState } from "@/components/system/error-state";
@@ -19,10 +18,13 @@ import {
 } from "@/components/ui/drawer";
 import { IconButton } from "@/components/ui/icon-button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { legal, map } from "@/copy";
+import { legal, map, ride } from "@/copy";
 import { maxWalkM } from "@/lib/places/types";
 import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { StopCard } from "./stop-card";
 
 type Station = MapData["stations"][number];
 
@@ -129,41 +131,6 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
   );
 }
 
-function StopCard({ card }: { card: NonNullable<Station["card"]> }) {
-  if (!card.story) return null;
-  return (
-    <section aria-labelledby="stop-card" className="flex flex-col gap-2">
-      <h3 id="stop-card" className="text-lg font-extrabold tracking-tight">
-        {s.card}
-      </h3>
-      <figure className="flex flex-col gap-2 overflow-hidden rounded-lg bg-surface-sunken">
-        {card.image && (
-          <div className="relative aspect-video w-full">
-            <Image
-              src={card.image.url}
-              alt={card.story.title}
-              fill
-              unoptimized
-              className="object-cover"
-            />
-          </div>
-        )}
-        <figcaption className="flex flex-col gap-1 px-3 pb-3">
-          <p>{card.story.fact}</p>
-          <a href={card.story.url} className="text-sm text-ink-muted underline">
-            {s.source(card.story.title)}
-          </a>
-          {card.image && (
-            <a href={card.image.page} className="text-xs text-ink-muted underline">
-              {legal.photo(card.image.author, card.image.license)}
-            </a>
-          )}
-        </figcaption>
-      </figure>
-    </section>
-  );
-}
-
 function Spots({ spots }: { spots: Station["spots"] }) {
   return (
     <section aria-labelledby="nearby" className="flex flex-col gap-2">
@@ -249,6 +216,9 @@ export function StationSheet({
               </h3>
               <Trains station={view.id} names={names} />
             </section>
+            <Button asChild className="w-full">
+              <Link href={`/ride?from=${encodeURIComponent(view.id)}`}>{ride.startFrom}</Link>
+            </Button>
             {view.card && <StopCard card={view.card} />}
             <Spots spots={view.spots} />
           </div>

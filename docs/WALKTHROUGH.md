@@ -54,13 +54,13 @@ Status: Built (F2.1–F2.7 except F2.4's neighborhoods sheet, which the list vie
 
 ## F3. Ride mode
 
-Status: Planned
+Status: Replay built (F3.3, F3.4, F3.5, F3.7, F3.8); live trains and train lost after the Phase 3 gate
 - **Why:** turn the ride into a reveal of the city above.
 - **Entry:** Ride button on the map, or "Ride from here" on a station sheet.
 - **Steps:** pick a station → pick a train → watch the train move → a stop card appears at each stop as the fog lifts → End → summary.
 - **Edge cases:** train lost from the feed; replay mode; wake lock; screen rotation.
-- **How to demo:** replay at 10× on the Green Line.
-- **Tests:**
+- **How to demo:** open Kenmore from the list view → Ride from here → pick a trip → 20× → watch the stop cards change → summary → Back to map; the passed stations read Uncovered.
+- **Tests:** `tests/unit/replay.test.ts`, `tests/integration/replay.test.ts`, `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`), `tests/e2e/ride.spec.ts` (the Phase 3 gate run, desktop-chrome, iphone, pixel).
 - **Screenshots:**
 
 ## F4. Fair plans

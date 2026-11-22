@@ -29,8 +29,14 @@ This is the shared status board for both builders. Update it after every finishe
      - StationSheet on the vaul Sheet: name, lines, minutes from home, departures by direction, MBTA credit, stop card once uncovered, 3 nearest spots (F1.5). TanStack Query polls every 30 s and stops while hidden; stale past 90 s. Loading, empty, error and offline states. Opens from the map and the list.
      - "Ride from here" lands with item 4's ride route (no dead button).
      - Tests `[F2.5]`: parser on a recorded snapshot, route cache and failure, sheet data, sheet states, e2e at 390×844.
-     - **Status 2026-11-22 02:05 ET:** done on [#34](https://github.com/Achyut21/fogline/pull/34), merging after CI and the preview check. Next: item 4, F3 ride replay (with "Ride from here").
-  4. **F3 ride replay**: a recorded trip at 1× to 20×, stop cards, reveals, summary (miles, stops, minutes, lines, new cells), `ride_events`. Live mode if time allows. Until B's recorder has a trip, a timetable-built trip labeled as demo data.
+     - **Status 2026-11-22 01:44 ET:** merged as `a07c680` ([#34](https://github.com/Achyut21/fogline/pull/34)); production check passed (run 44995127019).
+  4. **F3 ride replay** (`a/ride-replay`). A approved this plan on 2026-11-22, and kept D-063 (replays clear fog, earn no badges and stay out of night and lifetime totals):
+     - `src/lib/replay.ts`: a trip's one-a-minute `vehicle_positions` rows become board, pass and alight times. Every station along the route's shape between two rows counts as passed, timed by its distance between them (this settles the "passed" open question). `src/server/replay.ts` lists recent recorded trips from a station.
+     - `/ride?from=` (opened by "Ride from here" on the station sheet) lists trips recorded from the station in the last 24 hours. Live trains (F3.1–F3.2) and train-lost (F3.6) come after the gate.
+     - Riding view (2D): line, "To Riverside", current stop, "Next: Hynes · 2 min", 1× to 20×, Replay label, End, the stop card at each stop, the stop list. Each stop goes through the `recordReplayStop` Server Action: a `ride_events` row with `is_replay` and its k=1 cells as seen (F3.3, F3.8). Wake lock while playing (F3.7).
+     - Summary: stops passed, miles on the T, minutes, lines, new cells, back to the map (F3.4).
+     - Tests `[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`, and the gate e2e at 390×844.
+     - **Status 2026-11-22 03:13 ET:** PR [#35](https://github.com/Achyut21/fogline/pull/35). Component test and the gate e2e (`tests/e2e/ride.spec.ts`, also item 5) pass on desktop-chrome, iphone and pixel. D-069, DATA 3.14, WALKTHROUGH F3.
   5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
   - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
   - Tests stay on the acceptance criteria. One code-critic pass per item, no parallel subagents (D-060).
@@ -111,8 +117,8 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** the Phase 1 gate needs A's and B's human approval of `/design` and the canvas as cut (D-060). Then Phase 3: profile and onboarding first, then the map with the D-058 fog layer and Phase 2's GTFS data. Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
-- **Blocked:** none.
+- **Next:** merge #35, then the core-loop screens for Phases 4 and 5 on B's existing actions (plan builder, plan page with leave-by and check-in, daily puzzle, demo entry). B is taking Phase 6 alone (`b/recap`). Still open from Phase 1: B's human approves `/design` and direction C.
+- **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
 
 ### Builder B
 - **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-067) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
@@ -266,7 +272,37 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
-- 2026-11-22 02:05 ET · Builder A · Phase 3 item 3, F2.5 station sheet ([#34](https://github.com/Achyut21/fogline/pull/34), `a/station-sheet`):
+- 2026-11-22 03:20 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
+  - Rebased onto `main` (`7ef3feb`); replay reads shapes through `data.shapes()`. Component test `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`) and the Phase 3 gate e2e `tests/e2e/ride.spec.ts` (seeded Green-D trip, onboarding, sheet → Ride from here → 20× past three stops → summary → stations uncovered; plus End with reduced motion). e2e 15/15 with onboarding and the sheet on desktop-chrome, iphone, pixel; 350 unit/component/integration passed; lint and typecheck clean.
+  - Seen at 390×844 in night theme on a local build against the test DB; fixed "1 lines" in the summary.
+  - code-critic: PASS, no BLOCKING. Fixed two SHOULD FIX: trip IDs repeat daily, so a 30-minute gap now starts a new run and only the latest is kept (test fails on the old code); the stop action allows 2 h past the 24 h list window so a replay started from the list keeps recording.
+  - Logged, not fixed: a stop whose `recordReplayStop` call fails (offline in a tunnel) is not retried and the summary undercounts new cells without saying so.
+  - Speed (A, 2026-11-22): design-critic and copy-critic run once over all the new core-loop screens instead of per item. B is taking Phase 6 alone.
+
+- 2026-11-22 01:52 ET · Builder A · Handoff (session limit; the next session runs under another Claude account):
+  - **Finished this session:**
+    - #29 onboarding, squash `28babbf`; preview check (run 44989873205) and production check (run 44990097301) passed. It ships D-065 (restore without a rate limit); A's sign-off is still open.
+    - #31 (with #30's station cards), admin squash `f61e868` (D-052) after A merged `main` into `b/core-loop` and fixed code-critic's 3 BLOCKING findings (unsigned profile cookie, non-member check-ins, home stations shown to non-members, 21+ rule). #30 closed as included. B's D-061 and D-062 became D-066 and D-067.
+    - #32 fog map, squash `3926558`, after fixing code-critic's BLOCKING fog-mask bug (`3e4a496`, `fa9faef`); production check passed (run 44993413583).
+    - #34 station sheet, squash `a07c680`, after code-critic (3 BLOCKING) and copy-critic (4 BLOCKING) fixes; production check passed (run 44995127019). Predictions route on production: 0.67 s cold, 0.2 s warm.
+    - A applied migrations 0000–0003 to `fogline-db` at about 06:28 UTC. Production had none recorded, so 0001 (`profiles`, `revealed_cells`) probably landed then too: onboarding on production could not have saved a profile before. The recorder has stored trains every minute since 06:29 UTC.
+  - **In progress: item 4, F3 ride replay, on `a/ride-replay` (pushed, `e1d6bc6`, based on `main` `a07c680`). Not ready to merge.**
+    - Files: `src/lib/replay.ts`, `src/lib/geo/along.ts` (a copy of the pipeline's along-the-shape projection), `src/server/replay.ts`, `src/server/actions/ride.ts`, `src/app/ride/page.tsx`, `src/app/ride/[trip]/page.tsx`, `src/components/ride/ride-replay.tsx`, `src/components/map/stop-card.tsx` (moved out of the sheet), "Ride from here" in `station-sheet.tsx`, `src/copy/ride.ts`, `tests/support/recorded-trip.ts`, `tests/unit/replay.test.ts`, `tests/integration/replay.test.ts`.
+    - Seen working at 390×844 (light only) on a local build against the test database with a seeded trip: list "To Chestnut Hill · Left 1:11 AM · 7 stops · 13 min", the riding view with stop cards advancing at 20×, and the summary (7 stops, 4.4 mi, 13 min, 1 line, 50 new cells).
+    - **Exact next steps:**
+      1. Component test for `RideReplay` (`[F3.4]` summary numbers, `[F3.5]` speed and the Replay label, the stop card per stop, reduced motion).
+      2. e2e `tests/e2e/ride.spec.ts`: seed a trip with `recordedTripRows` into `DATABASE_URL_TEST`, onboard, open a station sheet → Ride from here → the trip → 20× → past three stops → summary → back on the map with the passed stations uncovered in the list view. Run it on desktop-chrome, iphone and pixel. This is also item 5's gate e2e.
+      3. Check night theme and reduced motion in the running app; run `pnpm test`, typecheck, lint.
+      4. Rebase onto `main` (`7ef3feb`, #33 is in). #33 added `data.shapes()` to `src/server/data.ts`; switch `src/server/replay.ts` from its static `shapes.json` import to it.
+      5. code-critic, then design-critic (first ride UI) and copy-critic (`src/copy/ride.ts`, the "Ride from here" button). Open the PR, run the preview check, merge, run the production check.
+      6. Docs: DATA (replay timeline rule), DECISIONS (the "passed" rule, D-063 kept), WALKTHROUGH F3.
+    - Known gaps to settle in review: the wake-lock request's rejection handler does nothing (a browser may refuse the lock); summary "lines" is always 1; replays on the same trip can be recorded twice.
+  - **B's #33** (demo seed, How it works, #31 review fixes): A merged `main` into `b/demo-seed` (`31d38b1`, conflicts in PROGRESS and `src/server/data.ts`), B pushed `137f519` and `c05a458` on top, CI passed, and A admin-squashed it as `7ef3feb` (D-052). Vercel won't deploy a B-authored commit, so production picks it up with the next A merge; run the production check then.
+  - **For B:** the recorder works; migrations are on `fogline-db`. TimescaleDB warned during 0003 that `vehicle_id` should be used for segmenting or ordering `vehicle_positions` compression. `maxWalkM` moved from `src/lib/solver/fair.ts` to `src/lib/places/types.ts`. `src/server/stations.ts` has `stationOfStop` (terminal track IDs map by station name). `next.config.ts` traces `data/*.json` into every function, which your runtime `data.ts` reads need. No new environment variables, no new migrations, no regenerated data files, no design tokens changed. New dependency: `@tanstack/react-query`.
+  - **Tests:** `main` passes everything (CI and production checks above). On `a/ride-replay`: `tests/unit/replay.test.ts` (4) and `tests/integration/replay.test.ts` (3) pass locally; no component test or e2e yet; full suite not rerun since the last commit.
+  - **Local setup for the next session:** another chat's `next dev` (port 3003) serves `/Users/achyutkatiyar/fogline` with `.env`, which is `fogline-db`; don't sign up there. This session ran the app from a scratch git worktree against the test database (`DATABASE_URL=postgres://postgres:postgres@localhost:54329/postgres` plus a throwaway `SESSION_SECRET`, `next dev -p 3300`). That worktree is in this account's scratchpad and may be gone; make a new one with `git worktree add --detach <dir> a/ride-replay`, then `git worktree prune` afterwards.
+
+- 2026-11-22 01:40 ET · Builder A · Phase 3 item 3, F2.5 station sheet ([#34](https://github.com/Achyut21/fogline/pull/34), `a/station-sheet`):
   - Built: `/api/mbta/predictions` (TripUpdates parsed to subway revenue trips, one fetch per 5 s for every station, last good copy with its age on failure, failures remembered for 5 s), a network-first service-worker rule for `/api/mbta/*`, TanStack Query scoped to the map, and the StationSheet (lines, minutes by T from home, trains by line direction, stale chip, stop card once uncovered, 3 nearest spots with the F1.5 rule, all states). Opens from the map and the list. `next.config.ts` traces `data/*.json` for B's runtime reads. DATA 3.13, D-068, WALKTHROUGH F2.
   - code-critic: FAIL, 3 BLOCKING (terminal track IDs like `Alewife-01` hid the train on the platform; the per-direction cap was shared across lines, hiding the Red Line at Park Street; departed trains read "Now" on old data), all fixed. Re-check PASS; its two SHOULD FIX (a body cut off mid-read gave a 500; a hanging feed was retried by most requests) fixed with tests that fail on the old code.
   - copy-critic: FAIL (MBTA and photo credits not COPY.md's exact lines, grades without the unofficial label, walks without "about"), all fixed. Re-check PASS; its notes applied (the aged-out line no longer blames the MBTA when the user may be offline; `maxWalkM` moved to `src/lib/places/types.ts` so the client sheet doesn't import the solver).
@@ -274,7 +310,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Checked at 390×844 day and night with live trains (Kenmore, Park Street both lines); route 0.24 s on a fresh feed fetch, 4 ms cached (local).
   - Logged for later (critics' NITs): track IDs map by station name, not GTFS `parent_station`; the e2e depends on the live feed; the map page's RSC payload is 187 KB uncompressed (spots about 40 KB).
 
-- 2026-11-22 01:55 ET · Builder A · Merged #32, the fog map home (`3926558`):
+- 2026-11-22 01:21 ET · Builder A · Merged #32, the fog map home (`3926558`):
   - code-critic (first recorded pass): FAIL, 1 BLOCKING. The 3D fog's mask stopped at Boston, Cambridge, Somerville and Brookline, so 21 outer home stations (Ashmont, Braintree, Oak Grove, Riverside and others) sat under solid fog on tiers 2–3 while the card said they were clear. Fixed in `3e4a496` (mask covers every station plus about 1.2 km; test `[F2.1] [F2.2] the map's mask shows the home cells of every station`), with the reveal band, finger radius and grain scaled back to their Phase 1 size and the map and list made keyboard- and screen-reader-friendly (`fa9faef`). Re-check PASS. Checked at 390×844 with home Braintree, day and night.
   - CI, preview check (`fa9faef`) and production check (run 44993413583) passed.
   - Logged from code-critic for later: the map ignores fog changes after load unless `revealAt` changes; the first-reveal card comes back on every visit; 110 KB of line shapes ride in every home response; MapLibre's controls inside the map region need an axe pass on `/`; the list collapses seen and visited; the SVG fallback ignores the home center; List → Map remounts the renderer and its probe WebGL context; `/` has no offline banner, no catch on the MapLibre chunk and no `loading.tsx`; `mapData` has no direct test; theme flips don't restyle the map.

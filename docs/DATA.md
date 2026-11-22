@@ -174,6 +174,15 @@ From `TripUpdates_enhanced.json` (`src/lib/predictions.ts`):
 - Soonest first, at most 3 per `direction_id`. Directions are named per line: Red and Orange 0 Southbound, 1 Northbound; Blue and Green 0 Westbound, 1 Eastbound; Mattapan 0 Outbound, 1 Inbound (checked against the live feed's terminals, 2026-11-22).
 - `/api/mbta/predictions` fetches the feed once for every station for 5 s, and serves the last good copy when the feed fails. Its `updatedAt` is the feed header's timestamp, so the sheet shows the data's own age; past 90 s it shows as stale.
 
+### 3.14 Ride replay timeline (F3.5)
+
+From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
+
+- A trip's rows are projected onto its route and direction's shape (`src/lib/geo/along.ts`, the same scale as `scripts/gtfs/build.ts`). For the Red Line, the shape with the most stations the trip was seen at wins.
+- Between two rows, each station mark on the shape is reached at a time linear in its distance between the two positions. A train within 150 m of a mark is at that station.
+- The ride starts at the boarding station; the first stop is `board`, the last `alight`, the rest `pass`. A trip makes a replay when it passes at least three stops after boarding. Trips older than 24 hours aren't listed.
+- Miles come from `rideMiles` along the same shape.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.
