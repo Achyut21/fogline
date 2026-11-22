@@ -6,7 +6,9 @@ Under the game is a planner for college students without cars. It finds a meetup
 
 Built for BostonHacks 2026, "Bos(tons) of Eats and Streets" track. Live at [fogline.boston](https://www.fogline.boston). Try it with sample data at [fogline.boston/demo](https://www.fogline.boston/demo).
 
-[![Fogline in 22 seconds: watch the launch video](docs/media/fogline-launch.jpg)](docs/media/fogline-launch.mp4)
+
+https://github.com/user-attachments/assets/3f57cc7e-6f7d-48b2-a177-bb6a465d9e83
+
 
 ## Contents
 
