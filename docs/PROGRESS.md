@@ -21,11 +21,10 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder A
 - **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
-  - **Handoff 2026-11-21 20:32 ET (A's session hit its usage limit; the next session may run under another Claude account):**
-    - **Order changed (A, 2026-11-21):** code now, canvas alongside. Item 5 (tokens) started before the canvas is finished; the remaining canvas pages follow in batches between code items. The gate is unchanged.
-    - **In progress: item 5 on `a/design-tokens` (pushed, WIP, no PR yet).** Done: `src/styles/tokens.css` (day and night: color roles, map colors, per-line casings, type scale, radii, elevation, durations, easings, layers), Tailwind mapping in `globals.css` (default palette, text, radius, shadow and ease namespaces reset to tokens; shadcn role names aliased), `src/lib/motion.ts`, `src/lib/contrast.ts`, `src/lib/tokens.ts`, `src/styles/pairs.ts`, `theme-color.ts` set to `--bg`, Hanken Grotesk through `next/font` (Geist removed), next-themes provider with the `theme-color` override sync, `ThemeToggle`, the first slice of `/design` (colors, contrast table, type, spacing, radius, elevation, motion), and `tests/unit/design-tokens.test.ts` (token scan with mutant samples, AA for every text pair in both themes, `[F2.3]` line visibility, theme-color and motion parity). typecheck, lint and those 10 tests pass, and two mutants (orange casing, ink-muted) failed as they should.
-    - **Not done in item 5:** look at `/design` at 390×844 in both themes and with reduced motion; e2e (theme override survives a reload and rewrites `theme-color`, axe, no horizontal scroll, tabular-figure check on `[data-testid=tabular-sample]`); full `pnpm test`, `test:e2e`, `build`; DECISIONS D-053 (tokens, Hanken Grotesk, token-check refinement, D-037 exemption kept for `src/components/ui` until item 6) and PHASES token-check wording; DESIGN section 4 final values; design-critic, copy-critic, code-critic; PR.
-    - **Canvas:** onboarding page done (6 artboards); Map page has map home, station sheet, neighborhoods sheet, list view; next is the Map states artboard (`map-states.dc.html` is already listed in the canvas index without its file). Then Ride, Daily, Plans, Me, Squad, System, and motion storyboards. The canvas belongs to the Claude account that made it: another account can only edit it if A shares it with edit access.
+  - **Status 2026-11-21 20:52 ET:** item 5 resumed from the 20:32 handoff in a new session under another Claude account. The 20:32 order change stands: code now, canvas alongside.
+    - **Item 5 on `a/design-tokens`:** code, tests and docs are done (log entry below). The critics are running, then the PR.
+    - **Canvas:** onboarding page done (6 artboards). The Map page has map home, station sheet, neighborhoods sheet and list view. Next is the Map states artboard (`map-states.dc.html` is listed in the canvas index but has no file yet), then Ride, Daily, Plans, Me, Squad, System and the motion storyboards.
+    - **Canvas access:** the canvas belongs to the Claude account that made it. This session's account can't open it: the Artifact tool says it isn't shared with this account, even with the `sk` link. Item 5 was checked against A's HTML exports (onboarding, round 1, Map) and the artboard sources in `.canvas-work/canvas/project/`. To draw more pages from this account, A shares the canvas with edit access to it. Otherwise the canvas batches run from A's own account.
     - **Tooling:** `.canvas-work/` (git-ignored, on A's Mac) holds the map renderer (`render/map.html`, `shoot2.mjs` for direction C renders, `qa.mjs` local artboard check), the canvas sources (`canvas/project/`), the GTFS extractor (`tools/`) and `round2-plan.md` (screen list and C token values). `render/out*/positions.json` has the pixel positions used for map labels.
   - **Status 2026-11-21 20:18 ET:** item 1 done on `a/design-direction`. A picked mood C, the familiar option, with Apple Maps, Transit and Strava as the craft bar (DESIGN "Direction", D-050). Theme follows the OS (D-051). `docs/PRODUCT.md` added for impeccable. **B's human: confirm the direction here before the Phase 1 gate.** Item 2 round 2 is under way: the Onboarding page is on the canvas (6 screens, both themes).
     - Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR. It is private until A shares it from the page's Share menu. Round 1 (three moods) stays on it for the record.
@@ -95,7 +94,7 @@ This is the shared status board for both builders. Update it after every finishe
     7. **`/design` on production** ships with every deployment. Recommendation: keep it reachable with `noindex` and label its sample data, since CLAUDE.md bans unlabeled fake data.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-- **Next:** item 1, Direction.
+- **Next:** item 5 PR and its preview check, then item 6 (base components) with canvas batches in between.
 - **Blocked:** none.
 
 ### Builder B
@@ -222,6 +221,18 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 20:52 ET · Builder A · Phase 1 item 5, tokens, fonts and icon, on `a/design-tokens` (`f43c333`, `8275e94`, `a05bc84`, `2544cf3` on top of the WIP `728efc0`):
+  - Found at 390×844: the theme toggle hydrated with a mismatched `aria-pressed`, so after a reload no option looked selected. It now marks the stored theme after hydration.
+  - Checked against the canvas exports: chips are pills (new 8 px `--radius-small` instead of the 6 px chip radius), night elevations get a hairline ring, and day warning and success are darker than the canvas for AA (D-054).
+  - `/design` lists every token: easings, springs, stagger and layers added. Contrast chips no longer break across lines. New icon and wordmark section.
+  - impeccable `typeset`: detector scan clean; Hanken Grotesk confirmed as the one family. Its figures are tabular by default.
+  - App icon drawn (seven H3 cells, three cleared along a teal line), PNGs regenerated with `pnpm icons`.
+  - Tests: `tests/e2e/design.spec.ts`: axe in both OS themes, a manual theme kept across a reload with `theme-color` rewritten, no horizontal scroll, tabular figures. Mutants: a broken `theme-color` sync and the old toggle each failed the theme test; the sample in `system-ui` without `tabular-nums` failed the tabular test by 26 px. Full run: typecheck, lint and `format:check` clean; Vitest 67 passed, 1 skipped (live `fogline-db`); Playwright 54 passed, 12 skipped; build compiled.
+  - Seen at 390×844 in day and night, each with and without reduced motion: no overflow, no console errors.
+  - Docs: DESIGN section 4 final, section 11 icon and wordmark, D-054 (D-053 is taken by B's open #16), PHASES, CLAUDE.md and `/phase-gate` token check wording.
+  - Moved within the plan: the custom line and station glyphs land with LineBadge and StationDot in item 6. The test file is `design-tokens.test.ts`, not `tokens.test.ts`.
+  - Next: critics, PR, Vercel preview check, then item 6 or the next canvas batch.
 
 - 2026-11-21 20:32 ET · Builder A · Merged #15 (`e7c28c5`), which brought production up to date after B's #12 to #14; the production check (run 44971213723) passed on `fogline-mu.vercel.app`. Started item 5 on `a/design-tokens` (WIP, see the handoff under Builder A). Canvas Map page: 4 of 5 artboards. Session handed off at its usage limit.
 
