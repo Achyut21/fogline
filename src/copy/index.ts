@@ -3,5 +3,6 @@ export { design } from "./design";
 export { display } from "./display";
 export { fog } from "./fog";
 export { legal } from "./legal";
+export { map } from "./map";
 export { onboarding } from "./onboarding";
 export { system } from "./system";

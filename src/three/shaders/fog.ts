@@ -58,7 +58,7 @@ export const fogFragment = /* glsl */ `
     float after = texture2D(uMaskAfter, vUv).r;
     vec2 scaled = vec2(vUv.x * uAspect, vUv.y);
     float d = distance(scaled, vec2(uRevealCenter.x * uAspect, uRevealCenter.y));
-    float band = 0.012;
+    float band = 0.0062;
     float front = uProgress * (uRevealReach + band);
     float inside = 1.0 - smoothstep(front - band, front, d);
     float density = uRadial > 0.5 ? mix(before, after, inside) : mix(before, after, uProgress);
@@ -69,7 +69,7 @@ export const fogFragment = /* glsl */ `
       density *= mix(0.55, 1.0, smoothstep(0.0, uPointerRadius, near));
     }
 
-    float drift = fbm(vUv * vec2(28.0 * uAspect, 28.0) + vec2(uTime * 0.018, uTime * 0.011));
+    float drift = fbm(vUv * vec2(54.5 * uAspect, 54.5) + vec2(uTime * 0.035, uTime * 0.0214));
     float alpha = clamp(density * (0.72 + 0.4 * drift), 0.0, 0.97);
     vec3 color = mix(uFogColor.rgb, uEdgeColor.rgb, clamp(edge * 1.6, 0.0, 1.0));
     gl_FragColor = vec4(color, max(alpha, clamp(edge, 0.0, 1.0) * uEdgeColor.a));

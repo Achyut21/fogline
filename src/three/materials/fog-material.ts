@@ -57,7 +57,7 @@ export function fogMaterial(options: {
       uRevealCenter: { value: new Vector2(0.5, 0.5) },
       uRevealReach: { value: 0 },
       uPointer: { value: new Vector2(-1, -1) },
-      uPointerRadius: { value: 0.02 },
+      uPointerRadius: { value: 0.0103 },
       uAspect: { value: options.aspect },
     },
   });

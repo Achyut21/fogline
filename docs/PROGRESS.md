@@ -259,6 +259,39 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:
+  - **#29 onboarding:** squash `28babbf`. Preview check (run 44989873205) and production check (run 44990097301) passed. Merging it ships D-065 (restore without a rate limit); A's sign-off is still open.
+  - **#31 core loop, with #30's station cards:** admin squash `f61e868` (D-052). The Phase 2 commits under #30 were already on `main` through #16, so A merged `main` into `b/core-loop` keeping `main`'s side (`1ce35a5`). #30 is closed as included.
+  - **Renumbered:** B's D-061 (station cards) is now D-066 and D-062 (prototype track) is D-067. B's new lines citing D-057 and D-059 now cite D-061 and D-063.
+  - **Fixed on `b/core-loop` before merging:**
+    - Prettier on `plans.ts` had stopped CI before the tests ran.
+    - `f5f2769`: plan, check-in and stats actions read an unsigned `fogline_profile` cookie holding the raw profile ID. They now use `sessionProfileId()`. B's duplicate `createProfile` and `myProfile` are gone; onboarding and `currentProfile()` cover them.
+    - `ef03f8d`, `c64362e` (code-critic FAIL, 3 BLOCKING):
+      - `checkIn` needs a seat in the plan, and night badges count only members' check-ins (F6.2, F8.1).
+      - `planByInvite` shows home stations and leave-by times to members only (F4.8).
+      - A 21+ stop hides the venue from anyone not known to be 21+, and under-21 profiles can't create or join such a plan (F4.9). `findMeetup` takes the age rule from the profile, not the request (F1.5).
+      - Smaller fixes: every puzzle guess is checked, so earlier guesses can't probe letters (F7.2); `createPlan` checks the stop's station; `joinPlan` validates the token, refuses ended plans and ignores a double tap.
+    - Tests: `tests/integration/plans.test.ts` (`[F4.8]`, `[F4.9]`, `[F6.2]`, `[F1.5]`) and a `[F7.2]` unit test. 305 passed locally with the test database; the `[F6.2]` test fails with the participant check removed. code-critic re-check PASS. CI green on `c64362e`.
+  - **Known limits, not fixed (code-critic):**
+    - `myStats` reads every ended plan in the database on each call.
+    - `vehicleRows` parses the whole feed at once, so one malformed entity loses that minute.
+    - The cron's bearer check isn't timing-safe.
+    - `checkIn` has no rate limit, and invalid attempts are stored too.
+    - Badges awarded after `endPlan` commits have no retry.
+    - `me.ts` has its own data-file loader.
+    - `findMeetup` now needs the database to read the profile.
+    - `data.ts` reads `data/*.json` at runtime, so the first page that calls these actions needs `outputFileTracingIncludes` for `data/**` in `next.config.ts` (B's ask).
+  - **Production:** the recorder cron (`/api/cron/record-vehicles`, every minute) goes live with #32's deployment. `CRON_SECRET` is set in Vercel. **For B:** confirm migrations 0002 and 0003 are applied to `fogline-db`; until they are, the recorder logs an error every minute.
+  - **Next:** merge #32 (fog map), production check, then item 3 (F2.5 station sheet, plan awaiting A's yes).
+
+- 2026-11-22 00:27 ET · Builder A · Handoff (session limit; the next session runs under another Claude account):
+  - **Done this session:** Phase 1 closed on A's side (gate table above; B's human still approves `/design` and confirms direction C). Items 4, 6a, 6b merged (#24, #25, #27), gate docs #28, B's Phase 2 stack merged as #16 (`7dadf7d`), production check passed on `1e7ba16`. A set `SESSION_SECRET` in Vercel (Production and Preview) and redeployed.
+  - **Open PRs:** [#29](https://github.com/Achyut21/fogline/pull/29) Phase 3 item 1, onboarding (`a/onboarding`, CI re-running after the code-critic fixes and the last-train timeout). [#32](https://github.com/Achyut21/fogline/pull/32) item 2, the fog map home, stacked on #29 (`a/map`): retarget to `main` after #29 squash-merges, then rebase onto `main`. B's #30 (cards) and #31 (core loop) are open; merge them the D-052 way.
+  - **B:** applying migrations 0002 and 0003 to `fogline-db` now (B's message); B confirms through `/api/health` and the board.
+  - **Pending A's word:** D-065 (restore without a rate limit until after the hackathon). Recommended: accept; fix = one `rate_limits` table keyed by IP, about 10 attempts per 15 min, in `restoreProfile`.
+  - **Exact next step:** merge #29 when CI is green, check onboarding on production at 390×844, retarget and merge #32, then item 3: the station sheet (F2.5) with `/api/mbta/predictions`. `FogMap` already takes `onStation(id)`; `MapScreen` doesn't pass it yet.
+  - **Local dev:** `pnpm dev` reads `DATABASE_URL` from `.env`, which is `fogline-db`. Don't submit onboarding there. To see a signed-in map, run next dev with `DATABASE_URL` set to `DATABASE_URL_TEST` (a node launcher that reads `.env` and spawns `next dev -p $PORT`); only one `next dev` per folder.
+
 - 2026-11-22 00:20 ET · Builder B · **Handoff**
   - **Finished this session.** Each item is a stacked PR into the one before it; merge in this order, retargeting each to `main` as the one below it merges:
     1. #16 hypertables
