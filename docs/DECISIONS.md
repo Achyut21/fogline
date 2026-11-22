@@ -611,6 +611,7 @@ Consequences: B's human applies migration 0004 to fogline-db. A's plan page has 
 Decision:
 - `end-plans` runs every 15 minutes and sets `ended_at` to the rule's time (DATA 3.19), then awards badges.
 - "Remind me" is a route handler, `/api/plans/[planId]/remind`, that answers only the signed-in participant, because the file names their last train home.
-- Route alerts follow DATA 3.18. An alert that names a station between a ride's ends says "Check MBTA alerts" rather than guessing which trains it affects.
+- Route alerts follow DATA 3.18. An alert that names only other stations on a ride's line says "Check MBTA alerts" rather than guessing which trains it affects.
+- The reminder's description names the first train home, its line, station and time ("Last Green Line E from Kenmore is 12:22 AM"), since a trip home can start with a walk to another station.
 Why: F6.4, F5.8 and F5.6 were the open Phase 4 server items.
 Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. Note: A's #43 also uses D-072; whichever of #43 and #44 merges second renumbers.

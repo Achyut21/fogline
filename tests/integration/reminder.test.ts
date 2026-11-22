@@ -98,6 +98,14 @@ describe.skipIf(testUrl === "")("Remind me", () => {
     expect(result.body).toContain("TRIGGER:-PT20M");
     expect(result.body).toContain("TRIGGER:-PT5M");
     expect(result.body).toContain("SUMMARY:Leave by ");
+    const [firstRide] = expected.legs.filter((leg) => leg.kind === "ride");
+    if (firstRide?.kind !== "ride") throw new Error("expected a ride home");
+    const boardAt = stationById(firstRide.from);
+    const unfolded = result.body.replace(/\r\n /g, "");
+    expect(unfolded).toContain(`from ${boardAt?.name ?? ""} is `);
+    expect(unfolded).toMatch(
+      /DESCRIPTION:Friday dinner\. Last (Red Line|Orange Line|Green Line [B-E]) from /,
+    );
   });
 
   it("[F5.8] has no file for someone outside the plan, a home next door or an ended plan", async () => {

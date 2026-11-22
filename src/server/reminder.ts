@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { reminder as copy } from "@/copy";
+import { display, reminder as copy } from "@/copy";
 import { calendarFile } from "@/lib/ics";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
@@ -62,7 +62,15 @@ export async function reminderFor(
     { station: home.id, at: home },
   );
   if (leaveBy.kind !== "train") return { kind: "no-train" };
-  const station = data.stations().find((s) => s.id === last.stop.stationId);
+  // The first train home, which can leave a nearby station after a short walk (DATA 3.3).
+  const firstRide = leaveBy.legs.find((leg) => leg.kind === "ride");
+  const boardAt =
+    firstRide?.kind === "ride" ? data.stations().find((s) => s.id === firstRide.from) : undefined;
+  const line =
+    firstRide?.kind === "ride"
+      ? Object.entries(display.lines).find(([id]) => id === firstRide.route)?.[1].name
+      : undefined;
+  if (!boardAt || !line) return { kind: "no-train" };
   return {
     kind: "ics",
     body: calendarFile(
@@ -71,11 +79,7 @@ export async function reminderFor(
         start: leaveBy.leaveBy,
         minutes: 5,
         summary: copy.summary(leaveBy.leaveBy),
-        description: copy.description(
-          row.title,
-          station?.name ?? last.stop.stationId,
-          leaveBy.departs,
-        ),
+        description: copy.description(row.title, line, boardAt.name, leaveBy.firstTrain),
         alarms: alarmMinutes.map((m) => ({ minutesBefore: m, text: copy.alarm(m) })),
       },
       now,

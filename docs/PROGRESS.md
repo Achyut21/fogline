@@ -289,11 +289,11 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Checked A's work first: server-side puzzle results (`puzzle_results`) and the countdown's 20/5-minute colors are done. Nothing else from B's Phase 4/5 list was built.
   - **F6.4 plan end:** `/api/cron/end-plans` every 15 minutes (`endDuePlans`), with `ended_at` at the rule's time; badges awarded. DATA 3.19.
   - **F5.8 Remind me:** `GET /api/plans/[planId]/remind` returns a `.ics` for the signed-in participant, with alarms 20 and 5 minutes before their leave-by. DATA 3.19.
-  - **F5.6 route alerts:** `planByInvite` gives each member's person an `alerts` field: `disrupted` (with MBTA's text), `check` (say `alerts.check`, "Check MBTA alerts") or `clear`. It's null for non-members or when the feed is down. DATA 3.18.
+  - **F5.6 route alerts:** `planByInvite` gives each member's person an `alerts` field: `disrupted` (with MBTA's text), `check` (show `alerts.check`, "Check MBTA alerts") or `clear`. It's null for non-members or when the feed is down. DATA 3.18.
   - D-073. Tests: `[F6.4]`, `[F5.8]` and `[F5.6]` unit and integration.
   - Still open: F4.8 plan Open Graph image (needs #36's share colors and fonts); F4.7 planner agent and F16.4 cached AI outputs (Gemini quota).
   - **For A:**
-    - A "Remind me" link to `/api/plans/${id}/remind`, shown when your leave-by is a train.
+    - A "Remind me" link to `/api/plans/${id}/remind`, shown only when your leave-by is a train and the plan hasn't ended. Other answers are JSON errors (401, 404, 409), not pages.
     - Show `alerts` under the leave-by time.
     - #43 and #44 both use D-072.
 
