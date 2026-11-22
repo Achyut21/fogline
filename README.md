@@ -36,83 +36,65 @@ Every clip below is the real app at phone size, in demo mode, with sample people
 
 ### Start in 30 seconds
 
-<img src="docs/readme/onboarding.gif" width="270" align="right" alt="Onboarding: name, school, home station, age, then the map" />
-
 No account. Type your first name, pick your school and your home station (Fogline suggests the nearest one), and say whether you're under 21. The fog around your home station clears and you land on the map.
 
 To use the same profile on another phone, copy your profile code from Me and enter it under Restore profile.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/onboarding.gif" width="270" alt="Onboarding: name, school, home station, age, then the map" /></p>
 
 ### The fog map
-
-<img src="docs/readme/map.gif" width="270" align="right" alt="The fog map and the neighborhood list" />
 
 Boston starts under fog, with the T lines drawn over it. The big number is how much of the city you've uncovered.
 
 Switch to **List** to see each neighborhood's share and every station, uncovered or still in fog. Tap a station on the map or in the list to open it.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/map.gif" width="270" alt="The fog map and the neighborhood list" /></p>
 
 ### Station sheets
 
-<img src="docs/readme/station.gif" width="270" align="right" alt="Kenmore's sheet with live trains, its stop card and nearby spots" />
-
 A station's sheet shows the next trains live from the MBTA, by direction, with how old the times are. Pull it up to see the stop card (a fact about the area from Wikipedia, with its photo credit) and the three closest spots.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/station.gif" width="270" alt="Kenmore's sheet with live trains, its stop card and nearby spots" /></p>
 
 ### Ride replay
 
-<img src="docs/readme/ride.gif" width="270" align="right" alt="A recorded Green Line train passing Kenmore, Fenway and Longwood" />
-
 Pick a station, then a train the MBTA tracked there in the last 24 hours. Watch it move stop by stop at up to 20× speed. Each stop clears the fog around it and shows its stop card. At the end you get the miles, stops and new cells.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/ride.gif" width="270" alt="A recorded Green Line train passing Kenmore, Fenway and Longwood" /></p>
 
 ### Fair plans and the last train home
-
-<img src="docs/readme/plan.gif" width="270" align="right" alt="Adding Sam at Davis, the fairest options, and the plan with everyone's leave-by time" />
 
 Plans → New plan. Add friends and their home stations, pick what kind of spot, and tap **Find fair spots**. Fogline scores each meetup station by its longest ride plus half the gap between the longest and shortest, so nobody gets stuck with the 50-minute trip. Each spot near the station shows its unofficial grade from City of Boston food inspections, with the violations a tap away.
 
 Choose one and share the invite link. Everyone sees their own minutes and their own **Leave by** time for their last train home. If an MBTA alert touches someone's way home, the plan shows it. **Remind me** saves a calendar event with alarms 20 and 5 minutes before you have to leave.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/plan.gif" width="270" alt="Adding Sam at Davis, the fairest options, and the plan with everyone's leave-by time" /></p>
 
 ### Crawls
-
-<img src="docs/readme/crawl.gif" width="270" align="right" alt="A two-stop crawl: food, then dessert" />
 
 Switch the builder to **Crawl** and pick 2 to 4 kinds of stop. Each stop is within 10 minutes of the last by walk or T, and open when you get there where its hours are known. The last train home is worked out from the last stop.
 
 Every Monday the Plans tab also suggests up to 3 fair plans for the week, usually including a meal before a Boston event.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/crawl.gif" width="270" alt="A two-stop crawl: food, then dessert" /></p>
 
 ### The daily puzzle
 
-<img src="docs/readme/daily.gif" width="270" align="right" alt="Guessing CRANE, STOUT and then NOTES, which reveals tonight's event" />
-
 Guess the 5-letter word in six tries. The answer is tied to something happening in Boston that day. Solving it reveals the event, clears the fog around the venue and offers **Plan it**, which starts a plan with the event as the destination.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/daily.gif" width="270" alt="Guessing CRANE, STOUT and then NOTES, which reveals tonight's event" /></p>
 
 ### The night recap
 
-<img src="docs/readme/recap.gif" width="270" align="right" alt="The podium, the night in numbers and the badges" />
-
 When a plan ends, the recap shows who got there first, the night in numbers (new cells, miles on the T, miles walked, stops) and the badges people earned. **Share the recap** makes an image for the group chat. Tap anywhere to skip the animation.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/recap.gif" width="270" alt="The podium, the night in numbers and the badges" /></p>
 
 ### How it works
 
-<img src="docs/readme/how.gif" width="270" align="right" alt="Live numbers from the database and every data source with its credit" />
-
 How it works shows live row counts from the database (train positions, check-ins, rides, noise readings), how long the fair-spot solver took, and every data source with its credit.
 
-<br clear="right" />
+<p align="center"><img src="docs/readme/how.gif" width="270" alt="Live numbers from the database and every data source with its credit" /></p>
 
 ### Also in the app
 
