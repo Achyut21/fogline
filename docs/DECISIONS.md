@@ -273,3 +273,8 @@ Decision:
 - The demo lines are the Red Line and Green Line E (the judge path's Priya and Sam), plus the line of the recorded replay.
 Why: an all-pairs matrix gives minutes but not the lines and transfers F4.4 shows. The service-date rule needed a cutoff. PHASES' Phase 2 gate named demo lines that no doc defined.
 Consequences: DATA sections 2, 3.1 and 3.3 updated.
+
+**D-048 · 2026-11-21 · Hour buckets before 5 AM, and day type versus service.**
+Decision: GTFS service-day times before 05:00:00 use the 5 AM travel-time bucket, and 24:00:00 and later is "late". The day type (weekday, Saturday, Sunday) only picks representative travel times. The trips that run on a given date always come from that date's `calendar.txt` and `calendar_dates.txt` services.
+Why: DATA 3.1 left times before 5 AM without a bucket. The first trains of the day run at 5 AM headways, while "late" holds after-midnight trips. code-critic noted that a weekday-only rule would give Thanksgiving weekday trains, while the MBTA usually runs a Sunday schedule that day.
+Consequences: DATA 3.1 updated. A plan between 3:00 and 4:59 AM gets 5 AM travel times, so the solvers (items 3 to 5) check whether trains run before offering an option.
