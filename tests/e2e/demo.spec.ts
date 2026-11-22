@@ -30,6 +30,14 @@ test("[F16.1] [F16.3] starts a demo copy and labels every screen", async ({ page
       box.y < chip.y + chip.height;
     expect(overlaps).toBe(false);
   }
+  // With the demo row the bar is taller, and the spacer still keeps the end of a long screen clear.
+  await page.goto("/how-it-works");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const bar = await page.getByRole("navigation", { name: app.nav.label }).boundingBox();
+  const end = await page.getByRole("main").locator(":scope > *").last().boundingBox();
+  expect(bar && end).toBeTruthy();
+  if (bar && end) expect(end.y + end.height).toBeLessThanOrEqual(bar.y);
 
   // A second visitor gets a separate copy (F16.2): their plans don't list the first visitor's.
   const other = await browser.newContext();

@@ -2,16 +2,20 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { LineBadge, type Line } from "@/components/display/line-badge";
 import { Button } from "@/components/ui/button";
 import { ChoiceList } from "@/components/ui/choice-list";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { app, onboarding } from "@/copy";
-import { FogFallback } from "@/components/map/fog-fallback";
-import type { CellState } from "@/lib/geo/cells";
-import type { MapLine, MapStation } from "@/components/map/fog-map";
 import { createProfile } from "@/server/actions/profile";
 
 export type SchoolChoice = {
@@ -25,20 +29,15 @@ const o = onboarding;
 
 // F1.1: four screens (name, school, home station, age). The answers ride along in hidden inputs,
 // so the last step sends them all to createProfile at once.
-// The whole city starts under fog; no cell is uncovered before onboarding.
-const noCells = new Map<string, CellState>();
-
 export function Onboarding({
   schools,
   allStations,
-  lines,
-  stations,
+  hero,
 }: {
   schools: readonly SchoolChoice[];
   allStations: readonly { id: string; name: string }[];
-  /** The T network for the welcome hero: Boston under fog with its lines drawn over it. */
-  lines: readonly MapLine[];
-  stations: readonly MapStation[];
+  /** The welcome hero, drawn on the server: Boston under fog with the T lines over it. */
+  hero: ReactNode;
 }) {
   const [state, action, pending] = useActionState(createProfile, { error: null });
   const [step, setStep] = useState(1);
@@ -88,7 +87,7 @@ export function Onboarding({
         {step === 1 && (
           <>
             <div aria-hidden="true" className="-mx-4 h-56 overflow-hidden">
-              <FogFallback states={noCells} lines={lines} stations={stations} />
+              {hero}
             </div>
             <p className="text-xl font-extrabold tracking-snug">{app.name}</p>
             <h1 className={title}>{o.welcome.title}</h1>

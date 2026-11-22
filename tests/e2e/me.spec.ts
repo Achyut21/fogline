@@ -49,11 +49,13 @@ test("pins the tab bar to the bottom edge of the screen", async ({ page }) => {
       const { top, bottom } = e.getBoundingClientRect();
       return { top, bottom };
     });
-  const gap = async () => page.viewportSize()!.height - (await rect(nav)).bottom;
+  const gap = async () =>
+    (await page.evaluate(() => window.innerHeight)) - (await rect(nav)).bottom;
 
   await onboard(page);
   expect(await gap()).toBe(0);
   await page.goto("/how-it-works");
+  await page.waitForLoadState("networkidle");
   expect(await gap()).toBe(0);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);

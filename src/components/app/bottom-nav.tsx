@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { app } from "@/copy";
 import { cn } from "@/lib/utils";
-import { DemoMark, useDemo } from "./demo-mark";
+import { DemoChip } from "@/components/system/demo-chip";
+import { useDemo } from "./demo-mark";
 
 const tabs: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/", label: app.nav.map, icon: Map },
@@ -30,15 +31,21 @@ export function BottomNav({ path }: { path?: string }) {
   const demo = useDemo();
   return (
     <>
-      <div aria-hidden="true" className={cn("box-content h-14 shrink-0 pb-safe", demo && "pt-8")} />
+      <div
+        aria-hidden="true"
+        className={cn(
+          "box-content h-14 shrink-0 border-t border-transparent pb-safe",
+          demo && "pt-8",
+        )}
+      />
       <nav
         aria-label={app.nav.label}
         className="fixed inset-x-0 bottom-0 z-(--layer-chips) border-t border-rule bg-surface pb-safe"
       >
         <div className="mx-auto max-w-md">
           {demo && (
-            <div className="flex px-4 pt-2">
-              <DemoMark />
+            <div className="flex h-8 items-end px-4">
+              <DemoChip />
             </div>
           )}
           <ul className="grid grid-cols-4">

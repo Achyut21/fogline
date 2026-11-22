@@ -1,3 +1,4 @@
+import { DemoMark } from "@/components/app/demo-mark";
 import { UsersRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -17,6 +18,7 @@ export default async function SquadPage() {
   if (data.members.length < 2) {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 pt-safe">
+        <DemoMark className="self-center" />
         <EmptyState
           icon={UsersRound}
           title={squad.empty.title}

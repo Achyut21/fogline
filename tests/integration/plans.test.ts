@@ -9,6 +9,7 @@ import { createPlan, joinPlan, planByInvite } from "@/server/actions/plans";
 import { data } from "@/server/data";
 import { createDb, type Db } from "@/server/db/client";
 import { badgesAwarded, checkins, plans, profiles } from "@/server/db/schema";
+import { myPlans } from "@/server/plans";
 import { insertProfile } from "@/server/profile";
 import { stationById } from "@/server/stations";
 import { createScratchDatabase } from "./scratch-database";
@@ -181,9 +182,24 @@ describe.skipIf(testUrl === "")("plan Server Actions", () => {
 
     session.viewer = people.stranger;
     expect(await joinPlan(made.inviteToken)).toEqual({ kind: "not-found" });
+    expect(await planByInvite(made.inviteToken)).toBeNull();
+    session.viewer = judge;
+    expect((await planByInvite(made.inviteToken))?.id).toBe(made.id);
     const real = await planAt(cafe);
     session.viewer = judge;
     expect(await joinPlan(real.inviteToken)).toEqual({ kind: "not-found" });
+    expect(await planByInvite(real.inviteToken)).toBeNull();
+  });
+
+  it("[F4.8] counts everyone in a plan on the Plans tab", async () => {
+    if (!cafe) throw new Error("no all-ages spot");
+    const made = await planAt(cafe);
+    session.viewer = people.teen;
+    expect((await joinPlan(made.inviteToken)).kind).toBe("joined");
+    const adult = people.adult;
+    if (!adult) throw new Error("adult profile missing");
+    const { upcoming } = await myPlans(db, adult.id);
+    expect(upcoming.find((p) => p.id === made.id)?.people).toBe(3);
   });
 
   it("[F6.4] [F8.6] lets only the creator end a plan, and ending again adds no badges", async () => {

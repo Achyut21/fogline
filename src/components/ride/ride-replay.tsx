@@ -160,9 +160,9 @@ export function RideReplay({
       </header>
 
       <RideProgress
-        route={route}
+        line={isLine(route) ? route : null}
         progress={(clock - stops[0].at) / Math.max(1, stops[last].at - stops[0].at)}
-        previous={here.name}
+        here={here.name}
         upcoming={next?.name ?? null}
         stops={Math.max(reached, 0)}
         miles={here.miles}

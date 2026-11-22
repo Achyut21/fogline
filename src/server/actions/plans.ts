@@ -2,7 +2,7 @@
 
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { inviteToken } from "@/lib/invite-token";
+import { inviteToken, inviteTokenInput } from "@/lib/invite-token";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { alertsOnRoute } from "@/lib/alerts";
 import { currentAlerts, passes } from "@/server/alerts";
@@ -14,12 +14,6 @@ import { currentProfile } from "@/server/profile";
 
 // Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
 // an invite link, and joining it (F4.7, F4.8). The profile comes from the signed session (F1).
-
-// Real invite tokens, and the demo seed's (F16), which `planByInvite` and the recap both accept.
-const tokenInput = z.union([
-  z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/),
-  z.string().regex(/^demo-(?:[2-9A-HJ-NP-Z]{16})$/),
-]);
 
 /** A plan with any bar or club stop is 21+ (F4.9). */
 const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>
@@ -115,7 +109,7 @@ export async function createPlan(input: unknown) {
  * venue from anyone not known to be 21+ (F4.9).
  */
 export async function planByInvite(token: unknown) {
-  const parsed = tokenInput.safeParse(token);
+  const parsed = inviteTokenInput.safeParse(token);
   if (!parsed.success) return null;
   const db = getDb();
   const [plan] = await db.select().from(plans).where(eq(plans.inviteToken, parsed.data));
@@ -123,6 +117,8 @@ export async function planByInvite(token: unknown) {
   // F5.6: ask for the alerts feed now so it loads while the queries below run (it's cached).
   const alertsSoon = currentAlerts();
   const viewer = await currentProfile();
+  // Demo and real never mix (F16.2): a real profile can't open a demo plan, or the reverse.
+  if ((viewer?.isDemo ?? plan.isDemo) !== plan.isDemo) return null;
   const stops = await db
     .select()
     .from(planStops)
@@ -235,7 +231,7 @@ export async function planByInvite(token: unknown) {
 }
 
 export async function joinPlan(token: unknown) {
-  const parsed = tokenInput.safeParse(token);
+  const parsed = inviteTokenInput.safeParse(token);
   if (!parsed.success) return { kind: "not-found" as const };
   const viewer = await currentProfile();
   if (!viewer) return { kind: "no-profile" as const };

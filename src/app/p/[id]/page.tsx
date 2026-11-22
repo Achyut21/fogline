@@ -1,3 +1,4 @@
+import { DemoMark } from "@/components/app/demo-mark";
 import { CalendarX } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -33,6 +34,7 @@ export default async function PlanPage({ params, searchParams }: PageProps<"/p/[
   if (!token || !plan || plan.id !== id) {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4">
+        <DemoMark className="self-center" />
         <EmptyState
           icon={CalendarX}
           title={plans.plan.notFound.title}

@@ -16,6 +16,9 @@ dist/
 .env.*
 !.env.example
 
+# launch video scratch output (the final video is copied into docs/media)
+brag-output*/
+
 # testing
 coverage/
 playwright-report/

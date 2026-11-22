@@ -80,6 +80,12 @@ test.describe("ride replay", () => {
     const replay = { timeout: 15_000 };
     await expect(page.getByRole("heading", { level: 1, name: "Fenway" })).toBeVisible(replay);
     await expect(page.getByRole("heading", { level: 1, name: "Longwood" })).toBeVisible(replay);
+    // Mid-ride, the moving dot never widens the page (no sideways scroll).
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
 
     await expect(page.getByRole("heading", { name: ride.summary.title })).toBeVisible({
       timeout: 30_000,

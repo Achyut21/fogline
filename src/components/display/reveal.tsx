@@ -10,11 +10,12 @@ import { type ReactNode, createContext, use, useEffect, useState } from "react";
 import { duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-// A staged entrance that a tap or key press skips to the end (DESIGN section 8). Reveal starts
-// every stage's animation at once, each with its own delay; a skip stops them and sets the final
-// state, keeping the same elements so the tap still lands. StatCounter reads the stage's delay, so
-// its count starts with the stage. Reduced motion shows the final state: through Motion's config
-// once hydrated, and through revealReduce's classes in the server HTML.
+// A staged entrance that a tap or key press anywhere skips to the end (DESIGN section 8). Reveal
+// starts every stage's animation at once, each with its own delay; a skip stops them and sets the
+// final state on the same elements. A stage stays inert until it has appeared, so a tap can't land
+// on a control nobody can see yet. StatCounter reads the stage's delay, so its count starts with
+// the stage. Every stage starts hidden, as in the server HTML; reduced motion then jumps to the
+// final state, and revealReduce's classes show it before hydration.
 type Controls = ReturnType<typeof useAnimationControls>;
 const Stage = createContext<{ delay: number; skipped: boolean; controls: Controls | null }>({
   delay: 0,
@@ -28,7 +29,17 @@ export function Reveal({ children, className }: { children: ReactNode; className
   const controls = useAnimationControls();
   const reduce = useReducedMotionConfig();
   const [skipped, setSkipped] = useState(false);
-  const skip = () => setSkipped(true);
+
+  useEffect(() => {
+    if (skipped) return;
+    const skip = () => setSkipped(true);
+    document.addEventListener("pointerdown", skip);
+    document.addEventListener("keydown", skip);
+    return () => {
+      document.removeEventListener("pointerdown", skip);
+      document.removeEventListener("keydown", skip);
+    };
+  }, [skipped]);
 
   useEffect(() => {
     if (reduce || skipped) {
@@ -40,10 +51,8 @@ export function Reveal({ children, className }: { children: ReactNode; className
   }, [controls, reduce, skipped]);
 
   return (
-    <Stage value={{ delay: 0, skipped, controls }}>
-      <div onPointerDown={skip} onKeyDown={skip} className={className}>
-        {children}
-      </div>
+    <Stage value={{ delay: 0, skipped: skipped || Boolean(reduce), controls }}>
+      <div className={className}>{children}</div>
     </Stage>
   );
 }
@@ -52,6 +61,7 @@ export function Reveal({ children, className }: { children: ReactNode; className
 export function useEntrance() {
   const { controls } = useStage();
   const reduce = useReducedMotionConfig();
+  const standalone = reduce ? "done" : "shown";
   return (
     at: number,
     {
@@ -59,8 +69,8 @@ export function useEntrance() {
       transition = { duration: duration.base, ease: ease.standard },
     }: { y?: number; transition?: Transition } = {},
   ) => ({
-    initial: reduce ? (false as const) : "hidden",
-    animate: controls ?? "shown",
+    initial: "hidden",
+    animate: controls ?? standalone,
     variants: {
       hidden: { opacity: 0, y },
       shown: { opacity: 1, y: 0, transition: { ...transition, delay: at } },
@@ -80,9 +90,15 @@ export function RevealStage({
 }) {
   const stage = useStage();
   const entrance = useEntrance();
+  const [appeared, setAppeared] = useState(false);
   return (
     <Stage value={{ ...stage, delay: at }}>
-      <motion.div {...entrance(at)} className={cn(revealReduce, className)}>
+      <motion.div
+        {...entrance(at)}
+        inert={!(appeared || stage.skipped)}
+        onAnimationComplete={(name) => name === "shown" && setAppeared(true)}
+        className={cn(revealReduce, className)}
+      >
         {children}
       </motion.div>
     </Stage>
