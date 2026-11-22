@@ -9,6 +9,7 @@ export { system } from "./system";
 export { demo } from "./demo";
 export { ride } from "./ride";
 export { plans } from "./plans";
+export { daily } from "./daily";
 export { badges } from "./badges";
 export { howItWorks } from "./how-it-works";
 export { recap } from "./recap";

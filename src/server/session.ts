@@ -30,12 +30,27 @@ export async function sessionProfileId() {
   return verify((await cookies()).get(cookieName)?.value);
 }
 
-export async function startSession(id: string) {
-  (await cookies()).set(cookieName, sign(id), {
+// A readable flag next to the profile cookie, so every screen can show the Demo chip (F16.3)
+// without reading the session on the server. It only labels the screen; it grants nothing.
+export const demoCookie = "fogline_demo";
+const demoMaxAge = 60 * 60 * 24;
+
+export async function startSession(id: string, demo = false) {
+  const jar = await cookies();
+  // A demo copy is deleted after 24 hours, so its session ends with it.
+  jar.set(cookieName, sign(id), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.VERCEL === "1",
     path: "/",
-    maxAge,
+    maxAge: demo ? demoMaxAge : maxAge,
   });
+  if (demo) {
+    jar.set(demoCookie, "1", {
+      sameSite: "lax",
+      secure: process.env.VERCEL === "1",
+      path: "/",
+      maxAge: demoMaxAge,
+    });
+  } else jar.delete(demoCookie);
 }
