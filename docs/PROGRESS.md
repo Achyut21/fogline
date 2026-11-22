@@ -294,6 +294,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
+  - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
+  - The image is the same for every link holder, so a 21+ plan always hides its title and venue.
+  - `src/app/p/[id]/page.tsx` now has `generateMetadata` that adds the `og:image` (a small change to A's file). Share fonts moved to `src/server/share-fonts.ts` for both images.
+  - Tests: `[F4.8]` `[F4.9]` `[F16.3]` in `tests/unit/plan-preview.test.ts`, and `[F4.8]` in `tests/integration/plan-image.test.ts`.
+  - #36 and #44 are merged. #45 is retargeted to `main` with main merged in.
 - 2026-11-22 05:53 ET · Builder A · Phase 9 item 4, PWA polish (`a/pwa-polish`, stacked on `a/plan-extras`):
   - "Update ready" toast with Refresh when a new service worker waits (Serwist `waiting` and `messageSkipWaiting`; `skipWaiting` stays off, so nothing reloads by itself); `navigator.storage.persist()` on load.
   - Install (F1.6): Android's `beforeinstallprompt` kept from page load, iOS Safari's Add to Home Screen steps (with "copy your profile code first"), shown only after a finished puzzle, an ended ride or a created plan, with Not now remembered for 7 days.
