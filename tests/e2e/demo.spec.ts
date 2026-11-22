@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { demo, map, onboarding as o, system } from "@/copy";
+import { app, daily, demo, map, onboarding as o, system } from "@/copy";
 
 // Demo mode (F16): each start gets its own seeded profile, and the Demo chip shows on every screen
 // until a real profile is made.
@@ -13,6 +13,31 @@ test("[F16.1] [F16.3] starts a demo copy and labels every screen", async ({ page
   await page.goto("/plans");
   await expect(page.getByText(system.demo, { exact: true })).toBeVisible();
   await expect(page.getByText(demo.nightTitle).first()).toBeVisible();
+  // The chip sits in reserved space: it never covers the puzzle's Enter key or the tab bar's tabs.
+  await page.goto("/daily");
+  const chip = await page.getByText(system.demo, { exact: true }).boundingBox();
+  for (const control of [
+    page.getByRole("button", { name: daily.enter }),
+    page.getByRole("link", { name: app.nav.map, exact: true }),
+  ]) {
+    const box = await control.boundingBox();
+    expect(chip && box).toBeTruthy();
+    if (!chip || !box) continue;
+    const overlaps =
+      chip.x < box.x + box.width &&
+      box.x < chip.x + chip.width &&
+      chip.y < box.y + box.height &&
+      box.y < chip.y + chip.height;
+    expect(overlaps).toBe(false);
+  }
+  // With the demo row the bar is taller, and the spacer still keeps the end of a long screen clear.
+  await page.goto("/how-it-works");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const bar = await page.getByRole("navigation", { name: app.nav.label }).boundingBox();
+  const end = await page.getByRole("main").locator(":scope > *").last().boundingBox();
+  expect(bar && end).toBeTruthy();
+  if (bar && end) expect(end.y + end.height).toBeLessThanOrEqual(bar.y);
 
   // A second visitor gets a separate copy (F16.2): their plans don't list the first visitor's.
   const other = await browser.newContext();

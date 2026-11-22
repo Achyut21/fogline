@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { inviteTokenInput } from "@/lib/invite-token";
 import { getDb } from "@/server/db/client";
 import { plans } from "@/server/db/schema";
 import { currentProfile } from "@/server/profile";
@@ -12,11 +13,6 @@ import { isParticipant, recapOf, type Recap } from "@/server/recap";
 // - only participants see routes and cleared cells, which start at home stations;
 // - a bar or club, and the title that may name it, is hidden from anyone not known to be 21+;
 // - demo and real never mix.
-
-const inviteToken = z.union([
-  z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/),
-  z.string().regex(/^demo-(?:[2-9A-HJ-NP-Z]{16})$/),
-]);
 
 async function shown(recap: Recap | null, viaInvite: boolean): Promise<Recap | null> {
   if (!recap) return null;
@@ -36,7 +32,7 @@ async function shown(recap: Recap | null, viaInvite: boolean): Promise<Recap | n
 }
 
 export async function recapByInvite(token: unknown): Promise<Recap | null> {
-  const parsed = inviteToken.safeParse(token);
+  const parsed = inviteTokenInput.safeParse(token);
   if (!parsed.success) return null;
   const db = getDb();
   const [plan] = await db

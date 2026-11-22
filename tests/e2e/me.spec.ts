@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { app, me, onboarding as o } from "@/copy";
 
 const s = me.settings;
@@ -38,4 +38,29 @@ test("[F8.3] [F1.7] shows stats and badges, keeps settings, and deletes my data"
   await page.goto("/me");
   await expect(page).toHaveURL(/\/welcome$/);
   await expect(page.getByRole("link", { name: app.nav.me })).toHaveCount(0);
+});
+
+// The tab bar is pinned to the screen's bottom edge on the map and on long screens, scrolled or
+// not (BottomNav; installed iOS apps size dvh short, so nothing relies on it).
+test("pins the tab bar to the bottom edge of the screen", async ({ page }) => {
+  const nav = page.getByRole("navigation", { name: app.nav.label });
+  const rect = (l: Locator) =>
+    l.evaluate((e) => {
+      const { top, bottom } = e.getBoundingClientRect();
+      return { top, bottom };
+    });
+  const gap = async () =>
+    (await page.evaluate(() => window.innerHeight)) - (await rect(nav)).bottom;
+
+  await onboard(page);
+  expect(await gap()).toBe(0);
+  await page.goto("/how-it-works");
+  await page.waitForLoadState("networkidle");
+  expect(await gap()).toBe(0);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  expect(await gap()).toBe(0);
+  // Scrolled to the end, the last content clears the bar.
+  const last = page.getByRole("main").locator(":scope > *").last();
+  expect((await rect(last)).bottom).toBeLessThanOrEqual((await rect(nav)).top);
 });

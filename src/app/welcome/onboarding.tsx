@@ -2,7 +2,14 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { LineBadge, type Line } from "@/components/display/line-badge";
 import { Button } from "@/components/ui/button";
 import { ChoiceList } from "@/components/ui/choice-list";
@@ -25,9 +32,12 @@ const o = onboarding;
 export function Onboarding({
   schools,
   allStations,
+  hero,
 }: {
   schools: readonly SchoolChoice[];
   allStations: readonly { id: string; name: string }[];
+  /** The welcome hero, drawn on the server: Boston under fog with the T lines over it. */
+  hero: ReactNode;
 }) {
   const [state, action, pending] = useActionState(createProfile, { error: null });
   const [step, setStep] = useState(1);
@@ -76,6 +86,9 @@ export function Onboarding({
       <div className="flex flex-1 flex-col gap-4">
         {step === 1 && (
           <>
+            <div aria-hidden="true" className="-mx-4 h-56 overflow-hidden">
+              {hero}
+            </div>
             <p className="text-xl font-extrabold tracking-snug">{app.name}</p>
             <h1 className={title}>{o.welcome.title}</h1>
             <p className="text-ink-muted">{o.welcome.body}</p>

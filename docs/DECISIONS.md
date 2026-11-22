@@ -675,3 +675,7 @@ Consequences:
 - `tests/e2e/perf.spec.ts` keeps the map home check marked `test.fail()`, so it runs every time and reports when the page fits.
 - PRD section 7 is unchanged; the budget is still the target.
 - The fix (keeping schema modules out of client components, finding the polyfill chunk's source) is logged for a later release.
+
+**D-080 · 2026-11-22 · The tab bar is fixed to the screen's bottom edge; screens don't size themselves with viewport units.**
+Why: installed on an iPhone, the map's tab bar floated about one status bar above the bottom edge, and A's human saw the same on Android. Installed iOS apps with `viewport-fit=cover` report the dynamic viewport height short by the top safe-area inset (WebKit bug 254868), so the map's `h-dvh` column ended early. On Plans, Daily, Me and How it works the bar sat in the page flow, so it scrolled away on long screens and floated wherever a short screen ended.
+Consequences: `BottomNav` is `position: fixed` at the bottom with an in-flow spacer of the same height (tab row plus `env(safe-area-inset-bottom)`). The map screen is `fixed inset-0`. The Demo chip no longer floats over content: it's a row inside the tab bar (the spacer grows to match), in `PageHeader` next to its actions, and in the ride replay's header (design-critic BLOCKING, Phase 9 item 5). Other screens still use `min-h-dvh`; in an installed iOS app their bottom-anchored actions (the recap's Share) sit about one status bar higher than the edge. Not checked on a real device yet: PWA.md's install checks cover it.

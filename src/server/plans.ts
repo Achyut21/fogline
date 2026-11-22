@@ -34,7 +34,8 @@ async function plansOf(db: Db, profileId: string): Promise<PlanSummary[]> {
       startsAt: plans.startsAt,
       status: plans.status,
       inviteToken: plans.inviteToken,
-      people: sql<number>`(select count(*)::int from ${planParticipants} where ${planParticipants.planId} = ${plans.id})`,
+      // Drizzle writes columns unqualified inside sql``, so the correlation names the tables.
+      people: sql<number>`(select count(*)::int from plan_participants pp where pp.plan_id = ${plans}.id)`,
     })
     .from(plans)
     .where(sql`${plans.id} in ${mine}`)

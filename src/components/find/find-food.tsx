@@ -131,7 +131,7 @@ export function FindFood({
             name="photo"
             accept="image/jpeg,image/png,image/webp,image/heic"
             required
-            className="min-h-11 text-base"
+            className="text-sm text-ink-muted file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-surface-sunken file:px-4 file:text-base file:font-bold file:text-ink"
           />
         </label>
         <p className="text-xs text-ink-muted">{find.photo.note}</p>

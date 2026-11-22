@@ -3,10 +3,13 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { BadgeChip } from "@/components/display/badge-chip";
 import { StatTile } from "@/components/display/stat-tile";
+import { Reveal, RevealStage } from "@/components/display/reveal";
+import { Podium } from "@/components/recap/podium";
 import { ShareRecap } from "@/components/recap/share-recap";
+import { recapStage } from "@/components/recap/stages";
+import { StatCounter } from "@/components/display/stat-counter";
 import { EmptyState } from "@/components/system/empty-state";
 import { badges, plans, recap } from "@/copy";
-import { clock } from "@/copy/plans";
 import { recapByInvite } from "@/server/actions/recap";
 import { getDb } from "@/server/db/client";
 import { currentProfile } from "@/server/profile";
@@ -52,93 +55,89 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
       <PageHeader back={back} />
-      <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
-          <p className="text-ink-muted">
-            {recap.dateLine(
-              day.format(new Date(night.startsAt)),
-              night.spot?.name ?? (night.adultsOnly ? recap.adultsSpot : null),
-            )}
-          </p>
-        </div>
+      {/* Podium, names, numbers, badges, then Share; a tap anywhere shows them all (DESIGN 8). */}
+      <Reveal className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
+            <p className="text-ink-muted">
+              {recap.dateLine(
+                day.format(new Date(night.startsAt)),
+                night.spot?.name ?? (night.adultsOnly ? recap.adultsSpot : null),
+              )}
+            </p>
+          </div>
 
-        <section aria-labelledby="arrivals" className="flex flex-col gap-2">
-          <h2 id="arrivals" className="text-sm font-bold text-ink-muted">
-            {r.arrivals}
-          </h2>
-          {podium.length === 0 ? (
-            <p className="text-sm">{recap.noArrivals}</p>
-          ) : (
-            <ol
-              aria-labelledby="arrivals"
-              className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm"
-            >
-              {podium.map((a, i) => (
-                <li key={a.profileId} className="flex min-h-12 items-center gap-3 px-4">
-                  <span className="w-10 text-sm font-extrabold text-accent">
-                    {recap.places[podium.length === 3 || i < 2 ? i : 2]}
-                  </span>
-                  <span className="flex-1 font-semibold">{a.name}</span>
-                  <span className="text-sm text-ink-muted tabular-nums">
-                    {clock(new Date(a.at))}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-
-        <section aria-labelledby="numbers" className="flex flex-col gap-2">
-          <h2 id="numbers" className="text-sm font-bold text-ink-muted">
-            {r.numbers}
-          </h2>
-          <dl className="grid grid-cols-2 gap-2">
-            <StatTile
-              label={recap.onT}
-              value={night.numbers.milesOnT}
-              decimals={1}
-              suffix={` ${recap.mi}`}
-            />
-            <StatTile
-              label={`${recap.walked}, ${recap.about}`}
-              value={night.numbers.milesWalked}
-              decimals={1}
-              suffix={` ${recap.mi}`}
-            />
-            <StatTile label={recap.stops(night.numbers.stops)} value={night.numbers.stops} />
-            <StatTile
-              label={recap.cells(night.numbers.newCells)}
-              value={night.numbers.newCells}
-              accent
-            />
-          </dl>
-        </section>
-
-        {night.badges.length > 0 && (
-          <section aria-labelledby="night-badges" className="flex flex-col gap-2">
-            <h2 id="night-badges" className="text-sm font-bold text-ink-muted">
-              {recap.badgesHeading}
+          <section aria-labelledby="arrivals" className="flex flex-col gap-2">
+            <h2 id="arrivals" className="text-sm font-bold text-ink-muted">
+              {r.arrivals}
             </h2>
-            <ul className="flex flex-wrap gap-2">
-              {night.badges.flatMap((b) => {
-                const name = badgeName(b.badge);
-                return name
-                  ? [
-                      <li key={`${b.profileId}-${b.badge}`}>
-                        <BadgeChip name={recap.award(name, b.name)} earned />
-                      </li>,
-                    ]
-                  : [];
-              })}
-            </ul>
+            {podium.length === 0 ? (
+              <p className="text-sm">{recap.noArrivals}</p>
+            ) : (
+              <Podium arrivals={podium} />
+            )}
           </section>
-        )}
 
-        <div className="mt-auto pb-4">
-          {member && <ShareRecap planId={night.planId} title={title} />}
-        </div>
-      </main>
+          <RevealStage at={recapStage.numbers}>
+            <section aria-labelledby="numbers" className="flex flex-col gap-2">
+              <h2 id="numbers" className="text-sm font-bold text-ink-muted">
+                {r.numbers}
+              </h2>
+              <p className="flex items-baseline gap-2">
+                <StatCounter
+                  value={night.numbers.newCells}
+                  className="text-4xl font-extrabold tracking-tight text-accent"
+                />
+                <span className="text-ink-muted">{recap.cells(night.numbers.newCells)}</span>
+              </p>
+              <dl className="grid grid-cols-2 gap-2">
+                <StatTile
+                  label={recap.onT}
+                  value={night.numbers.milesOnT}
+                  decimals={1}
+                  suffix={` ${recap.mi}`}
+                />
+                <StatTile
+                  label={`${recap.walked}, ${recap.about}`}
+                  value={night.numbers.milesWalked}
+                  decimals={1}
+                  suffix={` ${recap.mi}`}
+                />
+                <StatTile label={recap.stops(night.numbers.stops)} value={night.numbers.stops} />
+              </dl>
+            </section>
+          </RevealStage>
+
+          {night.badges.length > 0 && (
+            <RevealStage at={recapStage.badges}>
+              <section aria-labelledby="night-badges" className="flex flex-col gap-2">
+                <h2 id="night-badges" className="text-sm font-bold text-ink-muted">
+                  {recap.badgesHeading}
+                </h2>
+                <ul className="flex flex-wrap gap-2">
+                  {night.badges.flatMap((b) => {
+                    const name = badgeName(b.badge);
+                    return name
+                      ? [
+                          <li key={`${b.profileId}-${b.badge}`}>
+                            <BadgeChip name={recap.award(name, b.name)} earned />
+                          </li>,
+                        ]
+                      : [];
+                  })}
+                </ul>
+              </section>
+            </RevealStage>
+          )}
+
+          {member && (
+            <RevealStage at={recapStage.share} className="mt-auto pb-4">
+              <ShareRecap planId={night.planId} title={title} />
+            </RevealStage>
+          )}
+        </main>
+      </Reveal>
     </div>
   );
 }

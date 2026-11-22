@@ -162,7 +162,9 @@ export function MapScreen({ data, homeStation }: { data: MapData; homeStation: s
                     </span>
                     <span
                       className={
-                        s.uncovered ? "text-sm font-bold text-accent" : "text-sm text-ink-muted"
+                        s.uncovered
+                          ? "shrink-0 text-sm font-bold whitespace-nowrap text-accent"
+                          : "shrink-0 text-sm whitespace-nowrap text-ink-muted"
                       }
                     >
                       {s.uncovered ? map.list.uncovered : map.list.fog}

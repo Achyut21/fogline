@@ -27,5 +27,6 @@ export default defineConfig([
     "next-env.d.ts",
     ".claude/skills/**",
     ".claude/worktrees/**",
+    "brag-output*/**",
   ]),
 ]);

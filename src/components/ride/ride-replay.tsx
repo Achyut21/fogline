@@ -6,12 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import { isLine, LineBadge } from "@/components/display/line-badge";
 import { StatTile } from "@/components/display/stat-tile";
 import { StopCard } from "@/components/map/stop-card";
+import { RideProgress } from "./ride-progress";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { ride } from "@/copy";
 import { duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { recordReplayStop } from "@/server/actions/ride";
+import { DemoMark } from "@/components/app/demo-mark";
 import { InstallPrompt } from "@/components/system/install";
 import type { SheetCard } from "@/server/station-sheet";
 
@@ -145,6 +147,7 @@ export function RideReplay({
           <span className="rounded-full bg-surface-sunken px-2 py-1 text-xs">
             {ride.replay.label}
           </span>
+          <DemoMark className="ml-auto" />
         </p>
         <h1 className="text-2xl font-extrabold tracking-tight" aria-live="polite">
           {here.name}
@@ -155,6 +158,16 @@ export function RideReplay({
             : ride.replay.arrived}
         </p>
       </header>
+
+      <RideProgress
+        line={isLine(route) ? route : null}
+        progress={(clock - stops[0].at) / Math.max(1, stops[last].at - stops[0].at)}
+        here={here.name}
+        upcoming={next?.name ?? null}
+        stops={Math.max(reached, 0)}
+        miles={here.miles}
+        cells={newCells}
+      />
 
       <div className="flex items-center gap-3">
         <SegmentedControl

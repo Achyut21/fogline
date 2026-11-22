@@ -13,7 +13,8 @@ export default async function Home() {
   const profile = await currentProfile();
   if (!profile) redirect("/welcome");
   return (
-    <div className="flex h-dvh flex-col">
+    // Pinned to the screen edges rather than sized with dvh (see BottomNav).
+    <div className="fixed inset-0 flex flex-col">
       <MapScreen data={await mapData(profile)} homeStation={profile.homeStationId} />
       <BottomNav />
     </div>

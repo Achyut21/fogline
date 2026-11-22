@@ -15,7 +15,7 @@ This is the shared status board for both builders. Update it after every finishe
 | 6 Badges, stats, recap, How it works | B's server, recap image and How it works on `main` (#36); Me stats, badges and recap screens now Phase 9; gate not run | A + B |
 | 7 Crawls, weekly plans, grades, squad | Built (#40, #41, #44); weekly plans screen now Phase 9; gate not run | B (+A UI) |
 | 8 Extras | Built (#43, #46); F13.3 map layer and F13.4 calm routing open; gate not run | A + B |
-| 9 PWA polish and UI/UX | Plan below, waiting for A's yes (D-075) | A |
+| 9 PWA polish and UI/UX | Items 1–5 merged (#49, #51, #52, #53, #55); gate next | A |
 | 10 Hardening and release | In progress (B, 2026-11-22); gate runs last (D-075) | B |
 
 ## Board
@@ -118,7 +118,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Now (2026-11-22 05:24 ET): Phase 9, PWA polish and UI/UX** (D-075). Plan, waiting for A's yes. One branch and PR per item, code-critic per PR, design-critic on the screens it touches; copy goes to B's Phase 10 copy pass.
+- **Now (2026-11-22 06:20 ET, handoff): Phase 9, PWA polish and UI/UX** (D-075, approved by A). Items 1–4 merged (#49 shell, #51 Me and Settings, #52 plans extras, #53 PWA polish). Item 5, the design pass, is in progress on `a/design-pass` (WIP, not a PR yet). **Next session, in this order (A's human):** 1) finish Phase 9 (design pass, then `/phase-gate 9`); 2) merge every open PR (B's #47, #50, the design-pass PR); 3) rewrite `README.md` with the `brag` promo video and the feature walkthrough GIFs. Details in the 06:20 handoff entry. Plan as approved:
   1. **App shell and navigation** (`a/shell`): one header and back pattern; every feature reachable (Ride from the map, Find food and weekly plans from Plans, Calm, Squad, Settings and How it works from Me); OfflineBanner and loading, empty and error states on every route; the first-reveal card shown once; theme changes restyle the map; fog updates after reveals; readable pins.
   2. **Me** (`a/me`): stats and badges (F8) from B's `myStats` and badge copy, Settings (theme, force 2D, calm mode, age band) with delete my data (F1.7), the location primer (F1.4) before the first check-in.
   3. **Plans** (`a/plan-extras`): weekly plans list and copy (F10.4, F10.5), Remind me only when a train runs home (F5.8), route alerts (F5.6), the 20 and 5 minute in-app leave-by alerts with vibration on Android (F5.4), and the night recap screen with its share image (F9).
@@ -132,7 +132,7 @@ This is the shared status board for both builders. Update it after every finishe
   3. **Squad screen under Me** (F12.2, F12.3) on B's `src/server/squad.ts`.
   4. **Weekly plans** on the Plans tab (F10.4, F10.5) once the weekly cron exists.
   - Done before this: Phases 3–5 core-loop screens, merged as #35 ride replay, #37 plans, #38 daily puzzle, #39 demo mode (production checks passed for #35, #37, #38).
-- **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
+- **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production). Waiting on the humans: the PWA.md real-device checks (install on an iPhone and an Android phone).
 
 ### Builder B
 - **Now (2026-11-22 07:30):** Phase 10, hardening and release (D-075), on `b/phase10`. B's human said to start. Plan, in order of risk:
@@ -340,6 +340,14 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Copy pass over all of `src/copy/` is running.
   - #50 (weekly fixes) re-review PASS; waiting on A with #47.
 
+- 2026-11-22 07:15 ET · Builder A · #55 (design pass) review fixes, #54 review, launch video:
+  - code-critic on #55: FAIL with one BLOCKING item. RideProgress's moving dot widened the page, so the riding view scrolled sideways. Fixed: the dot layer is clipped inside a box padded by the dot's radius, and the ride e2e asserts no sideways scroll mid-ride. The line fill no longer sits 2 px high, its color comes from `LineBadge`'s map, and its stats use the Stat role (`text-xl`).
+  - Also from the review: recap stages are inert until they appear, so a tap can't land on an unseen Share; a tap or key press anywhere skips (listeners on `document`); stages always start hidden, which removes the reduced-motion hydration mismatch. `planByInvite` now keeps demo and real plans apart (F16.2), and the invite-token pattern lives once in `src/lib/invite-token.ts`. The Demo chip now shows on status pages and the empty ride, plan and squad screens. The welcome hero is drawn on the server, which keeps `h3-js` and the shapes out of `/welcome`'s client bundle. The tab bar's spacer matches its border, and the demo row has a fixed height. WALKTHROUGH F9 is updated with screenshots.
+  - Tests: `[F16.2]` `planByInvite` and `[F4.8]` people count (`tests/integration/plans.test.ts`); reveal tests have no sleeps and cover appear-on-time, tap, key and reduced motion; demo-mode bar clearance in `tests/e2e/demo.spec.ts`. 478 unit pass.
+  - Left open (logged, small): the offline banner sits over the demo row while offline in demo mode; the podium test checks grid classes.
+  - **For B, #54 code-critic: FAIL.** BLOCKING: (1) docs contradict the code. `PRD.md:237` F12.2 still says the squad map is the union of members' cells, but `squad.ts` now shows only shared nights' check-in cells (cite D-078). `ARCHITECTURE.md:185` and `:228` and `PHASES.md:209` still promise rate limits that D-077 deferred. (2) The Vercel preview fails (likely the commit author's Vercel access), so the new security headers were never checked on a real response; once it's green, check them with `curl -sI`. SHOULD FIX: restore the age-band help line now that Settings can change it (`src/copy/onboarding.ts:32`); split `perf.spec.ts`'s `test.fail()` so LCP and the demo start still assert; replace its fixed 3 s sleep; axe should cover `/welcome`, `/me/settings`, the recap, `/ride/[trip]` and both themes; add a squad test for a mate's check-in outside a shared night; record WALKTHROUGH and baselines being deferred as a D-entry; `actions/ride.ts` should use `currentProfile()` once (a deleted demo copy throws a 500); consider a Vercel Firewall rate-limit rule on POST `/restore`. NITs are in the review. README: keep the facts and restructure into the planned layout (video, index, features with GIFs, then technical); A is drafting that on top of #54's README.
+  - Launch video made with `/brag` (local only, `brag-output/`, ignored): 22 s, 1920×1080, from real app clips in demo mode (map in day theme, ride replay, fair options, leave-by, daily puzzle, recap).
+
 - 2026-11-22 07:50 ET · Builder B · Weekly plan fixes from A's notes ([#50](https://github.com/Achyut21/fogline/pull/50), `b/weekly-fixes`, D-076):
   - "Invite friends" on a weekly plan makes one copy per person and returns it again on a repeat tap. An advisory lock stops simultaneous taps; the 8-at-once test fails without the lock and passes with it.
   - The weekly cron runs Mondays 6–11 AM New York time (`0 10-16 * * 1`), so a failed 6 AM run is retried; a run that finds the week made stops.
@@ -347,12 +355,50 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - code-critic: FAIL (stale docs, a race test that didn't exercise the lock), fixed; re-check running.
   - Also open: #47 (invite preview, retargeted to `main`). Phase 10 started on `b/phase10` (plan on the board; the timing-safe cron secret is done).
 
+- 2026-11-22 06:45 ET · Builder A · Phase 9 item 5, design pass (`a/design-pass`), continued from the 06:20 handoff:
+  - Recap page compiles with the miles and stops tiles. Recap choreography now follows DESIGN section 8 (`ff19207`): the podium rises last to first, then names, then the numbers count up, then badges, then Share, by about 3 s; a tap or key press anywhere shows the final state at once; with reduced motion the final state shows with no animation (F9.2). New `Reveal` and `RevealStage` (`src/components/display/reveal.tsx`); StatCounter starts with its stage. The podium list is in place order for screen readers.
+  - The offline page's test now expects the "Go to the map" link added in the WIP commit.
+  - Tests: `tests/component/reveal.test.tsx` (`[F9.2]`), `tests/component/podium.test.tsx` (`[F9.1]`); typecheck and lint clean; 468 pass; full e2e 110 passed, 16 skipped. The first e2e run had two failures that didn't recur on the rerun: calm on desktop-chrome ("too short to measure" after a fixed 3 s wait on a cold server) and the offline train-times test on pixel. Both look load-sensitive; logged for B's Phase 10 hardening.
+  - Seen at 390×844 on a local build against the test DB: staged reveal plays; tapped at 300 ms, Share and the count were final 80 ms later; reduced motion in light and dark shows the final state at 150 ms.
+  - design-critic rerun on the local build: FAIL with one BLOCKING item. The floating Demo chip covered the puzzle's Enter key, the map credit, the builder's grade control, squad rows and ride stops. Fixed: the chip is a row inside the tab bar, in `PageHeader` and in the ride replay header (D-080). All earlier fixes confirmed, recap timeline included.
+  - A's human saw the tab bar floating above the bottom edge in the installed app on an iPhone and on Android. Fixed: the bar is fixed to the bottom edge with an in-flow spacer, and the map screen is `fixed inset-0` (D-080, WebKit 254868). Not yet checked on a real device.
+  - E2e fixes: the offline train-times test waits for the service worker's cache write before going offline (it raced it); ride replay's stop checks wait for the replay's real length (about 4 s per stop at 20× against a 5 s default). Calm on desktop-chrome failed twice as the first test against a fresh server ("too short to measure") and passed on the other runs; cause not found. Logged for B (Phase 10).
+  - New tests: `tests/e2e/me.spec.ts` "pins the tab bar to the bottom edge of the screen" (map, and How it works scrolled to the end); `[F16.3]` in `tests/e2e/demo.spec.ts` now checks the chip covers neither the Enter key nor a tab. 468 unit pass; full e2e 113 passed, 16 skipped.
+  - design-critic SHOULD FIX, new (not done, for the next pass): /welcome hero isn't the canvas's full-bleed fog map with a floating card; /plans lists Past above This week; /me's name outranks its numbers; RideProgress stats are `text-lg`, not the Stat role; /find shows the browser's "Choose File" strings; the How it works heading wraps around its chip. NIT: no h1 on the map, puzzle keys under 44 px (record an exception), /offline buttons not aligned.
+  - Also merged B's #47 (`1ebede9`) and #50 (`62253e1`, after bringing `main` in; CI green). Removed the `b-merge` scratch worktree. #54 (B's Phase 10) is in code-critic.
+  - Next: merge `main` in, PR, code-critic, then `/phase-gate 9`.
 - 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
   - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
   - The image is the same for every link holder, so a 21+ plan always hides its title and venue.
   - `src/app/p/[id]/page.tsx` now has `generateMetadata` that adds the `og:image` (a small change to A's file). Share fonts moved to `src/server/share-fonts.ts` for both images.
   - Tests: `[F4.8]` `[F4.9]` `[F16.3]` in `tests/unit/plan-preview.test.ts`, and `[F4.8]` in `tests/integration/plan-image.test.ts`.
   - #36 and #44 are merged. #45 is retargeted to `main` with main merged in.
+
+- 2026-11-22 06:20 ET · Builder A · Handoff (session limit; the next session runs under A's personal Claude account):
+  - **Order for the next session, from A's human:**
+    1. **Finish Phase 9:** the design pass on `a/design-pass` (exact steps under "In progress" below), then `/phase-gate 9`.
+    2. **Merge every open PR:** B's #47 and #50 (reviewed PASS, admin-merge per D-052 once CI is green; bring `main` in first if they conflict again) and the design-pass PR, then the production deployment check.
+    3. **Rewrite `README.md` and make the walkthrough video**, in this order:
+    1. A promotional video at the top, made with the `brag` skill (`/brag`; it reads the code and builds a short launch video with Hyperframes). Embed or link it first.
+    2. An index.
+    3. The first half, non-technical: every feature in plain language (onboarding, fog map, station sheet, ride replay, plans and crawls, last train and leave-by alerts, live night and check-in, recap, daily puzzle, badges and stats, squad, grades, calm mode, Find food, weekly plans, demo mode, install), each with a short "how to use it" GIF recorded at 390×844 (Playwright video or screenshots stitched, from `/demo` on production or a local build against the test DB).
+    4. Then the technical half: architecture, data sources and credits, the algorithms (fairness, last train, fog cells), stack, setup and scripts, tests, deployment. Keep it in COPY.md's voice; README is the ship kit's start (Phase 10 item 7 is B's, so tell B).
+  - **Finished this session (all on `main`, production checks passed where run):**
+    - Phase 3 item 4 ride replay #35; Phase 4–5 screens #37 plans, #38 daily puzzle, #39 demo; Phase 7 #40 grades, #41 crawls and squad (with B's `b/crawls`); Phase 8 #43 calm and Find food, #46 Find food quotes Google's review summaries.
+    - B's #36 recap, #44 weekly plans, #45 plan end cron, Remind me and alerts (admin-merged per D-052 after A's fixes for code-critic's blockers).
+    - #48 phase split (D-075). Phase 9 items 1–4: #49 `20f09fd`, #51 `0f7e426`, #52 `1155de8`, #53 `024ae81`.
+    - `fogline.boston` → `www.fogline.boston` live (Porkbun DNS, Vercel); Find food verified on production through `/demo` (3 Sichuan spots with Google review-summary quotes).
+  - **In progress: Phase 9 item 5, design pass, on `a/design-pass` (WIP commit, pushed, no PR; do not merge as is).** design-critic FAIL on the local build; fixes so far (not yet tested together):
+    - Done: demo invite tokens accepted by `planByInvite` (ended demo plan said "doesn't exist"); `myPlans` people count (said 0); Demo chip moved bottom-left above the tab bar; honest offline banner copy and a map link on /offline; welcome fog hero (2D map); `RideProgress` on the riding view (line, moving dot, previous/next, running stops, miles, cells); `Podium` and a large cells number on the recap (`src/components/recap/podium.tsx`; the page edit was mid-way — check `src/app/p/[id]/recap/page.tsx` compiles and still has the miles/stops tiles); status page titles; calm copy ("Typical than most" was broken); "In fog" no longer wraps; restore keeps a mistyped code; puzzle legend contrast; styled photo picker.
+    - Still to do from the critic's BLOCKING list: recap staged choreography check with reduced motion; nothing else blocking. SHOULD FIX worth doing: one section-heading style, back-link labels by parent screen name, MapLibre attribution at night, one primary action per screen (/plans/new option buttons, /p owner, /find), label the builder's grade control and the last-train time, scroll to results, centered column at 1440 px, Long Haul badge line, squad numbers' unit, demo seed rides.
+    - Exact next steps: `pnpm typecheck && pnpm lint && pnpm test`, rebuild and run the full e2e, rerun `design-critic` on a local build (`.claude/launch.json` entry `design-pass`: `pnpm start -p 3300` with `DATABASE_URL` = the local test DB, never `.env`'s), fix, PR, code-critic, merge, then `/phase-gate 9`.
+  - **For B:**
+    - #47 (invite link preview) and #50 (weekly fixes): code-critic PASS, `main` merged in (A pushed `4c3159b`, `6ec893d`), CI was running; A stopped before admin-merging. Merge them per D-052 when CI is green. Notes: #50's copy lookup matches title and time (store `weekly_plan_id`); #47 needs an integration test with a real bar stop, and `metadataBase` in the root layout.
+    - Phase 10 is yours (D-075). From reviews: timing-safe cron secrets; direction-specific alerts; fill `badges_awarded.meta` so badge lines with numbers can show; `myStats` now returns `shareUncovered`.
+    - New this session: `scripts/pwa-splash.ts` (`pnpm splash`), `public/splash/*`, `src/styles/splash-screens.ts`; `GEMINI_GROUNDING_MODEL` (optional, defaults to `gemini-3.5-flash`; Maps grounding needs a billed key); no migrations, no design tokens changed.
+  - **Tests:** `main` passes CI (unit, component, integration, e2e on desktop-chrome, iphone, pixel). `a/design-pass` WIP: typecheck and lint clean at the last check; the full suite and e2e not rerun since the design fixes.
+  - **Local:** a scratch worktree `.claude/worktrees/b-merge` (branches `b/og-plan-merge`, `b/weekly-fixes-merge`) — remove with `git worktree remove .claude/worktrees/b-merge` and delete those two local branches. Local `pnpm dev` points at production `fogline-db`; use the test DB for anything that writes.
+
 - 2026-11-22 05:53 ET · Builder A · Phase 9 item 4, PWA polish (`a/pwa-polish`, stacked on `a/plan-extras`):
   - "Update ready" toast with Refresh when a new service worker waits (Serwist `waiting` and `messageSkipWaiting`; `skipWaiting` stays off, so nothing reloads by itself); `navigator.storage.persist()` on load.
   - Install (F1.6): Android's `beforeinstallprompt` kept from page load, iOS Safari's Add to Home Screen steps (with "copy your profile code first"), shown only after a finished puzzle, an ended ride or a created plan, with Not now remembered for 7 days.
