@@ -30,7 +30,7 @@ function frameTimes(page: Page) {
 }
 
 async function drive(page: Page) {
-  const reveal = page.getByRole("button", { name: "Clear fog at the next stop" });
+  const reveal = page.getByRole("button", { name: "Next stop" });
   const until = Date.now() + (seconds - 1) * 1000;
   for (let round = 0; Date.now() < until; round++) {
     await page.mouse.move(map.x, map.y);

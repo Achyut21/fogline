@@ -21,6 +21,7 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder A
 - **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
+  - **Status 2026-11-21 23:05 ET:** item 4 (fog spike) built on `a/fog-spike`, critics running. Approach A, the MapLibre custom layer, won on F2.3 layering; both approaches ran far inside the frame budget (D-058). A asked to keep tests to the important parts to save time: the item 4 plan's component test (rendering stops while `document.hidden`) and the reduced-motion e2e are dropped; reduced motion was checked with headless screenshots.
   - **Status 2026-11-21 21:49 ET (handoff, session ends; the next session runs under another Claude account):** items 1 and 5 are done. Item 5 is on `main` ([#20](https://github.com/Achyut21/fogline/pull/20), `c6ccaad`), with its production check passed. The 20:32 order change stands: code now, canvas alongside. Items 2 and 3 (canvas, storyboards) are partly done; items 4, 6, 7 and 8 haven't started. See the 21:49 log entry.
     - **A approved three changes to the item 5 plan (2026-11-21, D-054):** one type family instead of two; the D-037 exemption for `src/components/ui/` stays until item 6 restyles those files; the custom line and station glyphs land with LineBadge and StationDot in item 6.
     - **Dev servers:** a stale `next dev` from the previous session still runs on :3001 and serves old CSS. Check UI against `fogline-prod` (`.claude/launch.json`, port 3200) or restart the dev server.
@@ -96,7 +97,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** item 4, the 3D fog spike, then item 6 (base components and `/design`). Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
+- **Next:** merge item 4, then item 6 (base components and `/design`). Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
 - **Blocked:** none.
 
 ### Builder B
@@ -223,6 +224,15 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 23:05 ET · Builder A · Phase 1 item 4, the 3D fog spike (`a/fog-spike`, `ad6c0bf`, `ec63c59`):
+  - Built both approaches on one shader, measured them with `tests/perf/fog-fps.ts`, kept A (custom layer, fog under the T lines) and deleted B (R3F overlay, which covered the lines) with `@react-three/fiber` and `@react-three/drei`. Numbers and reasons in D-058; DESIGN section 9 updated.
+  - Measuring: with vsync on, every run held exactly 30 fps, `about:blank` included. The Mac was on battery below 20%, where Chromium caps frames at 30. The recorded runs have vsync off.
+  - Fixed on the way: the reveal front now travels to the farthest cell that lost fog (it was a fixed 2 km, so a ride's reveal finished in about 0.1 s); `--fog-edge` arrives from the CSS build as 8-digit hex and was read as gray; R3F's inline styles had put the overlay below the map.
+  - Tests: unit `[F2.2]` mask and reveal reach, `[F2.6]` tier mapping, token color parsing; e2e `[F2.6] shows the 2D fog map with the same cell states when WebGL is unavailable` (pixel, desktop-chrome; WebKit can't turn WebGL off). typecheck, lint, unit (60) pass.
+  - Checked at 390×844: day and night on tier 3 and 2, tier 1 fill, reveal edge, reduced-motion crossfade (headless).
+  - Review: code-critic, design-critic and copy-critic each failed the first pass. Fixed: fog stopped at the mask rectangle; the 2D fill cleared fog pockets enclosed by uncovered cells (`[F2.6]` test added); two `as` casts; button copy ("Next stop"); no MBTA credit; casings under 2 px per side; pointer thinning didn't repaint with reduced motion; GPU resources weren't disposed on unmount. A asked to move on, so the rest of both lists is recorded for Phase 3 in D-058's consequences.
+  - Open: the real frame rate needs the Android phone (Waiting on A). The 2D fill's p95 (17 ms) is higher than the shader's (3 ms). Not investigated.
 
 - 2026-11-21 21:49 ET · Builder A · Handoff (session ends; the next one runs under another Claude account):
   - **Finished:**

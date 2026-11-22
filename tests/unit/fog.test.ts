@@ -1,4 +1,6 @@
+import { cellsToMultiPolygon, gridDisk, gridRingUnsafe } from "h3-js";
 import { describe, expect, it } from "vitest";
+import { fillFog } from "@/components/map/fill-fog";
 import { applyReveal, cellOf, revealAround, type CellState } from "@/lib/geo/cells";
 import { fogDensity, rasterizeFog, revealReach, type Bounds } from "@/three/mask";
 import { colorVector } from "@/three/materials/fog-material";
@@ -68,6 +70,26 @@ describe("fog colors", () => {
     expect(rgba("#fff")).toEqual([255, 255, 255, 255]);
     expect(rgba("#0008")).toEqual([0, 0, 0, 136]);
     expect(rgba("rgb(150 236 228 / 0.7)")).toEqual([150, 236, 228, 179]);
+  });
+});
+
+describe("2D fog fill", () => {
+  const vertices = (ring: number[][]) =>
+    new Set(ring.map(([lon, lat]) => `${lon.toFixed(6)} ${lat.toFixed(6)}`));
+  const outline = (cells: string[]) => vertices(cellsToMultiPolygon(cells, true)[0][0]);
+
+  it("[F2.6] keeps fog in a pocket enclosed by uncovered cells, and clears what is nested in it", () => {
+    const center = cellOf(buCentral);
+    const states = new Map<string, CellState>(
+      [...gridRingUnsafe(center, 2), center].map((cell) => [cell, "visited"]),
+    );
+    const [world, pocket, ...rest] = fillFog(states).fog.geometry.coordinates;
+
+    expect(rest).toEqual([]);
+    expect(world).toHaveLength(2);
+    expect(pocket).toHaveLength(2);
+    expect(vertices(pocket[0])).toEqual(outline(gridDisk(center, 1)));
+    expect(vertices(pocket[1])).toEqual(outline([center]));
   });
 });
 

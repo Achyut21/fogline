@@ -1,11 +1,16 @@
 "use client";
 
-import { cellsToMultiPolygon } from "h3-js";
-import type { GeoJSONSource, Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
+import type {
+  ExpressionSpecification,
+  GeoJSONSource,
+  Map as MapLibreMap,
+  StyleSpecification,
+} from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { FogFallback } from "@/components/map/fog-fallback";
-import { fog } from "@/copy";
+import { fillFog } from "@/components/map/fill-fog";
+import { fog, legal } from "@/copy";
 import type { CellState } from "@/lib/geo/cells";
 import {
   createFogField,
@@ -28,8 +33,6 @@ const workerUrl = new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta
 function token(name: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
 }
-
-const lineColors = ["red", "orange", "blue", "green"] as const;
 
 function baseStyle(): StyleSpecification {
   return {
@@ -70,13 +73,25 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-function colorMatch(suffix: "" | "-casing") {
+function colorMatch(suffix: "" | "-casing"): ExpressionSpecification {
   return [
     "match",
     ["get", "color"],
-    ...lineColors.flatMap((c) => [c, token(`line-${c}${suffix}`)]),
+    "red",
+    token(`line-red${suffix}`),
+    "orange",
+    token(`line-orange${suffix}`),
+    "blue",
+    token(`line-blue${suffix}`),
+    "green",
+    token(`line-green${suffix}`),
     token("ink"),
-  ] as unknown as string;
+  ];
+}
+
+// Casings stay 2 px wider than the line on each side at every zoom (DESIGN section 10).
+function zoomWidth(low: number, high: number): ExpressionSpecification {
+  return ["interpolate", ["linear"], ["zoom"], 11, low, 15, high];
 }
 
 function addNetwork(map: MapLibreMap) {
@@ -102,7 +117,6 @@ function addNetwork(map: MapLibreMap) {
       })),
     },
   });
-  const width = ["interpolate", ["linear"], ["zoom"], 11, 2.5, 15, 6] as unknown as number;
   map.addLayer({
     id: "line-casing",
     type: "line",
@@ -110,7 +124,7 @@ function addNetwork(map: MapLibreMap) {
     layout: { "line-cap": "round", "line-join": "round" },
     paint: {
       "line-color": colorMatch("-casing"),
-      "line-width": ["interpolate", ["linear"], ["zoom"], 11, 5, 15, 8.5],
+      "line-width": zoomWidth(6.5, 10),
     },
   });
   map.addLayer({
@@ -118,7 +132,7 @@ function addNetwork(map: MapLibreMap) {
     type: "line",
     source: "lines",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": colorMatch(""), "line-width": width },
+    paint: { "line-color": colorMatch(""), "line-width": zoomWidth(2.5, 6) },
   });
   map.addLayer({
     id: "stations",
@@ -133,35 +147,8 @@ function addNetwork(map: MapLibreMap) {
   });
 }
 
-function fillFogData(states: ReadonlyMap<string, CellState>) {
-  const world = [
-    [fogBounds.west - 1, fogBounds.north + 1],
-    [fogBounds.east + 1, fogBounds.north + 1],
-    [fogBounds.east + 1, fogBounds.south - 1],
-    [fogBounds.west - 1, fogBounds.south - 1],
-    [fogBounds.west - 1, fogBounds.north + 1],
-  ];
-  const holes = cellsToMultiPolygon([...states.keys()], true).map((polygon) => polygon[0]);
-  const seen = cellsToMultiPolygon(
-    [...states].filter(([, s]) => s === "seen").map(([c]) => c),
-    true,
-  );
-  return {
-    fog: {
-      type: "Feature" as const,
-      properties: {},
-      geometry: { type: "Polygon" as const, coordinates: [world, ...holes] },
-    },
-    seen: {
-      type: "Feature" as const,
-      properties: {},
-      geometry: { type: "MultiPolygon" as const, coordinates: seen },
-    },
-  };
-}
-
 function addFillFog(map: MapLibreMap, states: ReadonlyMap<string, CellState>) {
-  const data = fillFogData(states);
+  const data = fillFog(states);
   map.addSource("fog", { type: "geojson", data: data.fog });
   map.addSource("fog-seen", { type: "geojson", data: data.seen });
   map.addLayer({
@@ -197,7 +184,6 @@ function MapStage({
   useEffect(() => {
     let disposed = false;
     let map: MapLibreMap | undefined;
-    let material: ReturnType<typeof fogMaterial> | undefined;
     const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     void import("maplibre-gl").then((maplibre) => {
       if (disposed || !container.current) return;
@@ -209,8 +195,7 @@ function MapStage({
         zoom: 12.2,
         dragRotate: false,
         pitchWithRotate: false,
-        attributionControl: { compact: true },
-        canvasContextAttributes: { antialias: true },
+        attributionControl: { compact: true, customAttribution: legal.mbta },
         pixelRatio: Math.min(window.devicePixelRatio, maxDpr),
       });
       map.touchZoomRotate.disableRotation();
@@ -221,7 +206,7 @@ function MapStage({
           live.current = { map: m };
         } else {
           const mask = rasterizeFog(initial.current, fogBounds, maskSize);
-          material = fogMaterial({
+          const material = fogMaterial({
             mask: maskTexture(mask, maskSize),
             octaves: shaderQuality[renderer].octaves,
             aspect: maskAspect,
@@ -230,12 +215,16 @@ function MapStage({
           const field = createFogField(material, reduced);
           m.addLayer(fogLayer(material, field));
           live.current = { map: m, field, mask };
+          const point = (uv: [number, number] | null) => {
+            field.point(uv);
+            m.triggerRepaint();
+          };
           const pointer = (e: { lngLat: { lng: number; lat: number } }) =>
-            field.point(maskUv(e.lngLat.lng, e.lngLat.lat));
+            point(maskUv(e.lngLat.lng, e.lngLat.lat));
           m.on("mousemove", pointer);
           m.on("touchmove", pointer);
-          m.on("mouseout", () => field.point(null));
-          m.on("touchend", () => field.point(null));
+          m.on("mouseout", () => point(null));
+          m.on("touchend", () => point(null));
         }
         addNetwork(m);
       });
@@ -243,8 +232,9 @@ function MapStage({
     return () => {
       disposed = true;
       live.current = null;
+      // map.remove() skips a custom layer's onRemove, which disposes the fog's GPU resources.
+      if (map?.getLayer("fog")) map.removeLayer("fog");
       map?.remove();
-      material?.dispose();
     };
   }, [renderer, maxDpr]);
 
@@ -260,7 +250,7 @@ function MapStage({
       current.mask = mask;
       current.map.triggerRepaint();
     } else {
-      const data = fillFogData(states);
+      const data = fillFog(states);
       current.map.getSource<GeoJSONSource>("fog")?.setData(data.fog);
       current.map.getSource<GeoJSONSource>("fog-seen")?.setData(data.seen);
     }
@@ -281,6 +271,7 @@ export function FogSpike({ tierOverride }: { tierOverride: number | null }) {
   // FogPreview loads this component in the browser only, so document exists here.
   const [webgl] = useState(() => Boolean(document.createElement("canvas").getContext("webgl2")));
   const [tier, setTier] = useState<number | null>(tierOverride);
+  const [failed, setFailed] = useState(false);
   const [states, setStates] = useState(sampleStates);
   const [step, setStep] = useState(0);
   const [revealAt, setRevealAt] = useState<{
@@ -292,7 +283,11 @@ export function FogSpike({ tierOverride }: { tierOverride: number | null }) {
     if (tierOverride !== null) return;
     void import("@pmndrs/detect-gpu")
       .then(({ getGPUTier }) => getGPUTier({ benchmarksURL: "/detect-gpu" }))
-      .then((result) => setTier(result.tier));
+      .then((result) => setTier(result.tier))
+      .catch(() => {
+        setFailed(true);
+        setTier(1);
+      });
   }, [tierOverride]);
 
   const renderer = tier === null ? null : fogRenderer({ webgl, tier, force2d: false });
@@ -311,8 +306,11 @@ export function FogSpike({ tierOverride }: { tierOverride: number | null }) {
         <h1 className="text-xl font-bold">{fog.previewTitle}</h1>
         <p className="text-sm text-ink-muted">{fog.sampleNote}</p>
         <p className="text-sm text-ink-muted" data-testid="renderer">
-          {renderer ? fog.rendererName[renderer] : ""}{" "}
-          {tier !== null ? fog.tier.detected(tier) : ""}
+          {failed
+            ? fog.tierFailed
+            : renderer && tier !== null
+              ? fog.status(fog.rendererName[renderer], tier)
+              : fog.checking}
         </p>
         <button
           type="button"

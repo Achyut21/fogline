@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { fog } from "@/copy";
+import { fog, legal } from "@/copy";
 import { nextStops, revealStep, sampleStates, stationPoint } from "@/app/design/fog/sample-fog";
 
 // Every test in this file runs with WebGL off, which only Chromium supports as a launch flag.
@@ -16,6 +16,7 @@ test("[F2.6] shows the 2D fog map with the same cell states when WebGL is unavai
   const map = page.getByRole("img", { name: fog.mapLabel(states.size) });
   await expect(map).toHaveAttribute("data-renderer", "svg");
   await expect(page.getByTestId("renderer")).toContainText(fog.rendererName.svg);
+  await expect(page.getByText(legal.mbta)).toBeVisible();
 
   await page.getByRole("button", { name: fog.reveal }).click();
   await expect(page.getByRole("img", { name: fog.mapLabel(next.size) })).toBeVisible();

@@ -2,9 +2,15 @@ import type { ShaderMaterial, Texture } from "three";
 import { duration } from "@/lib/motion";
 import type { Bounds } from "./mask";
 
-// The area the fog mask covers: Boston, Cambridge, Somerville and Brookline. Outside it the
-// shader draws plain fog.
+// The area the fog mask covers: Boston, Cambridge, Somerville and Brookline. Outside it, out to
+// fogExtent, the shader and the 2D fill draw plain fog.
 export const fogBounds: Bounds = { west: -71.19, south: 42.29, east: -70.99, north: 42.42 };
+export const fogExtent: Bounds = {
+  west: fogBounds.west - 1,
+  south: fogBounds.south - 1,
+  east: fogBounds.east + 1,
+  north: fogBounds.north + 1,
+};
 export const maskSize = 256;
 
 /** MapLibre's Mercator units: x and y run from 0 to 1, y grows southward. */
@@ -21,10 +27,6 @@ export const maskAspect = (se.x - nw.x) / (se.y - nw.y);
 export function maskUv(lon: number, lat: number): [number, number] {
   const p = mercator(lon, lat);
   return [(p.x - nw.x) / (se.x - nw.x), (p.y - nw.y) / (se.y - nw.y)];
-}
-
-export function maskCorners() {
-  return { nw, se };
 }
 
 export type FogField = {

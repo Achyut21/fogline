@@ -1,5 +1,5 @@
 import { cellToBoundary } from "h3-js";
-import { fog } from "@/copy";
+import { fog, legal } from "@/copy";
 import type { CellState } from "@/lib/geo/cells";
 import { maskAspect, maskUv } from "@/three/fog-field";
 
@@ -38,44 +38,59 @@ export function FogFallback({
   const seen = cells.filter((cell) => states.get(cell) === "seen");
   const outline = `M0 0H${width}V${height}H0Z`;
   return (
-    <svg
-      role="img"
-      aria-label={fog.mapLabel(cells.length)}
-      viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="xMidYMid slice"
-      className="h-full w-full bg-(--map-land)"
-      data-renderer="svg"
-    >
-      <path
-        d={outline + cells.map(cellPath).join("")}
-        fill="var(--fog)"
-        fillRule="evenodd"
-        opacity={0.92}
-      />
-      <path d={seen.map(cellPath).join("")} fill="var(--fog)" opacity={0.45} />
-      {lines.map((line, i) => {
-        const d = `M${line.coordinates.map(([lon, lat]) => point(lon, lat)).join("L")}`;
-        return (
-          <g key={`${line.route}-${i}`} fill="none" strokeLinecap="round" strokeLinejoin="round">
-            <path d={d} stroke={`var(--line-${line.color}-casing)`} strokeWidth={7} />
-            <path d={d} stroke={`var(--line-${line.color})`} strokeWidth={4} />
-          </g>
-        );
-      })}
-      {stations.map((s) => {
-        const [u, v] = maskUv(s.lon, s.lat);
-        return (
-          <circle
-            key={s.name}
-            cx={u * width}
-            cy={v * height}
-            r={3.5}
-            fill="var(--surface)"
-            stroke="var(--ink)"
-            strokeWidth={1.5}
-          />
-        );
-      })}
-    </svg>
+    <div className="relative h-full w-full">
+      <svg
+        role="img"
+        aria-label={fog.mapLabel(cells.length)}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid slice"
+        className="h-full w-full bg-(--map-land)"
+        data-renderer="svg"
+      >
+        <path
+          d={outline + cells.map(cellPath).join("")}
+          fill="var(--fog)"
+          fillRule="evenodd"
+          opacity={0.92}
+        />
+        <path d={seen.map(cellPath).join("")} fill="var(--fog)" opacity={0.45} />
+        {lines.map((line, i) => {
+          const d = `M${line.coordinates.map(([lon, lat]) => point(lon, lat)).join("L")}`;
+          return (
+            <g key={`${line.route}-${i}`} fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <path
+                d={d}
+                stroke={`var(--line-${line.color}-casing)`}
+                strokeWidth={7}
+                vectorEffect="non-scaling-stroke"
+              />
+              <path
+                d={d}
+                stroke={`var(--line-${line.color})`}
+                strokeWidth={3}
+                vectorEffect="non-scaling-stroke"
+              />
+            </g>
+          );
+        })}
+        {stations.map((s) => {
+          const [u, v] = maskUv(s.lon, s.lat);
+          return (
+            <circle
+              key={s.name}
+              cx={u * width}
+              cy={v * height}
+              r={3.5}
+              fill="var(--surface)"
+              stroke="var(--ink)"
+              strokeWidth={1.5}
+            />
+          );
+        })}
+      </svg>
+      <p className="absolute right-2 bottom-2 rounded-sm bg-surface px-2 py-1 text-xs text-ink-muted">
+        {legal.mbta}
+      </p>
+    </div>
   );
 }

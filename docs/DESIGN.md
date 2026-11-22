@@ -202,7 +202,7 @@ Every component appears on `/design` in every variant and state, in both themes.
 | Moment | Motion | Reduced motion |
 |---|---|---|
 | Station tap | the station dot pulses (`spring.bouncy`), sheet rises (`spring.smooth`), map dims to 30% | sheet fades in |
-| Fog reveal | fog burns off radially from the point with a bright edge (`duration.reveal`) | 200 ms crossfade of cell states |
+| Fog reveal | fog burns off radially from the point with a bright edge (`duration.reveal`) | `duration.fast` crossfade of cell states (D-058) |
 | Puzzle solved | tiles bounce in a wave, map flies to the venue (about 1.2 s), pin drops (`spring.bouncy`) with a small ring | pin appears, map jumps |
 | Count-up numbers | digits count to their value (`duration.count`), tabular figures keep width fixed | final value shown at once |
 | Badge award | token flips in (3D, or 2D scale and rotate), one glow pulse, Android haptic | badge fades in |
