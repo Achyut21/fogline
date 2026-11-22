@@ -127,8 +127,29 @@ export const planStops = pgTable(
     placeId: text("place_id").notNull(),
     stationId: text("station_id").notNull(),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+    /** The crawl builder walked here from the previous stop (DATA 3.11, 3.15). */
+    walkedFromPrevious: boolean("walked_from_previous").notNull().default(false),
   },
   (t) => [primaryKey({ columns: [t.planId, t.seq] })],
+);
+
+/**
+ * This week's suggested crawls (F10.4), made by the Monday cron and the same for everyone. Their
+ * stops are a validated crawl, stored as JSON; "Invite friends" copies one into a plan (F10.5).
+ */
+export const weeklyPlans = pgTable(
+  "weekly_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    weekOf: date("week_of").notNull(),
+    seq: smallint("seq").notNull(),
+    template: text("template").notNull(),
+    eventId: text("event_id"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    stops: jsonb("stops").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique("weekly_plans_week_seq").on(t.weekOf, t.seq)],
 );
 
 export const revealedCells = pgTable(

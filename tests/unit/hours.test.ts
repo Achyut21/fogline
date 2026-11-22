@@ -39,6 +39,9 @@ describe("opening hours", () => {
     expect(openAt(hours, at("2026-11-21T20:00:00"))).toBe("open");
     expect(openAt(hours, at("2026-11-21T11:00:00"))).toBe("open");
     expect(openAt("Mo-Su 10:00-14:00; Sa 18:00-22:00", at("2026-11-21T11:00:00"))).toBe("closed");
+    const mixed = "Mo-Fr 09:00-17:00; Sa 10:00-12:00, Mo 18:00-20:00";
+    expect(openAt(mixed, at("2026-11-16T10:00:00"))).toBe("open");
+    expect(openAt(mixed, at("2026-11-16T19:00:00"))).toBe("open");
   });
 
   it("[F10.1] reads hours in Boston time across the daylight saving change", () => {

@@ -6,6 +6,7 @@ import { eventSchema, wordsFileSchema } from "@/lib/events";
 import { regionSchema } from "@/lib/geo/regions";
 import { graphSchema, shapeLineSchema, stationSchema, timetableSchema } from "@/lib/gtfs/types";
 import { placeSchema } from "@/lib/places/types";
+import { violationsFileSchema } from "@/lib/violations";
 
 // The committed data files (ARCHITECTURE section 7), read once per server instance. Server-only:
 // the graph and timetable are large, and events.json holds the puzzle answers.
@@ -30,4 +31,5 @@ export const data = {
   shapes: load("shapes.json", z.array(shapeLineSchema)),
   regions: load("neighborhoods-h3.json", z.array(regionSchema)),
   cards: load("station-cards.json", z.array(cardSchema)),
+  violations: load("violations.json", violationsFileSchema),
 };

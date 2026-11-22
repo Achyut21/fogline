@@ -285,6 +285,36 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:15 ET · Builder B · Phase 7 server side on `b/crawls` (from `main`; PR to follow):
+  - **Crawls (F10.1–F10.3):** `src/lib/crawl.ts` (`buildCrawls`), OSM opening hours in `src/lib/places/hours.ts` (967 of 1,000 parse), `planCrawl` + `findCrawl` Server Action. DATA 3.15.
+  - **Dinner before (F10.6):** `src/lib/dinner-before.ts`, `planDinnerBefore` + `findDinnerBefore`. DATA 3.16.
+  - **Squad (F12.2, F12.3):** `squadCells`, `squadStreak`, `squadOf`, the `mySquad` Server Action. DATA 3.12 and D-071. A's #41 builds on it.
+  - **Weekly plans (F10.4, F10.5):**
+    - campus-fair drafts (`src/lib/weekly.ts`), the Monday cron `/api/cron/weekly-plans`;
+    - Server Actions `thisWeeksPlans` and `inviteToWeeklyPlan`;
+    - migration `0004_phase7_weekly_plans` (`weekly_plans`, `plan_stops.walked_from_previous`);
+    - DATA 3.17 and D-073 (B's human chose campus stations).
+  - **Plain-English violations (F11.2):** the `pnpm data:violations` pipeline and `violationWords`. Gemini returned 429 (quota exceeded), so `data/violations.json` is empty and the city's words show until it reruns.
+  - Reviews: code-critic PASS on crawls, Dinner before and squad, with every SHOULD FIX done (OSM `,` vs `;`, T legs need a boarding train, full stay before the last train, T-leg, blocker and privacy tests).
+  - Weekly plans and violations: code-critic FAIL and copy-critic FAIL on the first pass. All fixed:
+    - the cron hour gate read "06" as not 6 AM; it's now tested at both UTC runs in EST and EDT, on one `0 10,11 * * 1` schedule;
+    - plan pages list every stop, with leave-by from the last; check-ins work at event stops (`stopSpot`);
+    - weekly plans are hidden and not copyable once a stop leaves the data or turns 21+, and only this week's can be copied;
+    - titles are headings under six words and name the meal by its hour ("Dinner, then Symphony Hall", or "the event" for a long venue);
+    - violation checks share COPY's banned words and patterns and reject semicolons, Title Case and invented numbers.
+  - **Migration 0004 is on fogline-db** (checked 2026-11-22: 5 migrations recorded, `weekly_plans` and `plan_stops.walked_from_previous` present), so this branch can deploy.
+  - Known flake: `[F15.2]` in `tests/integration/hypertables.test.ts` failed once in a full parallel run (3/3 pass alone); the continuous-aggregate refresh is slow under load. Not touched here.
+  - Known flake (A's test): `offers a retry when the inspection fails to load` in `tests/component/grades.test.tsx` fails in the full parallel run on this machine and passes alone; its `findByRole` waits only the default 1 s.
+  - Merged `main` (#40, #41) into `b/crawls`. `planByInvite` keeps A's multi-stop shape and now reads stops through `stopSpot`, so event stops work. `spotInspection` maps violations through `violationWords` (F11.2).
+  - Earlier deploy-order note: `plan_stops` now selects `walked_from_previous`, so plan pages and `endPlan` fail until the column exists.
+  - Data note: one city violation reads "uspension of Permit / Emergency Closure without a Prior Hearing", with its first letter missing in `places.json`. Check `data:grades` against the source next time it runs.
+  - Tests: 398 pass. The only steady failure is A's Windows-only token test. code-critic and copy-critic re-reviews: PASS (one test timeout fixed after).
+  - **For B's human:** rerun `pnpm data:violations` once Gemini quota is back.
+  - **For A:**
+    - F11.2 still wants a link to the city record on the inspection details, for example https://data.boston.gov/dataset/food-establishment-inspections.
+    - `planByInvite` now also returns `stops` (every stop in order, events as their venue), and leave-by runs from the last stop. A crawl's plan page can list them; `spot` and `station` are still the first stop.
+    - Weekly plan titles are short headings. A meal-before title names the venue (or "the event"); the event's own title isn't sent, so it can't give away a puzzle word.
+    - Screens: crawl builder (`findCrawl`), Dinner before on Plan it (`findDinnerBefore`), weekly plans (`thisWeeksPlans`, `inviteToWeeklyPlan`).
 - 2026-11-22 04:15 ET · Builder A · Phase 8 (F13 calm mode, F14 Find it and taste of home) on `a/calm`, and #41 merged:
   - #41 (B's `b/crawls` with A's squad and crawl screens, folded into one PR because B had no PR open) squash `7a68d39` after code-critic FAIL (a crawl's title named its first venue, leaking 21+ venues) → fixes (station-named titles, hidden 21+ titles, stop times checked, leave-by from the last stop) → PASS.
   - Calm: `/calm` with a microphone primer (F1.4), measuring a named stretch on the phone (`src/lib/noise.ts`), `recordNoise` (adjacent stations only, one a minute), the "Measured by riders" list, and the sensory preview in the station sheet. D-072.

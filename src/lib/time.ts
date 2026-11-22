@@ -64,6 +64,13 @@ export function addDays(date: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
+/** The Monday that starts a date's week. */
+export function mondayOf(date: string): string {
+  const [year, month, day] = dateParts(date);
+  const sinceMonday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+  return addDays(date, -sinceMonday);
+}
+
 export function toServiceTime(at: Date): { serviceDate: string; seconds: number } {
   const serviceDate = serviceDateOf(at);
   const seconds = Math.floor((at.getTime() - serviceDayOrigin(serviceDate).getTime()) / 1000);
