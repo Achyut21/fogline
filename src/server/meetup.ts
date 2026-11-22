@@ -36,6 +36,7 @@ export type MeetupOption = {
     name: string;
     category: Place["category"];
     grade: string | null;
+    inspected: string | null;
     walkM: number;
     lat: number;
     lon: number;
@@ -98,6 +99,7 @@ export function planMeetup(
             name: place.name,
             category: place.category,
             grade: place.grade?.letter ?? null,
+            inspected: place.grade?.date ?? null,
             walkM,
             lat: place.lat,
             lon: place.lon,

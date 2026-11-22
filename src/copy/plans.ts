@@ -128,6 +128,7 @@ export const plans = {
         spots: "No spot is open near the fair stations",
       } satisfies Record<Blocker, string>,
       relax: "Allow every kind of spot",
+      relaxGrade: "Allow any grade",
     },
     errors: {
       noProfile: "Make a profile first.",
