@@ -30,7 +30,7 @@ export function FilterChips<T extends string>({
           type="button"
           aria-pressed={selected.has(chip.value)}
           onClick={() => onToggle(chip.value)}
-          className="h-11 shrink-0 rounded-full bg-surface-sunken px-4 text-sm font-semibold text-ink aria-pressed:bg-accent-soft aria-pressed:font-bold"
+          className="h-11 shrink-0 rounded-full bg-surface-sunken px-4 text-sm font-semibold text-ink aria-pressed:bg-accent-soft aria-pressed:font-bold aria-pressed:ring-2 aria-pressed:ring-accent aria-pressed:ring-inset"
         >
           {chip.label}
         </button>

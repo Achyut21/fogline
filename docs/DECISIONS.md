@@ -378,6 +378,8 @@ Decision:
 - Buttons have four variants (primary, secondary, ghost, danger) and two sizes: `lg` (56 px, `text-lg`) for primary actions and `md` (44 px, `text-base`). shadcn's `outline` and `link` variants are gone.
 - SegmentedControl is a Radix radiogroup (D-054). The theme toggle on `/design` uses it, so its e2e tests look for radios and `aria-checked`.
 - The Sheet is vaul's drawer with snap points as fractions of the screen (`sheetSnaps`: 0.3, 0.55, 1), so no raw px reaches the code. The scrim shows from the half snap up.
+- The sheet moves on `duration.slow` and `ease.standard` instead of `spring.smooth`: vaul animates with CSS, which has no springs. `globals.css` overrides vaul's own 0.5 s curve, and with reduced motion the sheet fades instead of sliding. Focus moves into the sheet on open, and a tap on the grabber moves to the next snap point (WCAG 2.5.7). The `/design` sheet is modal at every snap; map sheets in Phase 3 decide whether peek stays non-modal (vaul `modal={false}`) so the map takes taps.
+- Toasts and the full-height sheet stay below the status bar (`sheet-full` utility, toast offset with the safe-area inset).
 - The Toaster mounts once in the root layout, top center, on `--layer-toast`, unstyled sonner with token classes.
 - Skeletons are still blocks. No shimmer: it would be one more looping animation with a reduced-motion branch, for little gain.
 - `pt-safe` and `pb-safe` utilities in `globals.css` add the safe-area insets. BottomNav and the Sheet use them; the app shell adopts them when the first screens land.

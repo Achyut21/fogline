@@ -12,6 +12,7 @@ import { StaleChip } from "@/components/system/stale-chip";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
@@ -101,7 +102,12 @@ export function ComponentsDemo() {
           </label>
           <label className="flex flex-col gap-2">
             <span className="text-sm font-bold">{d.codeLabel}</span>
-            <Input aria-invalid="true" aria-describedby="code-error" defaultValue={d.codeValue} />
+            <Input
+              aria-invalid="true"
+              aria-describedby="code-error"
+              defaultValue={d.codeValue}
+              className="h-14 text-2xl font-extrabold tracking-wide"
+            />
             <span id="code-error" className="text-sm text-danger">
               {d.codeError}
             </span>
@@ -140,9 +146,14 @@ export function ComponentsDemo() {
               <Button variant="secondary">{d.openSheet}</Button>
             </DrawerTrigger>
             <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>{d.sheetTitle}</DrawerTitle>
-                <DrawerDescription>{d.sheetBody}</DrawerDescription>
+              <DrawerHeader className="flex-row items-start justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <DrawerTitle>{d.sheetTitle}</DrawerTitle>
+                  <DrawerDescription>{d.sheetBody}</DrawerDescription>
+                </div>
+                <DrawerClose asChild>
+                  <IconButton label={d.close} icon={X} />
+                </DrawerClose>
               </DrawerHeader>
             </DrawerContent>
           </Drawer>

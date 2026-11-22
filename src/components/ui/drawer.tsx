@@ -6,11 +6,13 @@ import { cn } from "@/lib/utils";
 
 // The Sheet (DESIGN sections 5 and 7): a bottom drawer with peek, half and full snap points, as
 // fractions of the screen. Vaul moves the sheet down from its full height to reach a snap point,
-// so the content is always full height, minus the status bar. Vaul animates the drag itself.
+// so the content is always full height, minus the status bar. A tap on the grabber (44 px hit
+// area) moves to the next snap point, so changing size never needs a drag (WCAG 2.5.7).
 export const sheetSnaps = [0.3, 0.55, 1];
 
-function Drawer(props: ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
+// Focus moves into the sheet when it opens (vaul leaves it behind by default).
+function Drawer({ autoFocus = true, ...props }: ComponentProps<typeof DrawerPrimitive.Root>) {
+  return <DrawerPrimitive.Root data-slot="drawer" autoFocus={autoFocus} {...props} />;
 }
 
 function DrawerTrigger(props: ComponentProps<typeof DrawerPrimitive.Trigger>) {
@@ -47,7 +49,7 @@ function DrawerContent({
         )}
         {...props}
       >
-        <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-rule" />
+        <DrawerPrimitive.Handle className="shrink-0" />
         {children}
       </DrawerPrimitive.Content>
     </DrawerPrimitive.Portal>
