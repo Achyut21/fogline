@@ -45,3 +45,6 @@ playwright/.auth/
 
 # Phase 1 canvas tooling (map renders, canvas sources), local only
 .canvas-work/
+
+# agent worktrees
+.claude/worktrees/

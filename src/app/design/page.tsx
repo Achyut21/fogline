@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/system/theme-toggle";
+import { ComponentsDemo } from "./components-demo";
 import { app, design } from "@/copy";
 import { contrast } from "@/lib/contrast";
 import { duration, ease, spring, stagger } from "@/lib/motion";
@@ -130,6 +131,10 @@ export default function DesignPage() {
           <ThemeToggle />
         </div>
       </header>
+
+      <Section id="components" title={design.sections.components}>
+        <ComponentsDemo />
+      </Section>
 
       <Section id="brand" title={design.sections.brand}>
         <ul className="flex flex-wrap items-end gap-6">

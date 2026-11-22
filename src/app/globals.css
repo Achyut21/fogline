@@ -5,6 +5,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Safe areas (DESIGN section 5): nothing sits under the notch or the home indicator. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 @theme inline {
   --color-*: initial;
   --color-bg: var(--bg);

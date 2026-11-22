@@ -371,3 +371,16 @@ Consequences:
 - Left for Phase 3, where the real map is built (from code-critic and design-critic, item 4 review): the 256² mask covers only Boston, Cambridge, Somerville and Brookline and gets blocky past zoom 13, so outer stations (Ashmont, Braintree, Oak Grove, Riverside) can't clear in 3D and street zoom needs a finer or tiled mask; build the mask from a cached pixel-to-cell index (65,536 `latLngToCell` calls take about 30 ms on an M4 Pro); the reveal edge should read as a continuous eased ring like the canvas `onb-reveal` artboard; restyle the map when the theme flips; add fog on `style.load` and keep the latest states for a reveal pressed before load; load three.js only for the shader tiers; fall back to SVG if MapLibre fails to start; fog opacities as tokens (`--fog-thin` is unused); a crossfade for tier 0–1 reveals; style the attribution control (44 px toggle, safe-area inset, night colors, stays expanded); an F2.3 test of the layer order; line names and a live region for screen readers (F2.7).
 - Credits: the map's attribution control keeps OpenFreeMap's own credit from its TileJSON, because it also names OpenMapTiles, and adds "Train data: MBTA. Not affiliated with the MBTA." from `src/copy/legal.ts`. The SVG fallback shows the MBTA line in a corner. COPY.md notes the difference from its OpenFreeMap line.
 - Numbering: B's open PRs use D-053 to D-056, and #17's D-054 collides with D-054 on `main`. B renumbers on rebase: #17, #18 and #19 take D-055 to D-057, so this entry is D-058.
+
+**D-059 · 2026-11-21 · Base components, first half (Phase 1 item 6a).**
+Decision:
+- Item 6 ships as two PRs: 6a restyles the shadcn primitives and adds the controls and state components; 6b adds the transit and data components (LineBadge, StationDot, StatCounter, StatTile, Countdown, LeaveByChip, BadgeChip, AvatarStack, ParticipantChip) and the motion demos.
+- Buttons have four variants (primary, secondary, ghost, danger) and two sizes: `lg` (56 px, `text-lg`) for primary actions and `md` (44 px, `text-base`). shadcn's `outline` and `link` variants are gone.
+- SegmentedControl is a Radix radiogroup (D-054). The theme toggle on `/design` uses it, so its e2e tests look for radios and `aria-checked`.
+- The Sheet is vaul's drawer with snap points as fractions of the screen (`sheetSnaps`: 0.3, 0.55, 1), so no raw px reaches the code. The scrim shows from the half snap up.
+- The Toaster mounts once in the root layout, top center, on `--layer-toast`, unstyled sonner with token classes.
+- Skeletons are still blocks. No shimmer: it would be one more looping animation with a reduced-motion branch, for little gain.
+- `pt-safe` and `pb-safe` utilities in `globals.css` add the safe-area insets. BottomNav and the Sheet use them; the app shell adopts them when the first screens land.
+- The token check no longer exempts `src/components/ui/` (D-037, D-054).
+- `.claude/worktrees/` (agent worktrees) is ignored by git and ESLint.
+Why: the approved item 6 plan, D-054's consequences, and A's request to move faster.
