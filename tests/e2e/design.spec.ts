@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { design } from "@/copy";
+import { app, design, system } from "@/copy";
 import { themeColor } from "@/styles/theme-color";
 
 const night = /\bdark\b/;
@@ -68,6 +68,28 @@ test.describe("/design", () => {
         { media: "(prefers-color-scheme: light)", content: themeColor.day },
         { media: "(prefers-color-scheme: dark)", content: themeColor.night },
       ]);
+  });
+
+  test("keeps theme-color on a manual theme after an in-app navigation", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/design");
+    await page
+      .getByRole("group", { name: design.theme.label })
+      .getByRole("button", { name: design.theme.night })
+      .click();
+    await page.goto("/no-such-page");
+    await expect(page.locator("html")).toHaveClass(night);
+    await page.evaluate(() => Object.assign(window, { sameDocument: true }));
+
+    await page.getByRole("link", { name: system.notFound.home }).click();
+    await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+    expect(await page.evaluate(() => "sameDocument" in window)).toBe(true);
+    // Next rewrites the viewport metas after the route commits, so give it time to do that.
+    await page.waitForTimeout(500);
+    expect(await themeColors(page)).toEqual([
+      { media: "(prefers-color-scheme: light)", content: themeColor.night },
+      { media: "(prefers-color-scheme: dark)", content: themeColor.night },
+    ]);
   });
 
   test("has no horizontal scroll", async ({ page }) => {
