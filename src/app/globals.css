@@ -12,8 +12,8 @@
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
-/* A sheet's full height stops below the status bar. */
-@utility h-sheet {
+/* Full sheet height, stopping below the status bar. */
+@utility sheet-full {
   height: calc(100% - env(safe-area-inset-top));
 }
 

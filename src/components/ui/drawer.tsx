@@ -42,7 +42,7 @@ function DrawerContent({
       <DrawerPrimitive.Content
         data-slot="drawer-content"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-(--layer-sheet) mx-auto flex h-sheet w-full max-w-md flex-col rounded-t-xl bg-surface pb-safe text-ink shadow-lg outline-none",
+          "fixed inset-x-0 bottom-0 z-(--layer-sheet) mx-auto flex sheet-full w-full max-w-md flex-col rounded-t-xl bg-surface pb-safe text-ink shadow-lg outline-none",
           className,
         )}
         {...props}
