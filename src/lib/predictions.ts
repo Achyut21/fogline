@@ -73,24 +73,28 @@ export type Departure = {
   departs: number;
 };
 
+/** Green Line branches share a direction name at a station, so they share a cap. */
+const lineOf = (route: string) => (route.startsWith("Green") ? "Green" : route);
+
 /**
- * The next trains leaving a station, soonest first, at most `perDirection` each way. A trip that
- * ends at the station isn't a departure, and neither is one that already left.
+ * The next trains leaving a station, soonest first, at most `perDirection` for each line and
+ * direction. A trip that ends at the station isn't a departure, and neither is one that already
+ * left. `stationOf` maps the feed's stop IDs, terminal tracks included, to stations.
  */
 export function departuresFrom(
   trips: readonly Trip[],
-  station: { id: string; stops: readonly string[] },
+  station: string,
   stationOf: (stop: string) => string | undefined,
   now: number,
   perDirection = 3,
 ): Departure[] {
   const found: Departure[] = [];
   for (const trip of trips) {
-    const here = trip.stops.find((s) => station.stops.includes(s.stop));
+    const here = trip.stops.find((s) => stationOf(s.stop) === station);
     const end = trip.stops.at(-1);
     if (!here || here.departs === null || here.departs < now || !end) continue;
     const destination = stationOf(end.stop);
-    if (!destination || destination === station.id) continue;
+    if (!destination || destination === station) continue;
     found.push({
       route: trip.route,
       direction: trip.direction,
@@ -99,8 +103,13 @@ export function departuresFrom(
     });
   }
   found.sort((a, b) => a.departs - b.departs);
-  const taken = [0, 0];
-  return found.filter((d) => taken[d.direction]++ < perDirection);
+  const taken = new Map<string, number>();
+  return found.filter((d) => {
+    const key = `${lineOf(d.route)}-${d.direction}`;
+    const count = taken.get(key) ?? 0;
+    taken.set(key, count + 1);
+    return count < perDirection;
+  });
 }
 
 /** What /api/mbta/predictions answers; `updatedAt` is the feed's own time in Unix seconds. */

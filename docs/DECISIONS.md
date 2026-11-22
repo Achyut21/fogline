@@ -570,3 +570,13 @@ Decision:
 Why: B's human set a 4:00 AM deadline for a working prototype. In Phase 2 about 40% of the time went to repeated review passes. Every domain rule the core loop needs is already built and tested.
 Consequences: scope and phase order (feature UI before the Phase 1 gate) need A's agreement; see Asks for A in PROGRESS.
 
+**D-068 · 2026-11-22 · Station sheet departures (Phase 3 item 3).**
+Decision:
+- A departure's destination is the station of its trip's last listed stop, because TripUpdates has no headsign. Directions use MBTA's names per line (DATA 3.13), not "toward downtown" from the canvas sample, since `direction_id` doesn't mean downtown from every station.
+- The sheet's steady parts (minutes from home, 3 nearest spots, the stop card once uncovered) come with the map page's data, so the sheet opens with them at once. Live trains come from `/api/mbta/predictions` through TanStack Query, every 30 s while open; polling stops when the tab is hidden.
+- `/api/mbta/*` is network-first in the service worker with the last answer as the offline fallback (ARCHITECTURE section 10); every other `/api/*` stays network-only.
+- `next.config.ts` traces `data/*.json` into every function, because `src/server/data.ts` reads them at runtime.
+- "Ride from here" lands with item 4's ride flow, so item 3 ships no button that leads nowhere.
+Why: F2.5 asks for live departures within 2 s and the stop card if seen; the feed's shape decides the rest.
+Consequences: DATA 3.13 added. The map page's RSC payload measured 187 KB uncompressed for a new profile, about 40 KB of it the 361 nearby spots; cards come only for uncovered stations. The 110 KB of line shapes in the same payload (code-critic on #32) is the bigger cost. F3.1's trains list reuses the route.
+

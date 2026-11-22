@@ -23,7 +23,13 @@ This is the shared status board for both builders. Update it after every finishe
 - **Now:** Phase 3 (profile, map, fog, ride), approved by A on 2026-11-22. Order, sized for the hackathon's remaining ~9 hours:
   1. **F1 onboarding and profile** (`a/onboarding`): the four canvas screens (name, school, home station, age band), `createProfile` and `restoreProfile` Server Actions with Zod, an HMAC-signed httpOnly cookie (`SESSION_SECRET`), home cells revealed (F2.1), Me with the profile code (F1.3), restore by code. Tests `[F1.1]`, `[F1.2]`, `[F1.3]`, `[F2.1]`.
   2. **F2 map**: the real network from `data/stations.json` and `shapes.json`, the D-058 fog layer from the profile's `revealed_cells`, the 2D fallbacks, the station list view (F2.7).
-  3. **F2.5 station sheet**: name, lines, live departures through `/api/mbta/predictions`, "Ride from here".
+  3. **F2.5 station sheet** (`a/station-sheet`). Plan shown to A on 2026-11-22; A said to continue with Phase 3:
+     - `/api/mbta/predictions`: Zod-checked station, TripUpdates parsed to subway revenue trips, about 5 s shared cache, last good copy served with its age when the feed fails.
+     - Service worker: network-first for `/api/mbta/*` with a stale fallback, before the `/api/*` rule.
+     - StationSheet on the vaul Sheet: name, lines, minutes from home, departures by direction, MBTA credit, stop card once uncovered, 3 nearest spots (F1.5). TanStack Query polls every 30 s and stops while hidden; stale past 90 s. Loading, empty, error and offline states. Opens from the map and the list.
+     - "Ride from here" lands with item 4's ride route (no dead button).
+     - Tests `[F2.5]`: parser on a recorded snapshot, route cache and failure, sheet data, sheet states, e2e at 390×844.
+     - **Status 2026-11-22 01:50 ET:** built and checked locally (day and night, live data); code-critic running. Not pushed yet.
   4. **F3 ride replay**: a recorded trip at 1× to 20×, stop cards, reveals, summary (miles, stops, minutes, lines, new cells), `ride_events`. Live mode if time allows. Until B's recorder has a trip, a timetable-built trip labeled as demo data.
   5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
   - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
@@ -258,6 +264,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-22 01:55 ET · Builder A · Merged #32, the fog map home (`3926558`):
+  - code-critic (first recorded pass): FAIL, 1 BLOCKING. The 3D fog's mask stopped at Boston, Cambridge, Somerville and Brookline, so 21 outer home stations (Ashmont, Braintree, Oak Grove, Riverside and others) sat under solid fog on tiers 2–3 while the card said they were clear. Fixed in `3e4a496` (mask covers every station plus about 1.2 km; test `[F2.1] [F2.2] the map's mask shows the home cells of every station`), with the reveal band, finger radius and grain scaled back to their Phase 1 size and the map and list made keyboard- and screen-reader-friendly (`fa9faef`). Re-check PASS. Checked at 390×844 with home Braintree, day and night.
+  - CI, preview check (`fa9faef`) and production check (run 44993413583) passed.
+  - Logged from code-critic for later: the map ignores fog changes after load unless `revealAt` changes; the first-reveal card comes back on every visit; 110 KB of line shapes ride in every home response; MapLibre's controls inside the map region need an axe pass on `/`; the list collapses seen and visited; the SVG fallback ignores the home center; List → Map remounts the renderer and its probe WebGL context; `/` has no offline banner, no catch on the MapLibre chunk and no `loading.tsx`; `mapData` has no direct test; theme flips don't restyle the map.
+  - **For B (blocking the recorder):** production logs show `/api/cron/record-vehicles` failing every minute with `relation "vehicle_positions" does not exist`. Migrations 0002 and 0003 aren't on `fogline-db` yet. Apply them: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`, then check `timescaledb_information.hypertables`.
 
 - 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:
   - **#29 onboarding:** squash `28babbf`. Preview check (run 44989873205) and production check (run 44990097301) passed. Merging it ships D-065 (restore without a rate limit); A's sign-off is still open.

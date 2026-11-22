@@ -7,9 +7,7 @@ import { stationById, stationOfStop } from "@/server/stations";
 // Next departures from one station (F2.5, F3.1). Times are absolute, so a response stays right
 // while it is cached; `updatedAt` is the feed's own timestamp, which the sheet shows as its age.
 
-const query = z.object({
-  station: z.string().refine((id) => stationById(id) !== undefined, "Unknown station"),
-});
+const query = z.object({ station: z.string().max(40) });
 
 export async function GET(request: NextRequest) {
   const parsed = query.safeParse(Object.fromEntries(request.nextUrl.searchParams));
@@ -29,7 +27,7 @@ export async function GET(request: NextRequest) {
   }
   const departures = departuresFrom(
     trips.trips,
-    station,
+    station.id,
     stationOfStop,
     Math.floor(Date.now() / 1000),
   );

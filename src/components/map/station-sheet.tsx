@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { TrainFront, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { isLine, LineBadge } from "@/components/display/line-badge";
@@ -22,7 +22,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { map } from "@/copy";
 import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
-import { TrainFront } from "lucide-react";
 
 type Station = MapData["stations"][number];
 
@@ -57,6 +56,8 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
     queryKey: ["predictions", station],
     queryFn: ({ signal }) => fetchPredictions(station, signal),
     refetchInterval: pollMs,
+    // Lets the request reach the service worker's cached answer while offline (ARCHITECTURE 10).
+    networkMode: "offlineFirst",
   });
   const offline = query.fetchStatus === "paused";
   const tick = useNow(tickMs);
@@ -84,7 +85,7 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
   const now = Math.max(tick, query.dataUpdatedAt);
   const age = now - query.data.updatedAt * 1000;
   const groups = new Map<string, Predictions["departures"]>();
-  for (const d of query.data.departures) {
+  for (const d of query.data.departures.filter((d) => d.departs * 1000 > now)) {
     const key = s.direction(d.route, d.direction);
     groups.set(key, [...(groups.get(key) ?? []), d]);
   }
@@ -104,7 +105,7 @@ function Trains({ station, names }: { station: string; names: ReadonlyMap<string
             <ul className="flex flex-col divide-y divide-rule rounded-lg bg-surface-sunken">
               {departures.map((d) => (
                 <li
-                  key={`${d.route}-${d.departs}-${d.destination}`}
+                  key={`${d.route}-${d.direction}-${d.departs}-${d.destination}`}
                   className="flex min-h-11 items-center gap-3 px-3 py-2"
                 >
                   {isLine(d.route) && <LineBadge line={d.route} />}
@@ -133,13 +134,7 @@ function StopCard({ card }: { card: NonNullable<Station["card"]> }) {
       <figure className="flex flex-col gap-2 overflow-hidden rounded-lg bg-surface-sunken">
         {card.image && (
           <div className="relative aspect-video w-full">
-            <Image
-              src={card.image.url}
-              alt=""
-              fill
-              unoptimized
-              className="object-cover"
-            />
+            <Image src={card.image.url} alt="" fill unoptimized className="object-cover" />
           </div>
         )}
         <figcaption className="flex flex-col gap-1 px-3 pb-3">
@@ -199,6 +194,13 @@ export function StationSheet({
   onClose: () => void;
 }) {
   const [snap, setSnap] = useState<number | string | null>(sheetSnaps[1]);
+  // The last station stays rendered while the sheet slides away, and each open starts halfway.
+  const [shown, setShown] = useState<Station | null>(null);
+  if (station && station !== shown) {
+    setShown(station);
+    setSnap(sheetSnaps[1]);
+  }
+  const view = station ?? shown;
   return (
     <Drawer
       open={station !== null}
@@ -210,17 +212,17 @@ export function StationSheet({
       setActiveSnapPoint={setSnap}
       fadeFromIndex={1}
     >
-      {station && (
+      {view && (
         <DrawerContent>
           <DrawerHeader className="flex-row items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <DrawerTitle>{station.name}</DrawerTitle>
+              <DrawerTitle>{view.name}</DrawerTitle>
               <DrawerDescription className="flex flex-wrap items-center gap-2">
-                {station.lines.map((line) => (
+                {view.lines.map((line) => (
                   <LineBadge key={line} line={line} />
                 ))}
                 <span>
-                  {station.home ? s.home : station.minutes !== null && s.fromHome(station.minutes)}
+                  {view.home ? s.home : view.minutes !== null && s.fromHome(view.minutes)}
                 </span>
               </DrawerDescription>
             </div>
@@ -233,10 +235,10 @@ export function StationSheet({
               <h3 id="trains" className="text-lg font-extrabold tracking-tight">
                 {s.trains}
               </h3>
-              <Trains station={station.id} names={names} />
+              <Trains station={view.id} names={names} />
             </section>
-            {station.card && <StopCard card={station.card} />}
-            <Spots spots={station.spots} />
+            {view.card && <StopCard card={view.card} />}
+            <Spots spots={view.spots} />
           </div>
         </DrawerContent>
       )}

@@ -62,7 +62,7 @@ export const map = {
       culture: "Culture",
       park: "Park",
     },
-    noSpots: "No spots listed within a 7 min walk.",
+    noSpots: "No spots listed within a 600 m walk.",
     close: "Close",
   },
 } as const;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { map } from "@/copy";
 import type { MapData } from "@/server/map-data";
+import { QueryProvider } from "@/components/system/query-provider";
 import { StationSheet } from "./station-sheet";
 
 // MapLibre and three.js load in the browser only, after first paint (DESIGN section 9).
@@ -126,7 +127,9 @@ export function MapScreen({ data }: { data: MapData }) {
           </section>
         </div>
       )}
-      <StationSheet station={station} names={names} onClose={() => setSelected(null)} />
+      <QueryProvider>
+        <StationSheet station={station} names={names} onClose={() => setSelected(null)} />
+      </QueryProvider>
     </div>
   );
 }

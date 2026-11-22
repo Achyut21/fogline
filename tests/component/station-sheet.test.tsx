@@ -101,3 +101,13 @@ it("[F2.5] shows the stop card only once the station is uncovered", async () => 
   await screen.findByText(map.sheet.empty.title);
   expect(screen.queryByRole("heading", { name: map.sheet.card })).toBeNull();
 });
+
+it("[F2.5] drops trains that already left, even when the times are old", async () => {
+  const now = nowSeconds();
+  answer(now - 600, [
+    { route: "Green-D", direction: 0, destination: "place-river", departs: now - 300 },
+  ]);
+  open();
+  expect(await screen.findByText(map.sheet.empty.title)).toBeInTheDocument();
+  expect(screen.queryByText("Riverside")).toBeNull();
+});

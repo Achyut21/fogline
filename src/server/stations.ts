@@ -11,8 +11,13 @@ export function stationById(id: string): Station | undefined {
 }
 
 const byStop = new Map(stations.flatMap((s) => s.stops.map((stop) => [stop, s.id] as const)));
+const byName = new Map(stations.map((s) => [s.name, s.id]));
 
-/** The parent station of a platform or child stop ID from the realtime feeds. */
+/**
+ * The parent station of a platform or child stop ID from the realtime feeds. A train waiting at
+ * a terminal is given its track ("Alewife-01", "Forest Hills-02"), which the schedule never
+ * uses, so a track ID maps to the station it is named after.
+ */
 export function stationOfStop(stop: string): string | undefined {
-  return byStop.get(stop);
+  return byStop.get(stop) ?? byName.get(stop.replace(/-\d{2}$/, ""));
 }

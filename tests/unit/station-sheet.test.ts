@@ -26,6 +26,8 @@ describe("station sheet data", () => {
     expect(minutes.get("place-kencl")).toBe(0);
     expect(minutes.get("place-pktrm")).toBeGreaterThan(5);
     expect(minutes.get("place-pktrm")).toBeLessThan(25);
+    expect(minutesFromHome("place-kencl", new Date("2026-11-25T04:00:00-05:00")).size).toBe(0);
+    expect(minutesFromHome("place-kencl", new Date("2026-11-25T01:30:00-05:00")).size).toBe(0);
   });
 
   it("[F2.5] gives a station's stop card with its source", () => {

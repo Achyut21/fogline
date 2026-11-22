@@ -63,6 +63,25 @@ describe("GET /api/mbta/predictions", () => {
     expect((await response.json()).updatedAt).toBe(feed.header.timestamp);
   });
 
+  it("[F2.5] remembers a feed failure for 5 s instead of waiting on the MBTA again", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const calls = vi.fn();
+    server.use(http.get(tripUpdatesUrl, () => HttpResponse.json(feed), { once: true }));
+    await ask("place-kencl");
+    server.use(
+      http.get(tripUpdatesUrl, () => {
+        calls();
+        return new HttpResponse(null, { status: 503 });
+      }),
+    );
+    vi.setSystemTime(snapshot + 6_000);
+    await ask("place-kencl");
+    vi.setSystemTime(snapshot + 8_000);
+    const response = await ask("place-kencl");
+    expect(calls).toHaveBeenCalledTimes(1);
+    expect((await response.json()).updatedAt).toBe(feed.header.timestamp);
+  });
+
   it("answers 502 when the feed has never answered, and 400 for an unknown station", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     server.use(http.get(tripUpdatesUrl, () => HttpResponse.error()));

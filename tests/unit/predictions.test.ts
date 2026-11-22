@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { departuresFrom, parseTrips } from "@/lib/predictions";
+import { departuresFrom, parseTrips, type Trip } from "@/lib/predictions";
 import { stationById, stationOfStop } from "@/server/stations";
 import feed from "../fixtures/mbta/trip-updates.json";
 
@@ -10,7 +10,7 @@ const kenmore = stationById("place-kencl");
 
 function kenmoreDepartures(trips = parseTrips(feed).trips, at = now) {
   if (!kenmore) throw new Error("Kenmore missing from data/stations.json");
-  return departuresFrom(trips, kenmore, stationOfStop, at);
+  return departuresFrom(trips, kenmore.id, stationOfStop, at);
 }
 
 describe("predictions", () => {
@@ -62,5 +62,41 @@ describe("predictions", () => {
   it("[F2.5] skips an entity it can't read instead of failing the whole feed", () => {
     const broken = { ...feed, entity: [{ id: "x", trip_update: { trip: {} } }, ...feed.entity] };
     expect(parseTrips(broken).trips).toHaveLength(10);
+  });
+
+  it("[F2.5] counts the train waiting on a terminal track as leaving that station", () => {
+    const waiting: Trip = {
+      route: "Red",
+      direction: 0,
+      stops: [
+        { stop: "Alewife-01", departs: now + 60 },
+        { stop: "70075", departs: now + 1500 },
+        { stop: "70094", departs: null },
+      ],
+    };
+    expect(departuresFrom([waiting], "place-alfcl", stationOfStop, now)).toEqual([
+      { route: "Red", direction: 0, destination: "place-asmnl", departs: now + 60 },
+    ]);
+  });
+
+  it("[F2.5] keeps three trains for each line and direction at a station two lines share", () => {
+    const green = [60, 120, 180].map((offset): Trip => ({
+      route: "Green-D",
+      direction: 0,
+      stops: [
+        { stop: "70196", departs: now + offset },
+        { stop: "70161", departs: null },
+      ],
+    }));
+    const red: Trip = {
+      route: "Red",
+      direction: 0,
+      stops: [
+        { stop: "70075", departs: now + 200 },
+        { stop: "70094", departs: null },
+      ],
+    };
+    const leaving = departuresFrom([...green, red], "place-pktrm", stationOfStop, now);
+    expect(leaving.map((d) => d.route)).toEqual(["Green-D", "Green-D", "Green-D", "Red"]);
   });
 });
