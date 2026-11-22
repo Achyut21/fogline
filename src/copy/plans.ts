@@ -37,6 +37,7 @@ export const plans = {
     back: "Plans",
     when: (at: Date) => `${dayFormat.format(at)} · ${clock(at)}`,
     adultsOnly: "This plan is 21+",
+    hiddenTitle: "A 21+ plan",
     adultsOnlyBody:
       "The spot is a bar or club, so it's hidden for under-21 profiles and you can't join.",
     spot: "Spot",
@@ -124,7 +125,7 @@ export const plans = {
         mode === "walk" ? `${minutes} min walk` : `${minutes} min on the T`,
       hours: { closed: "Closed then", unknown: "Hours unknown" },
       toFirst: (minutes: number) => `${minutes} min to the first stop`,
-      planTitle: (first: string) => `Crawl from ${first}`,
+      planTitle: (station: string) => `Crawl from ${station}`,
       blocker: {
         time: "Someone's ride to the first stop is over 75 min, or no train runs then",
         "no-trains": "No trains run at that time",

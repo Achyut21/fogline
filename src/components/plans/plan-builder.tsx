@@ -476,7 +476,7 @@ export function PlanBuilder({
                 creating={creating}
                 onChoose={() =>
                   save({
-                    title: b.crawl.planTitle(option.stops[0].name),
+                    title: b.crawl.planTitle(option.stops[0].station.name),
                     startsAt: option.stops[0].scheduledAt,
                     stops: option.stops.map((x) => ({
                       placeId: x.id,

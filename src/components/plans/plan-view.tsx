@@ -64,6 +64,7 @@ export function PlanView({
   const clock = useSyncExternalStore(signedIn ? tick : noop, now, () => null);
 
   const startsAt = new Date(plan.startsAt);
+  const title = plan.title ?? p.hiddenTitle;
   const ended = plan.status === "ended";
   const live =
     !ended &&
@@ -97,12 +98,10 @@ export function PlanView({
   async function invite() {
     const url = `${window.location.origin}/p/${plan.id}?t=${token}`;
     if (navigator.share) {
-      await navigator
-        .share({ title: plan.title, text: p.share(plan.title), url })
-        .catch((e: unknown) => {
-          // Closing the share sheet rejects with AbortError; that isn't a failure.
-          if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
-        });
+      await navigator.share({ title, text: p.share(title), url }).catch((e: unknown) => {
+        // Closing the share sheet rejects with AbortError; that isn't a failure.
+        if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
+      });
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -163,7 +162,7 @@ export function PlanView({
               {p.live}
             </p>
           )}
-          <h1 className="text-2xl font-extrabold tracking-tight">{plan.title}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
           <p className="text-ink-muted">{p.when(startsAt)}</p>
         </div>
 

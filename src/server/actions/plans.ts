@@ -62,6 +62,11 @@ export async function createPlan(input: unknown) {
   const startsAt = new Date(plan.startsAt);
   const chosen = plan.stops ?? (plan.stop ? [{ ...plan.stop, scheduledAt: plan.startsAt }] : []);
   if (chosen.length === 0) return { kind: "unknown-spot" as const };
+  // A crawl's stops run in order within one night from the plan's start.
+  const times = chosen.map((stop) => new Date(stop.scheduledAt).getTime());
+  const night = startsAt.getTime() + 12 * 60 * 60_000;
+  if (times.some((t, i) => t < startsAt.getTime() || t > night || (i > 0 && t < times[i - 1])))
+    return { kind: "unknown-spot" as const };
   for (const stop of chosen) {
     const place = placeById(stop.placeId);
     if (!place?.stations.some((s) => s.id === stop.stationId))
@@ -156,7 +161,8 @@ export async function planByInvite(token: unknown) {
   });
   return {
     id: plan.id,
-    title: plan.title,
+    // A 21+ plan's title may name its venue, so it's hidden with the venue (F4.9).
+    title: hidden ? null : plan.title,
     inviteToken: member ? plan.inviteToken : null,
     viewer: { member, organizer: viewer !== null && plan.createdBy === viewer.id },
     arrivals: (member ? arrived : []).flatMap((a) => {
@@ -188,7 +194,7 @@ export async function planByInvite(token: unknown) {
         home && route.length > 0
           ? leaveByFor(
               data.timetable(),
-              plan.startsAt,
+              route.at(-1)?.scheduledAt ?? plan.startsAt,
               route.map(({ station, at, walkM }) => ({ station, at, walkM })),
               { station: home.id, at: home },
             )
