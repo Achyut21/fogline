@@ -183,6 +183,16 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - The ride starts at the boarding station; the first stop is `board`, the last `alight`, the rest `pass`. A trip makes a replay when it passes at least three stops after boarding. Trips older than 24 hours aren't listed.
 - Miles come from `rideMiles` along the same shape.
 
+### 3.15 Crawls (F10.1–F10.3)
+
+- A crawl has 2 to 4 stops. Each stop has its own categories; budget, minimum grade and the age rule apply to every stop (F10.2). Vibe and calm aren't filters yet: places have no vibe tags (D-057) and calm mode (F13) isn't built.
+- **First stop:** stations ranked by the fair score (section 3.2) at the crawl's start. The first stop is a matching spot within 600 m of that station, nearest first (F10.3).
+- **Next stops:** the matching spot, not already in the crawl and within 600 m of some station, with the shortest leg from the previous spot. A leg is the shorter of walking (section 3.5) and the T: walk to a station near the previous spot, ride (section 3.1, for the hour the group leaves), and walk from the station near the next spot. A leg over 10 minutes doesn't count (F10.1). Whether a leg is walked is stored with the stop (section 3.11).
+- **Times:** the first stop is at the start time. Each next stop is at the previous stop's time, plus the stay (60 minutes by default, 30 to 180), plus the leg rounded up to whole minutes.
+- **Hours:** a spot is checked at its scheduled time against its OpenStreetMap `opening_hours`. A spot that is closed then is skipped. A spot whose hours are missing or can't be read is kept but flagged as unknown (F10.1). Spots with known hours win ties over unknown ones, then the shorter leg, then name and ID. The reader (`src/lib/places/hours.ts`) handles days, day ranges and lists, several spans a day, closings past midnight (written "01:00" or "25:00"), "off" and "24/7"; a later rule replaces earlier ones on its days. It skips "PH" and calls anything else unknown (months, sunrise, comments, fallbacks): 967 of the 1,000 spots with hours parse.
+- **Last train:** each person's leave-by uses the last stop (section 3.3, F10.3). A crawl is dropped when anyone with a train home has to leave before the crawl reaches its last stop.
+- **Options:** up to 3 crawls, each starting at a different station, fairest first. For each station the builder tries its 5 nearest open first spots, and it stops after 10 stations with a matching first spot, so a request that fits nothing answers quickly. With no crawl, the blocker is "time" (no station within 75 minutes for everyone), "no-trains" (section 3.2), "last-train" (every crawl found ends too late) or "spots".
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.

@@ -1,6 +1,7 @@
 "use server";
 
 import { calendarDateOf } from "@/lib/time";
+import { crawlInput, planCrawl, type CrawlPlan } from "@/server/crawl";
 import { data } from "@/server/data";
 import { currentProfile } from "@/server/profile";
 import { meetupInput, planMeetup, type MeetupResult } from "@/server/meetup";
@@ -16,6 +17,21 @@ export async function findMeetup(input: unknown): Promise<MeetupResult> {
   const filters = meetupInput.omit({ under21: true }).parse(input);
   return planMeetup(
     { ...filters, under21: viewer?.ageBand !== "21plus" },
+    {
+      stations: data.stations(),
+      graph: data.graph(),
+      timetable: data.timetable(),
+      places: data.places(),
+    },
+  );
+}
+
+/** Crawl options (F10.1–F10.3), with the age rule from the session's profile like findMeetup. */
+export async function findCrawl(input: unknown): Promise<CrawlPlan> {
+  const viewer = await currentProfile();
+  const request = crawlInput.omit({ under21: true }).parse(input);
+  return planCrawl(
+    { ...request, under21: viewer?.ageBand !== "21plus" },
     {
       stations: data.stations(),
       graph: data.graph(),
