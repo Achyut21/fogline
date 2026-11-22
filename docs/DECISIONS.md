@@ -341,3 +341,33 @@ Consequences:
 - The canvas still shows `#B25E00`, `#1E7F4F` and off-scale sizes. New artboards use the token values.
 - `--layer-*` tokens are used as `z-(--layer-sheet)`. The stock shadcn Drawer still uses `z-50` until item 6.
 - Numbering: B's open PR #16 already uses D-053 for the hypertables, so this entry is D-054.
+
+**D-058 · 2026-11-21 · The fog is a MapLibre custom layer (approach A). Phase 1 item 4.**
+Decision:
+- three.js draws the fog into MapLibre's own WebGL context as a custom layer (`src/three/fog-layer.ts`), added before the T-line layers. Approach B, a React Three Fiber canvas over the map, is deleted, and `@react-three/fiber` and `@react-three/drei` with it. The first R3F scene adds them back.
+- One shader (`src/three/shaders/fog.ts`) samples two density masks, before and after the latest reveal. `src/three/mask.ts` rasterizes them from H3 cell states at 256² over Boston, Cambridge, Somerville and Brookline: fog 255, seen 110, visited 0. Drift is FBM noise, 3 octaves on tier 3 and 2 on tier 2. A reveal burns outward to the farthest pixel that lost fog over `duration.reveal`, with a `--fog-edge` edge. A finger or pointer thins the fog under it.
+- Tiers: `detect-gpu` with its benchmark files copied into `public/detect-gpu/` (flag 6). They must be copied again when the package updates. Tier 0–1 and Force 2D get a MapLibre fill layer (fog at 0.92 opacity, seen at 0.45). No WebGL gets an SVG map with the same cells, lines and stations (`src/components/map/fog-fallback.tsx`). The map's pixel ratio is clamped to 1.5 on tier 2 and 2 on tier 3. The fog draws into the map's canvas, so the clamp covers the whole map.
+- Reduced motion: the drift stops and a reveal crossfades over `duration.fast` (160 ms). DESIGN section 8 says 200 ms, but no 200 ms token exists and D-054 bans raw durations.
+- The map repaints every frame while the fog drifts or a reveal runs, and stops while `document.hidden`. With reduced motion it repaints only for map moves and the crossfade.
+- Token colors reach the shader through `getComputedStyle`. The CSS build rewrites them as 3, 4, 6 or 8-digit hex (`--fog-edge` arrives as `#0b7a7573`), so `colorVector` reads every hex length.
+Why: F2.3 puts every line and station above the fog. A custom layer draws between the basemap and the lines in one canvas. An overlay canvas covers the lines: in the spike they washed out under the fog. A also uses one WebGL context instead of two and can't lag the map camera, because it draws in the same frame. Performance didn't separate them. `tests/perf/fog-fps.ts`: headed Chromium, Pixel 7 emulation, 4× CPU throttle, 20 s of scripted pans, zooms and reveals, Apple M4 Pro (ANGLE Metal).
+
+| Run | Mean frame | p95 | Frames over 22 ms |
+|---|---|---|---|
+| A, tier 3 | 1.3 ms | 3 ms | 7 of 15,836 |
+| A, tier 2 | 1.3 ms | 3 ms | 6 of 15,340 |
+| B, tier 3 | 1.1 ms | 3 ms | 9 of 18,892 |
+| B, tier 2 | 1.1 ms | 3 ms | 11 of 18,861 |
+| 2D fill, tier 1 | 2.3 ms | 17 ms | 0 of 8,722 |
+
+These runs had vsync off. With vsync on, every run, `about:blank` included, held exactly 30 fps: the Mac was on battery below 20%, where Chromium caps frames at 30. Vsync off shows the real cost of a frame.
+Consequences:
+- A laptop GPU flatters a phone, and the CPU throttle doesn't slow the GPU (flag 5). The 45 fps gate line passes on this Mac. The real check is the Android phone when A has it (Phase 9 item 2 re-checks on one). drei's `PerformanceMonitor` (DESIGN section 9) doesn't fit a custom layer. If the phone drops frames, the layer measures its own frame time and steps down from tier 3 to tier 2 settings.
+- The 2D fill's p95 (17 ms) is higher than the shader's. Not investigated. Recheck on the phone.
+- The drift keeps the map repainting at the display rate while the map is open. Measure battery on the phone. Fallback: drift at 30 fps.
+- The layer is 2D and north-up: rotation and pitch stay off. Globe projection isn't supported.
+- `/design/fog` is the spike's preview page (`noindex`, sample data labeled). `?tier=0` to `?tier=3` overrides detection. Item 6 moves the fog layer and fallback into `/design` with a tier toggle.
+- Fog covers the mask area plus 1° on every side. Outside the mask, the shader and the 2D fill draw plain fog. The 2D fill keeps pockets of fog enclosed by uncovered cells (`src/components/map/fill-fog.ts`).
+- Left for Phase 3, where the real map is built (from code-critic and design-critic, item 4 review): the 256² mask covers only Boston, Cambridge, Somerville and Brookline and gets blocky past zoom 13, so outer stations (Ashmont, Braintree, Oak Grove, Riverside) can't clear in 3D and street zoom needs a finer or tiled mask; build the mask from a cached pixel-to-cell index (65,536 `latLngToCell` calls take about 30 ms on an M4 Pro); the reveal edge should read as a continuous eased ring like the canvas `onb-reveal` artboard; restyle the map when the theme flips; add fog on `style.load` and keep the latest states for a reveal pressed before load; load three.js only for the shader tiers; fall back to SVG if MapLibre fails to start; fog opacities as tokens (`--fog-thin` is unused); a crossfade for tier 0–1 reveals; style the attribution control (44 px toggle, safe-area inset, night colors, stays expanded); an F2.3 test of the layer order; line names and a live region for screen readers (F2.7).
+- Credits: the map's attribution control keeps OpenFreeMap's own credit from its TileJSON, because it also names OpenMapTiles, and adds "Train data: MBTA. Not affiliated with the MBTA." from `src/copy/legal.ts`. The SVG fallback shows the MBTA line in a corner. COPY.md notes the difference from its OpenFreeMap line.
+- Numbering: B's open PRs use D-053 to D-056, and #17's D-054 collides with D-054 on `main`. B renumbers on rebase: #17, #18 and #19 take D-055 to D-057, so this entry is D-058.

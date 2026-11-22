@@ -102,4 +102,5 @@ Numbers in the UI use tabular figures.
 - "Unofficial grade from City of Boston inspection records."
 - "Train data: MBTA. Not affiliated with the MBTA."
 - "Map data © OpenStreetMap contributors. Tiles by OpenFreeMap."
+  - On the map itself, the attribution control shows OpenFreeMap's credit as its TileJSON sends it ("OpenFreeMap © OpenMapTiles Data from OpenStreetMap"), plus the MBTA line above. That credit also names OpenMapTiles, which OpenFreeMap's vector tiles use. The line above stays for `/how-it-works` (D-058).
 - "Photo: {author}, {license}, via Wikimedia Commons."

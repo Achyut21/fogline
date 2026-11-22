@@ -21,8 +21,8 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder A
 - **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
-  - **Status 2026-11-21 21:18 ET:** item 5 resumed from the 20:32 handoff in a new session under another Claude account. The 20:32 order change stands: code now, canvas alongside.
-    - **Item 5 on `a/design-tokens`:** done apart from the PR and its preview check (log entries below). code-critic and design-critic PASS on their second pass, copy-critic on its third.
+  - **Status 2026-11-21 23:05 ET:** item 4 (fog spike) built on `a/fog-spike`, critics running. Approach A, the MapLibre custom layer, won on F2.3 layering; both approaches ran far inside the frame budget (D-058). A asked to keep tests to the important parts to save time: the item 4 plan's component test (rendering stops while `document.hidden`) and the reduced-motion e2e are dropped; reduced motion was checked with headless screenshots.
+  - **Status 2026-11-21 21:49 ET (handoff, session ends; the next session runs under another Claude account):** items 1 and 5 are done. Item 5 is on `main` ([#20](https://github.com/Achyut21/fogline/pull/20), `c6ccaad`), with its production check passed. The 20:32 order change stands: code now, canvas alongside. Items 2 and 3 (canvas, storyboards) are partly done; items 4, 6, 7 and 8 haven't started. See the 21:49 log entry.
     - **A approved three changes to the item 5 plan (2026-11-21, D-054):** one type family instead of two; the D-037 exemption for `src/components/ui/` stays until item 6 restyles those files; the custom line and station glyphs land with LineBadge and StationDot in item 6.
     - **Dev servers:** a stale `next dev` from the previous session still runs on :3001 and serves old CSS. Check UI against `fogline-prod` (`.claude/launch.json`, port 3200) or restart the dev server.
     - **Canvas:** onboarding page done (6 artboards). The Map page has map home, station sheet, neighborhoods sheet and list view. Next is the Map states artboard (`map-states.dc.html` is listed in the canvas index but has no file yet), then Ride, Daily, Plans, Me, Squad, System and the motion storyboards.
@@ -96,7 +96,8 @@ This is the shared status board for both builders. Update it after every finishe
     7. **`/design` on production** ships with every deployment. Recommendation: keep it reachable with `noindex` and label its sample data, since CLAUDE.md bans unlabeled fake data.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-- **Next:** item 5 PR and its preview check, then item 6 (base components) with canvas batches in between.
+  - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
+- **Next:** merge item 4, then item 6 (base components and `/design`). Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
 - **Blocked:** none.
 
 ### Builder B
@@ -223,6 +224,66 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 23:05 ET · Builder A · Phase 1 item 4, the 3D fog spike (`a/fog-spike`, `ad6c0bf`, `ec63c59`):
+  - Built both approaches on one shader, measured them with `tests/perf/fog-fps.ts`, kept A (custom layer, fog under the T lines) and deleted B (R3F overlay, which covered the lines) with `@react-three/fiber` and `@react-three/drei`. Numbers and reasons in D-058; DESIGN section 9 updated.
+  - Measuring: with vsync on, every run held exactly 30 fps, `about:blank` included. The Mac was on battery below 20%, where Chromium caps frames at 30. The recorded runs have vsync off.
+  - Fixed on the way: the reveal front now travels to the farthest cell that lost fog (it was a fixed 2 km, so a ride's reveal finished in about 0.1 s); `--fog-edge` arrives from the CSS build as 8-digit hex and was read as gray; R3F's inline styles had put the overlay below the map.
+  - Tests: unit `[F2.2]` mask and reveal reach, `[F2.6]` tier mapping, token color parsing; e2e `[F2.6] shows the 2D fog map with the same cell states when WebGL is unavailable` (pixel, desktop-chrome; WebKit can't turn WebGL off). typecheck, lint, unit (60) pass.
+  - Checked at 390×844: day and night on tier 3 and 2, tier 1 fill, reveal edge, reduced-motion crossfade (headless).
+  - Review: code-critic, design-critic and copy-critic each failed the first pass. Fixed: fog stopped at the mask rectangle; the 2D fill cleared fog pockets enclosed by uncovered cells (`[F2.6]` test added); two `as` casts; button copy ("Next stop"); no MBTA credit; casings under 2 px per side; pointer thinning didn't repaint with reduced motion; GPU resources weren't disposed on unmount. A asked to move on, so the rest of both lists is recorded for Phase 3 in D-058's consequences.
+  - Open: the real frame rate needs the Android phone (Waiting on A). The 2D fill's p95 (17 ms) is higher than the shader's (3 ms). Not investigated.
+
+- 2026-11-21 21:49 ET · Builder A · Handoff (session ends; the next one runs under another Claude account):
+  - **Finished:**
+    - Phase 1 item 5, tokens, type, theme switching, token check, app icon and the first `/design` slice: [#20](https://github.com/Achyut21/fogline/pull/20), squash `c6ccaad` on `main`. Branch commits: `728efc0` (the previous session's WIP), then `f43c333`, `8275e94`, `a05bc84`, `2544cf3`, `9121596`, `d18d2c6`, `e3cb31a`, `90ca503`, `ed4af5b`, `d9796a5`, `f341f07`, `d590414`, `40f1300`, `2bd16ca`. Production check passed on `fogline-mu.vercel.app` (run 44977110387).
+    - code-critic, design-critic and copy-critic PASS (D-054 lists the decisions, the 21:18 entry the review rounds).
+    - A approved the three item 5 plan changes (D-054).
+  - **In progress:**
+    - `a/design-components` (pushed) holds only PROGRESS commits: `3ab4402` (merge log) and this handoff. No code. Nothing half-done, nothing to hold back from a merge.
+    - Exact next step: start item 4 (fog spike) per the Builder A plan above, branched from `a/design-components`. Read D-054's consequences before item 6: Input uses `--field` and `--field-border`, SegmentedControl bolds the selected label and becomes a radiogroup, the app shell adds safe-area padding, the `src/components/ui/` token-check exemption ends, and the stock Drawer's `z-50` moves to `z-(--layer-sheet)`.
+    - Canvas: the Map states artboard is next (`map-states.dc.html` is listed in the canvas index but has no file). This session's account couldn't open the canvas. Design checks used A's HTML exports in `~/Downloads` and the artboard sources in `.canvas-work/canvas/project/`.
+    - Local servers: a stale `next dev` from the earlier session still runs on :3001 with old CSS. This session started `fogline-prod` (`.claude/launch.json`, a production build on :3200). Use that, or restart the dev server, before judging UI.
+    - Deferred, recorded: `/favicon.ico` returns 404, and the icon doesn't read below 32 px (Phase 9 PWA polish). Line casings must stay at least 2 px wide at every zoom (DESIGN section 10, Phase 3).
+  - **Blocked:** nothing. Canvas batches from another account need A to share the canvas with edit access (under Waiting on A).
+  - **For Builder B:**
+    - The token check (`tests/unit/design-tokens.test.ts`, run by `pnpm test`) now scans every `.ts`, `.tsx` and `.css` file under `src/`, `src/lib` and `src/server` included. It flags:
+      - hex colors and color functions;
+      - `px`, `rem`, `em` and viewport units;
+      - `ms` and decimal-second times;
+      - Motion `transition` objects with literal durations or delays on one line;
+      - `stiffness`, `damping`, `mass` or `bounce` with a number;
+      - raw `z-` layers.
+      `main` passes today. After rebasing #16 and #17, run `pnpm test`: a comment like "// 500ms" or a hex string in your code is a finding. The exemptions are listed in D-054.
+    - Shared files changed:
+      - `src/app/globals.css`: Tailwind's palette, type sizes, tracking, radii, shadows and easings are reset to tokens, so classes like `bg-red-500` or `text-2xl` at Tailwind's default size don't exist.
+      - `src/app/layout.tsx`: Hanken Grotesk and the theme provider.
+      - `package.json`: `test:e2e:deployment` now includes `tests/e2e/design.spec.ts`.
+      - `.claude/launch.json`: new `fogline-prod` entry.
+      - `CLAUDE.md` and `.claude/commands/phase-gate.md`: token-check wording.
+      - Docs: `docs/COPY.md`, `docs/TESTING.md`, `docs/PHASES.md`, `docs/DESIGN.md`.
+    - COPY.md: a clock time joins its AM or PM with a no-break space. Write `"12:14\u00a0AM"` in last-train and puzzle strings.
+    - Decision numbers: #16 keeps D-053, and this work took D-054. #17 numbers its entries D-050 and D-051 on an old base, so they need new numbers (D-055 and up) when it rebases.
+    - No new environment variables, no migrations, no new scripts. Regenerated: the icon PNGs in `public/icons/`. Design tokens: all of them are final (DESIGN section 4, D-054), and `text-3xl` is now 40 px.
+  - **Tests:**
+    - Passing:
+      - Local: typecheck, lint and `format:check` clean. Vitest 71 passed, 1 skipped (the live `fogline-db` check). Playwright 57 passed, 12 skipped.
+      - Preview check on `2bd16ca`: 46 passed, 23 skipped.
+      - Production check: 58 passed, 11 skipped.
+    - Failing: none.
+    - Not written yet:
+      - Item 4: `[F2.2]` and `[F2.6]` fog tests, and the WebGL-off e2e.
+      - Item 6: component tests, including `[F8.4]` StatCounter, `[F5.4]` Countdown and `[F2.3]` LineBadge.
+      - Item 7: `[F8.5]` badge copy.
+      - Item 8: the visual baselines.
+      - `/design` has no explicit 768×1024 run. The Playwright projects cover 390×844 and 1440×900.
+
+- 2026-11-21 21:41 ET · Builder A · Phase 1 item 5 merged: [#20](https://github.com/Achyut21/fogline/pull/20), squash `c6ccaad`.
+  - PR head `2bd16ca`: CI `check` passed (run 44976393167). The deployment check on its own preview `fogline-n4h2afh4k` passed 46 and skipped 23 (run 44976482857), `/design` spec included; the service-worker specs skip on previews (D-043).
+  - Production: `vercel ls --meta githubCommitSha=c6ccaad…` showed `fogline-ely18wk3l` Ready, and `vercel inspect fogline-mu.vercel.app` showed the same deployment. The production check on `fogline-mu.vercel.app` passed 58 and skipped 11 (run 44977110387).
+  - `test:e2e:deployment` now includes `tests/e2e/design.spec.ts` (it writes nothing).
+  - A approved the three item 5 plan changes (D-054).
+  - Next: item 6.
 
 - 2026-11-21 21:18 ET · Builder A · Phase 1 item 5 review rounds on `a/design-tokens` (`d18d2c6`, `e3cb31a`, `90ca503`, `ed4af5b`, `d9796a5`, `f341f07`):
   - code-critic pass 1 FAIL. BLOCKING: a manual theme lost its `theme-color` after an in-app navigation, because Next swaps in fresh meta tags with the server values. The sync now reruns when `<head>` changes. A new e2e follows a link from the 404 page and waits for the tag swap; it failed without the fix on both phones. SHOULD FIX, all fixed: the scanner missed inline and Motion durations, `rem`, `em` and viewport units, raw `z-` layers and one-off springs; the F2.3 test skipped park, road and fog; an `as` in `contrast.ts`; `/design` didn't show every token (now a test checks it). Pass 2 PASS; its SHOULD FIX (fog drawn over the lines on `/design`) is fixed.
