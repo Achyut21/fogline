@@ -401,3 +401,61 @@ Consequences:
 - The budget filter excludes nothing today: every known price is "$" (1) and the smallest budget is 1, so F4.6 can't name budget as the blocker until a price source exists (Open questions). The UI must label "$" for cafes as an estimate.
 - In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
 
+**D-058 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**
+Decision:
+- `pnpm data:neighborhoods` builds `data/neighborhoods-h3.json` from Boston's BPDA neighborhood boundaries (Analyze Boston, 26 neighborhoods including the Harbor Islands) and the US Census TIGERweb boundaries of Cambridge, Somerville and Brookline, one region each.
+- Each region holds the resolution-9 cells whose centers fall inside it. A cell inside two boundaries goes to the first region listed (Boston's neighborhoods by name, then Cambridge, Somerville, Brookline).
+- `src/lib/geo/regions.ts` gives each region's uncovered share, Boston's share as the union of its neighborhoods, and "Beyond" for any other cell, with no share.
+Why: DATA named Cambridge and Somerville portals that were never checked, and Brookline had no source. TIGERweb answers for all three in one query and is public domain. Assigning shared cells once keeps each percentage honest.
+Consequences:
+- 29 regions and 1,593 cells, 1,158 of them in Boston (about 122 km², close to Boston's land area). The smallest neighborhoods, Bay Village and the Leather District, are smaller than one cell and have one cell each, so their percentage jumps from 0 to 100%.
+- First Light (F8.2) counts only regions of 3 cells or more, where reaching 50% takes at least 2 cells. Otherwise a home station at South Station or a ride past Arlington would earn it for a neighborhood the person never entered. Only Bay Village and the Leather District are left out. Rides alone can still clear small neighborhoods such as Chinatown; that is the game working, since riding clears fog.
+- A region's ID is its name as a slug, and `badges_awarded.scope` stores it for First Light. If BPDA renames a neighborhood, keep its old ID.
+- `data:neighborhoods` refuses to write a file in which a region has no cell.
+- A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
+
+**D-059 · 2026-11-21 · Check-ins, badges, stats and squads (Phase 2 item 10).**
+Decision:
+- Check-in validity (DATA 3.9) checks time, then accuracy, then distance, and returns the first failure with its number rounded up. A fuzzy position is reported as fuzzy, not as far away, and a refused 150.3 m never reads "150 m".
+- A night badge that compares people needs at least 2 people in its own comparison, not only 2 people checked in anywhere on the plan. First In compares arrivals at the first stop, Long Haul people with a travel time, Closest Call people who caught their last train. Exact ties share.
+- Ties: First In goes to everyone within 30 s of the earliest arrival. Fashionably Late goes to everyone within 30 s of the latest who is also 10 minutes late, except people who got First In. Night Owl means a check-in from 12:00 AM to before 5:00 AM New York time.
+- The ride home is the first live "I'm on the train" tap or board event after both the person's last valid check-in and the last stop's scheduled time, so neither the ride to the plan nor a ride between crawl stops counts. It counts as catching the last train when it comes before the first train of the last-train trip leaves, or up to 10 minutes after on that same trip (or with a tap that names no trip), with 0 to spare. Closest Call is the smallest of those margins, awarded only once every last train has left plus 10 minutes: night badges are computed at the plan's end and again then, adding awards only.
+- Ghost needs at least one person checked in, so a plan called off before anyone arrived gives nobody Ghost.
+- A ride's own summary counts its events, replay or not (F3.5). Night and lifetime totals and badges count live ride events only. First Light and percent uncovered follow `revealed_cells`, which replays write under F3.5, so they count replay reveals until Phase 3 decides (Open questions).
+- Every Green Branch counts a branch at a station that branch alone serves, from a board, pass or alight event.
+- Miles walked counts a walking leg between two checked-in crawl stops instead of both station walks. DATA 3.11 had added the leg on top of `2 × walk_m` for each stop, counting the same street twice. Nights are summed in meters and converted once. Miles on the T sums each ride's miles already rounded to 0.1 mi.
+- First Light compares when each person's share of a region reached 50%, from `revealed_cells.first_at`; mates within 30 s share it. Cells revealed by the home station don't count: picking Longwood Medical Area as home would otherwise reach 50% of Longwood at onboarding. A profile with no squad is its own first, and regions under 3 cells don't count (D-058). Awards are only ever added (F8.6), so mates who each earned it before meeting both keep it.
+- Squad membership is pairwise and not transitive.
+- All of this is pure functions in `src/lib/` (`checkin.ts`, `rides.ts`, `badges.ts`, `stats.ts`, `squad.ts`). Phase 6 reads the rows and writes `badges_awarded`.
+Why:
+- "First In" among one person, or "Closest Call" with one margin, says nothing.
+- The last train often runs late at night, and people tap once seated; a rule of strictly before the timetable would deny the badge to the people it is for.
+- A ride from stop 1 to stop 2 of a crawl isn't the ride home.
+- A replay is watching a recorded trip, not riding it, so its miles and lines would be false lifetime numbers; its own summary is the trip's.
+- A board up to 10 minutes late on a different trip isn't the last train: it can miss the connection home.
+- Most rides home happen after the organizer ends the plan, so Closest Call computed at the end would see none.
+- Every Green Branch is about the branches; any B, C, D or E train between Kenmore and Government Center would otherwise earn it.
+- Taking a badge back after showing it is worse than two people holding a "first".
+Consequences:
+- DATA 3.9 to 3.11 updated, and DATA 3.12 (squad) added.
+- `ride_events.stop_id` may hold a station ID or a platform stop ID; both map to the station through `stations.json`.
+- The crawl builder (F10, Phase 7) must store whether each leg between stops is walked, since `plan_stops` doesn't say. Until then, miles walked is exact only for one-stop plans.
+- A squad streak (F12.3) needs its own definition of the squad, since mates are pairwise. Decide in Phase 7.
+- F8.1 now says the `end-plans` cron recomputes a night's badges once every last train has left plus 10 minutes (Phase 6 builds it).
+- Phase 6 shows each badge's number (minutes late, minutes to spare) from the same inputs it passed to `nightAwards`. A late last train has 0 to spare, so the copy needs a wording for it (copy-critic).
+
+**D-060 · 2026-11-21 · Daily puzzle rules, words and events (Phase 2 item 8).**
+Decision:
+- The puzzle date is the New York calendar date, changing at midnight (`calendarDateOf`), not the 3 AM service date the trains use.
+- Feedback marks correct letters first; a repeated letter is present only as often as the answer has it left over.
+- A guess must be 5 letters a to z (any case, trimmed) and in `words.json`. No guess is taken after a solve or the sixth guess.
+- Solving reveals the event and clears fog; failing reveals the event only (F7.3, F7.7).
+- A streak counts consecutive solved dates ending today, or ending yesterday while today's puzzle is still open. A failed or missed day resets it.
+- Valid guesses: dwyl/english-words `words_alpha.txt`, The Unlicense, pinned commit, 15,921 five-letter words. It includes rare words, which only makes more guesses valid.
+- Events: a hand-written list in `scripts/events/curated.json` with `allAges: true` and a `checked` flag the human sets per event. `data:events` publishes nothing until every entry is checked and valid. An event serves the puzzle date it's on or up to 3 days before it, so a multi-day run can fill a date.
+- `events.json` is server-only because it holds the answers.
+- `data:events` also refuses a gap between published dates (a date without a puzzle would break every streak) and an answer used twice. Guesses past six are ignored.
+- An event can start earlier on its puzzle date than someone solves it (three of the first 14 start before noon). The reveal shows its time, so a late solver sees it has passed. Accepted to keep the list to real, all-ages events.
+Why: everyone shares one answer per date (F7.1), so the date must not depend on the server's zone. A human check is the only way to know a real event's date, venue and age policy are right (DATA 2.6).
+Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data note updated. Rerun `data:events` weekly with a new checked list (DATA 5).
+

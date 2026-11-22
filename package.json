@@ -27,9 +27,9 @@
     "data:places": "tsx scripts/places.ts",
     "data:grades": "tsx scripts/grades.ts",
     "data:cards": "node -e \"console.error('data:cards arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
-    "data:neighborhoods": "node -e \"console.error('data:neighborhoods arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
-    "data:events": "node -e \"console.error('data:events arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
-    "data:words": "node -e \"console.error('data:words arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
+    "data:neighborhoods": "tsx scripts/neighborhoods.ts",
+    "data:events": "tsx scripts/events.ts",
+    "data:words": "tsx scripts/words.ts",
     "test:e2e:deployment": "playwright test tests/e2e/smoke.spec.ts tests/e2e/pwa.spec.ts tests/e2e/deployment.spec.ts"
   },
   "dependencies": {
