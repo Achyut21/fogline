@@ -1,12 +1,10 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { useState } from "react";
 import { StatTile } from "@/components/display/stat-tile";
 import { FogFallback } from "@/components/map/fog-fallback";
 import type { MapLine, MapStation } from "@/components/map/fog-map";
-import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { squad as s } from "@/copy";
 import type { Squad } from "@/server/squad";
@@ -38,14 +36,7 @@ export function SquadView({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/me">
-            <ArrowLeft aria-hidden="true" />
-            {s.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/me", label: s.back }} />
       <main className="flex flex-1 flex-col gap-4 px-4 pb-safe">
         <h1 className="text-2xl font-extrabold tracking-tight">{s.title}</h1>
         <dl className="grid grid-cols-2 gap-2">

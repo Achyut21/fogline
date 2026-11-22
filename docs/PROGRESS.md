@@ -300,6 +300,19 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Docs: DATA 3.17, ARCHITECTURE section 11, D-076 (replaces D-025's single run).
   - code-critic: FAIL (stale docs, a race test that didn't exercise the lock), fixed; re-check running.
   - Also open: #47 (invite preview, retargeted to `main`). Phase 10 started on `b/phase10` (plan on the board; the timing-safe cron secret is done).
+- 2026-11-22 05:39 ET · Builder A · Phase 9 item 2, Me and Settings (`a/me`):
+  - Me shows stats (share of Boston to one decimal, miles on the T, stations of the total, stops, lines, nights out) and earned badges from B's `myStats`. Badges whose line needs a number show their name only, because awards don't store the number. **For B:** fill `badges_awarded.meta` (minutes late, ride minutes, minutes to spare, neighborhood) so those lines can show; `myStats` now also returns `shareUncovered`.
+  - `/me/settings`: theme, Automatic or Always 2D map (per device; `useFogRenderer` reads it), age band (`updateAgeBand`), and delete my data with a confirmation (`deleteMyData`, `endSession`; F1.7). A deleted person's seat shows as "Former member" with no name or station (`planByInvite` returns `former`).
+  - Location primer before the first check-in until the browser has granted location (F1.4).
+  - Tests: `tests/integration/settings.test.ts` (`[F1.5]` `[F1.7]`), `tests/e2e/me.spec.ts` (`[F8.3]` `[F1.7]`); 458 pass; me and plans e2e 6/6. Screenshots at 390×844 in both themes.
+
+- 2026-11-22 05:33 ET · Builder A · Phase 9 item 1, app shell and navigation (`a/shell`):
+  - `PageHeader` (one back-link pattern) on Calm, Find food, the ride list, the plan builder, the plan page and Squad; Calm goes back to Me.
+  - Me links Squad, Calm mode and How it works, so every feature has a way in; the map has a Ride button (DESIGN section 5) to recorded trips from the home station.
+  - The offline banner is in the root layout, above every screen, in the page flow (it pushes the screen down rather than covering its title).
+  - Map: new `states` update the fog without a reload (a check-in or puzzle reveal fades in where it is), the map reloads its colors on a theme change, the first-reveal card shows once per device (localStorage, with a fallback when storage is blocked), Find food's pins are readable.
+  - Tried and dropped: an app-wide `loading.tsx`. It makes the no-profile redirect happen in the browser after the page streams, which broke 15 e2e tests and would flash a skeleton.
+  - Tests: `[F2.4]` once-per-device card and Ride link; 456 unit/component/integration pass; e2e 105 passed, 15 skipped (by design). Screenshots at 390×844 in both themes and offline.
 
 - 2026-11-22 06:00 ET · Builder B · Phase 4 leftovers on `b/leftovers` (stacked on `b/crawls`, #44):
   - Checked A's work first: server-side puzzle results (`puzzle_results`) and the countdown's 20/5-minute colors are done. Nothing else from B's Phase 4/5 list was built.

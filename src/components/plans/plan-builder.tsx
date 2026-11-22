@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft, Plus, X } from "lucide-react";
-import Link from "next/link";
+import { Plus, X } from "lucide-react";
+import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Line } from "@/components/display/line-badge";
@@ -205,14 +205,7 @@ export function PlanBuilder({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/plans">
-            <ArrowLeft aria-hidden="true" />
-            {b.back}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={{ href: "/plans", label: b.back }} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <h1 className="text-2xl font-extrabold tracking-tight">{b.title}</h1>
 

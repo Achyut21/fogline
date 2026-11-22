@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PageHeader } from "@/components/app/page-header";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { Measure } from "@/components/calm/measure";
 import { isLine, LineBadge } from "@/components/display/line-badge";
-import { Button } from "@/components/ui/button";
-import { calm } from "@/copy";
+import { app, calm } from "@/copy";
 import { loudnessOf } from "@/lib/noise";
 import { getDb } from "@/server/db/client";
 import { measuredSegments, nextStops } from "@/server/noise";
@@ -21,21 +19,18 @@ const next = Object.fromEntries(stations.map((s) => [s.id, nextStops(s.id)]));
 const nameOf = (id: string) => stationById(id)?.name ?? id;
 
 /** Calm mode (F13.1, F13.3): measure a stretch, and the stretches riders measured. */
-export default async function CalmPage() {
+export default async function CalmPage({ searchParams }: PageProps<"/calm">) {
+  const { from } = await searchParams;
+  // From a station sheet the way back is the map; from Me it is Me.
+  const back =
+    from === "map" ? { href: "/", label: app.nav.map } : { href: "/me", label: app.nav.me };
   if (!(await currentProfile())) redirect("/welcome");
   const segments = await measuredSegments(getDb());
   const levels = segments.map((s) => s.db);
   const ranked = [...segments].sort((a, b) => a.db - b.db);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 pt-safe">
-        <Button variant="ghost" asChild>
-          <Link href="/">
-            <ArrowLeft aria-hidden="true" />
-            {calm.pageTitle}
-          </Link>
-        </Button>
-      </header>
+      <PageHeader back={back} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-extrabold tracking-tight">{calm.title}</h1>

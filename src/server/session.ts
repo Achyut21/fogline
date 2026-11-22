@@ -54,3 +54,10 @@ export async function startSession(id: string, demo = false) {
     });
   } else jar.delete(demoCookie);
 }
+
+/** Signs this browser out: the profile cookie and the demo flag go (F1.7). */
+export async function endSession() {
+  const jar = await cookies();
+  jar.delete(cookieName);
+  jar.delete(demoCookie);
+}
