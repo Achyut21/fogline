@@ -3,7 +3,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { autoEndAt } from "@/lib/plan-end";
 import { createDb, type Db } from "@/server/db/client";
-import { checkins, planParticipants, planStops, plans } from "@/server/db/schema";
+import { badgesAwarded, checkins, planParticipants, planStops, plans } from "@/server/db/schema";
 import { endDuePlans } from "@/server/end-plans";
 import { insertProfile } from "@/server/profile";
 import { stationById } from "@/server/stations";
@@ -26,6 +26,7 @@ describe.skipIf(testUrl === "")("end-plans cron", () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
   let db: Db;
   let me = "";
+  let sam = "";
   let n = 0;
 
   async function plan(
@@ -76,6 +77,12 @@ describe.skipIf(testUrl === "")("end-plans cron", () => {
     scratch = await createScratchDatabase(testUrl);
     db = createDb(scratch.url);
     await migrate(db, { migrationsFolder: "drizzle" });
+    ({ id: sam } = await insertProfile(db, {
+      name: "Sam",
+      school: "Tufts",
+      home: kendall,
+      ageBand: "under21",
+    }));
     ({ id: me } = await insertProfile(db, {
       name: "Maya",
       school: "MIT",
@@ -92,6 +99,18 @@ describe.skipIf(testUrl === "")("end-plans cron", () => {
   it("[F6.4] ends due plans at the rule's time and leaves the rest open", async () => {
     const quiet = await plan([5], null);
     const checkedIn = await plan([6, 3.5], 2.5);
+    // Night badges need two people who came (F8.1), so Sam checks in at the last stop too.
+    await db.insert(planParticipants).values({ planId: checkedIn, profileId: sam, rsvp: "yes" });
+    await db.insert(checkins).values({
+      ts: ago(2.7),
+      profileId: sam,
+      planId: checkedIn,
+      placeId: "spot-1",
+      lat: 42.36,
+      lon: -71.09,
+      accuracyM: 20,
+      valid: true,
+    });
     const stillGoing = await plan([3, 1], 1);
     const early = await plan([1], null, "planned");
     // A check-in at an earlier stop doesn't count for the last stop's rule.
@@ -117,6 +136,12 @@ describe.skipIf(testUrl === "")("end-plans cron", () => {
     expect(byId.get(stillGoing)?.status).toBe("live");
     expect(byId.get(early)?.status).toBe("planned");
     expect(await endDuePlans(db, now)).toEqual([]);
+    // The night's badges come with the end (F8.1): the organizer of a night two people came to.
+    const awarded = await db
+      .select({ badge: badgesAwarded.badgeId })
+      .from(badgesAwarded)
+      .where(eq(badgesAwarded.planId, checkedIn));
+    expect(awarded.map((b) => b.badge)).toContain("planner");
   });
 
   it("[F6.4] doesn't touch a plan the organizer already ended", async () => {

@@ -70,3 +70,17 @@ export function resetAlerts() {
   failedAt = null;
   pending = null;
 }
+
+let trips: Map<string, { pattern: number }> | null = null;
+
+/** The stations a ride's train stops at strictly between where it's boarded and left (DATA 3.18). */
+export function passes(ride: { trip: string; from: string; to: string }): string[] | null {
+  const timetable = data.timetable();
+  trips ??= new Map(timetable.trips.map((trip) => [trip.id, trip]));
+  const trip = trips.get(ride.trip);
+  if (!trip) return null;
+  const stations = timetable.patterns[trip.pattern].map((i) => timetable.stations[i]);
+  const board = stations.indexOf(ride.from);
+  const alight = stations.indexOf(ride.to, board + 1);
+  return board === -1 || alight === -1 ? null : stations.slice(board + 1, alight);
+}

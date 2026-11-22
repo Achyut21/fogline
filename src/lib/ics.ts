@@ -16,13 +16,17 @@ const utc = (at: Date) =>
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
 
-/** Escapes text values: backslash, semicolon, comma and line breaks (RFC 5545 3.3.11). */
+/**
+ * Escapes text values: backslash, semicolon, comma and any line break (RFC 5545 3.3.11). Other
+ * control characters aren't allowed in TEXT, so they're dropped.
+ */
 export function escapeText(text: string): string {
   return text
     .replace(/\\/g, "\\\\")
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n");
+    .replace(/\r\n|\r|\n/g, "\\n")
+    .replace(/[\u0000-\u001f\u007f]/g, "");
 }
 
 /** Folds a content line at 75 octets, never splitting a UTF-8 character (RFC 5545 3.1). */

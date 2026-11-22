@@ -32,6 +32,7 @@ describe("calendar file", () => {
 
   it("[F5.8] escapes text and folds long lines at 75 bytes without splitting a character", () => {
     expect(escapeText("a,b;c\\d\ne")).toBe("a\\,b\\;c\\\\d\\ne");
+    expect(escapeText("Dinner\rBEGIN:VALARM\r\nx\u0007")).toBe("Dinner\\nBEGIN:VALARM\\nx");
     const unfolded = body.replace(/\r\n /g, "");
     expect(unfolded).toContain("Friday dinner\\, then dessert.");
     expect(unfolded).toContain("Park Street\\;");

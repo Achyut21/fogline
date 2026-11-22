@@ -4,8 +4,8 @@ import type { LastTrainLeg } from "@/lib/lasttrain/search";
 // MBTA service alerts on a route home (F5.6, DATA 3.18). An alert counts when it's active when the
 // person leaves, has severity 3 or more, and isn't about accessibility, parking or bikes. It
 // affects a ride when it covers the ride's whole line or the station where the ride starts or
-// ends; when it names only other stations on that line, its effect on this train can't be told,
-// so the answer is "check".
+// ends. When it names a station the train passes between them, its effect on this train can't be
+// told, so the answer is "check". A station elsewhere on the line doesn't matter.
 
 export type Alert = {
   id: string;
@@ -69,7 +69,9 @@ export function parseAlerts(feed: unknown, parentOf: (stop: string) => string): 
       named.add(parentOf(entity.stop_id));
       stations.set(entity.route_id, named);
     }
-    const periods = (alert.active_period ?? [{}]).map((p) => ({
+    // GTFS-realtime: no active period means always active.
+    const given = alert.active_period ?? [];
+    const periods = (given.length > 0 ? given : [{}]).map((p) => ({
       start: p.start ?? 0,
       end: p.end ?? null,
     }));
@@ -83,8 +85,16 @@ const activeAt = (alert: Alert, at: Date) => {
   return alert.periods.some((p) => p.start <= seconds && (p.end === null || seconds < p.end));
 };
 
-/** What the alerts say about a trip home that leaves at `at` (F5.6). */
-export function alertsOnRoute(alerts: Alert[], legs: LastTrainLeg[], at: Date): RouteAlerts {
+/**
+ * What the alerts say about a trip home that leaves at `at` (F5.6). `passes` gives the stations a
+ * ride's train stops at between its ends, or null when its stop pattern isn't known.
+ */
+export function alertsOnRoute(
+  alerts: Alert[],
+  legs: LastTrainLeg[],
+  at: Date,
+  passes: (ride: Extract<LastTrainLeg, { kind: "ride" }>) => string[] | null,
+): RouteAlerts {
   const texts: string[] = [];
   let unsure = false;
   for (const alert of alerts) {
@@ -95,7 +105,8 @@ export function alertsOnRoute(alerts: Alert[], legs: LastTrainLeg[], at: Date): 
       if (alert.lines.has(leg.route) || named?.has(leg.from) || named?.has(leg.to)) {
         if (!texts.includes(alert.text)) texts.push(alert.text);
       } else if (named) {
-        unsure = true;
+        const between = passes(leg);
+        if (between === null || between.some((station) => named.has(station))) unsure = true;
       }
     }
   }

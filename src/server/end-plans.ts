@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, ne, sql } from "drizzle-orm";
 import { autoEndAt } from "@/lib/plan-end";
 import { awardNightBadges } from "@/server/badges";
 import type { Db } from "@/server/db/client";
@@ -10,7 +10,11 @@ import { checkins, planStops, plans } from "@/server/db/schema";
  * cover exactly the night. Returns the IDs it ended.
  */
 export async function endDuePlans(db: Db, now: Date): Promise<string[]> {
-  const open = await db.select({ id: plans.id }).from(plans).where(ne(plans.status, "ended"));
+  // A plan can only be due once its start has passed, which also keeps the scan small.
+  const open = await db
+    .select({ id: plans.id })
+    .from(plans)
+    .where(and(ne(plans.status, "ended"), lte(plans.startsAt, now)));
   if (open.length === 0) return [];
   const ids = open.map((p) => p.id);
   const stops = await db
@@ -40,14 +44,15 @@ export async function endDuePlans(db: Db, now: Date): Promise<string[]> {
     const checkedIn = latest.find((c) => c.planId === planId && c.placeId === last.placeId);
     const endsAt = autoEndAt(last.scheduledAt, checkedIn?.at ?? null);
     if (endsAt > now) continue;
+    // Badges first: awarding is idempotent (F8.6) and doesn't need the plan ended, so if it fails
+    // the plan stays open and the next run tries both again.
+    await awardNightBadges(planId, db);
     const done = await db
       .update(plans)
       .set({ status: "ended", endedAt: endsAt })
       .where(and(eq(plans.id, planId), ne(plans.status, "ended")))
       .returning({ id: plans.id });
-    if (done.length === 0) continue;
-    await awardNightBadges(planId, db);
-    ended.push(planId);
+    if (done.length > 0) ended.push(planId);
   }
   return ended;
 }
