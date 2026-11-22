@@ -20,6 +20,14 @@ export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, "\u00a0
 
 export const plans = {
   pageTitle: "Plans",
+  weekly: {
+    title: "This week",
+    body: "Three nights out, fair for friends at five campuses. All ages.",
+    invite: "Invite friends",
+    inviting: "Making your copy",
+    failed: "Couldn't copy this plan. Try again.",
+    empty: "This week's plans come out Monday morning.",
+  },
   list: {
     title: "Plans",
     new: "Plan a night",
@@ -45,6 +53,10 @@ export const plans = {
     people: "Who's going",
     placeholder: "Not on Fogline yet",
     formerMember: "Former member",
+    remind: "Remind me",
+    remindHelp: "Saves a calendar event with alarms 20 and 5 min before you have to leave.",
+    leaveAlert: (minutes: number) => `Leave in ${minutes} min for your last train.`,
+    recapLink: "See the night's recap",
     leaveByHidden: "Join to see when everyone has to leave.",
     join: "Join this plan",
     joining: "Joining",

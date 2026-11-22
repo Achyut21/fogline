@@ -1,14 +1,14 @@
 "use client";
 
-import { Link2, MapPin } from "lucide-react";
+import { CalendarClock, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
-import { plans } from "@/copy";
+import { alerts, plans } from "@/copy";
 import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
@@ -24,6 +24,7 @@ const minute = 60_000;
 // the plan ends, or 4 hours after the start, when F6.4 ends a plan nobody ended.
 const liveFromMs = 30 * minute;
 const liveUntilMs = 4 * 60 * minute;
+const leaveAlerts = [20, 5];
 // Arrival order reaches everyone within 10 s (F6.3).
 const refreshMs = 8_000;
 
@@ -80,6 +81,20 @@ export function PlanView({
   const hidden = plan.adultsOnly && plan.spot === null;
   const started = clock !== null && clock >= startsAt.getTime();
   const countdownTo = started && myLeaveBy ? myLeaveBy : startsAt;
+
+  // F5.4: in live mode, an alert 20 and 5 minutes before your leave-by, with a buzz on Android.
+  const alerted = useRef(new Set<number>());
+  useEffect(() => {
+    if (!live || !myLeaveBy || clock === null) return;
+    const left = (myLeaveBy.getTime() - clock) / minute;
+    for (const at of leaveAlerts) {
+      if (left <= at && left > 0 && !alerted.current.has(at)) {
+        alerted.current.add(at);
+        toast(p.leaveAlert(Math.max(1, Math.ceil(left))));
+        if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+      }
+    }
+  }, [live, myLeaveBy, clock]);
 
   useEffect(() => {
     if (!live) return;
@@ -216,9 +231,14 @@ export function PlanView({
         )}
 
         {ended && (
-          <p role="status" className="rounded-md bg-surface-sunken px-4 py-3 font-semibold">
-            {p.ended}
-          </p>
+          <div role="status" className="flex flex-col gap-2 rounded-md bg-surface-sunken px-4 py-3">
+            <p className="font-semibold">{p.ended}</p>
+            {plan.viewer.member && (
+              <Button asChild className="self-start">
+                <Link href={`/p/${plan.id}/recap?t=${token}`}>{p.recapLink}</Link>
+              </Button>
+            )}
+          </div>
         )}
 
         {live && (
@@ -299,6 +319,16 @@ export function PlanView({
                 {person.leaveBy && person.name && (
                   <LeaveByLine name={person.name} leaveBy={person.leaveBy} />
                 )}
+                {person.alerts?.kind === "disrupted" && (
+                  <ul className="flex flex-col gap-1 border-l-2 border-warning pl-3 text-sm">
+                    {person.alerts.texts.map((text) => (
+                      <li key={text}>{text}</li>
+                    ))}
+                  </ul>
+                )}
+                {person.alerts?.kind === "check" && (
+                  <p className="text-sm font-semibold text-warning">{alerts.check}</p>
+                )}
               </li>
             ))}
           </ul>
@@ -318,6 +348,17 @@ export function PlanView({
                 <Link href="/welcome">{p.joinNeedsProfile}</Link>
               </Button>
             ))}
+          {myLeaveBy && !ended && (
+            <div className="flex flex-col gap-1">
+              <Button variant="secondary" asChild>
+                <a href={`/api/plans/${plan.id}/remind`} download>
+                  <CalendarClock aria-hidden="true" />
+                  {p.remind}
+                </a>
+              </Button>
+              <p className="text-xs text-ink-muted">{p.remindHelp}</p>
+            </div>
+          )}
           {plan.viewer.member && !ended && (
             <Button variant="secondary" onClick={invite}>
               <Link2 aria-hidden="true" />
