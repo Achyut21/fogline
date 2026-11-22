@@ -71,6 +71,7 @@ export function MapScreen({ data }: { data: MapData }) {
       ) : (
         <div
           tabIndex={0}
+          role="region"
           aria-label={map.list.label}
           className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-4"
         >

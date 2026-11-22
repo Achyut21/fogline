@@ -5,7 +5,9 @@ import type { Bounds } from "./mask";
 // The area the fog mask covers: every subway station (Riverside to Wonderland, Oak Grove to
 // Braintree) with about 1.2 km to spare, so any home station's cells show. Outside it, out to
 // fogExtent, the shader and the 2D fill draw plain fog. At 256 pixels a side, a resolution-9
-// cell is still about 3.7 pixels across.
+// cell is still about 3.7 pixels across. Shader distances are in mask heights (about 28 km), so
+// the reveal band, the finger radius and the drift grain in shaders/fog.ts and fog-material.ts
+// keep the size they had on the Phase 1 mask (about 14.5 km tall).
 export const fogBounds: Bounds = { west: -71.268, south: 42.196, east: -70.977, north: 42.449 };
 export const fogExtent: Bounds = {
   west: fogBounds.west - 1,
