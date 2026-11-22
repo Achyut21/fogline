@@ -295,7 +295,7 @@ export function FogMap({
       className="h-full w-full"
       data-renderer={renderer}
       aria-label={label}
-      role="img"
+      role="region"
     />
   );
 }

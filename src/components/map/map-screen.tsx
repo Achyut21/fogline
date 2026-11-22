@@ -69,7 +69,11 @@ export function MapScreen({ data }: { data: MapData }) {
           )}
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-4">
+        <div
+          tabIndex={0}
+          aria-label={map.list.label}
+          className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-4"
+        >
           <section aria-labelledby="hoods" className="flex flex-col gap-2">
             <h2 id="hoods" className="text-xl font-extrabold tracking-tight">
               {map.list.neighborhoods}

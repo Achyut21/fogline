@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { fillFog } from "@/components/map/fill-fog";
 import { applyReveal, cellOf, revealAround, type CellState } from "@/lib/geo/cells";
 import { fogDensity, rasterizeFog, revealReach, type Bounds } from "@/three/mask";
+import { fogBounds, maskSize, maskUv } from "@/three/fog-field";
 import { colorVector } from "@/three/materials/fog-material";
+import { stations } from "@/server/stations";
 import { fogRenderer } from "@/three/tier";
 
 const buCentral = { lat: 42.350082, lon: -71.106865 };
@@ -36,6 +38,21 @@ describe("fog mask", () => {
     const states = new Map<string, CellState>([[cellOf(buCentral), "visited"]]);
     const after = applyReveal(states, revealAround("ride", buCentral)).next;
     expect(pixelAt(rasterizeFog(after, bounds, size), buCentral)).toBe(fogDensity.visited);
+  });
+
+  it("[F2.1] [F2.2] the map's mask shows the home cells of every station", () => {
+    let states = new Map<string, CellState>();
+    for (const station of stations)
+      states = applyReveal(states, revealAround("home", station)).next;
+    const mask = rasterizeFog(states, fogBounds, maskSize);
+    const fogged = stations.filter((station) => {
+      const [u, v] = maskUv(station.lon, station.lat);
+      if (u < 0 || u >= 1 || v < 0 || v >= 1) return true;
+      return (
+        mask[Math.floor(v * maskSize) * maskSize + Math.floor(u * maskSize)] !== fogDensity.seen
+      );
+    });
+    expect(fogged.map((s) => s.name)).toEqual([]);
   });
 
   it("[F2.2] covers everything in fog when nothing is uncovered", () => {

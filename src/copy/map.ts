@@ -17,6 +17,7 @@ export const map = {
     dismiss: "Got it",
   },
   list: {
+    label: "Neighborhoods and stations",
     neighborhoods: "Neighborhoods",
     stations: "Stations",
     uncovered: "Uncovered",
