@@ -5,6 +5,7 @@ import { z } from "zod";
 import { inviteToken } from "@/lib/invite-token";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
+import { stopSpot } from "@/server/stop-spot";
 import { getDb } from "@/server/db/client";
 import { checkins, planParticipants, planStops, plans, profiles } from "@/server/db/schema";
 import { currentProfile } from "@/server/profile";
@@ -17,8 +18,8 @@ const tokenInput = z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/);
 const placeById = (id: string) => data.places().find((p) => p.id === id);
 
 /** A plan with any bar or club stop is 21+ (F4.9). */
-const adultsOnly = (stops: readonly { placeId: string }[]) =>
-  stops.some((s) => placeById(s.placeId)?.ageRule === "21plus");
+const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>
+  stops.some((s) => stopSpot(s.placeId, s.stationId)?.ageRule === "21plus");
 
 function knownStation(id: string): boolean {
   return data.stations().some((s) => s.id === id);
@@ -123,8 +124,12 @@ export async function planByInvite(token: unknown) {
   const hidden = adultsOnly(stops) && viewer?.ageBand !== "21plus";
   const stations = new Map(data.stations().map((s) => [s.id, s]));
   const stop = stops.at(0);
-  const place = stop ? placeById(stop.placeId) : undefined;
-  const walkM = place?.stations.find((s) => s.id === stop?.stationId)?.walkM ?? 0;
+  const place = stop ? stopSpot(stop.placeId, stop.stationId) : null;
+  // Every stop in order: a crawl has 2 to 4, and leave-by runs from the last (F5.5, F10.3).
+  const route = stops.flatMap((s) => {
+    const spot = stopSpot(s.placeId, s.stationId);
+    return spot ? [{ stop: s, spot }] : [];
+  });
   return {
     id: plan.id,
     title: plan.title,
@@ -142,17 +147,32 @@ export async function planByInvite(token: unknown) {
     spot:
       place && !hidden ? { id: place.id, name: place.name, lat: place.lat, lon: place.lon } : null,
     station: stop && !hidden ? (stations.get(stop.stationId) ?? null) : null,
+    stops: hidden
+      ? []
+      : route.map(({ stop: s, spot }) => ({
+          id: spot.id,
+          name: spot.name,
+          lat: spot.lat,
+          lon: spot.lon,
+          station: stations.get(s.stationId) ?? null,
+          scheduledAt: s.scheduledAt.toISOString(),
+          walkedFromPrevious: s.walkedFromPrevious,
+        })),
     people: people.flatMap((p) => {
       const name = p.displayName ?? p.placeholderName;
       if (!name) return [];
       const stationId = member ? (p.homeStationId ?? p.originStationId) : null;
       const home = stationId ? stations.get(stationId) : undefined;
       const leaveBy =
-        home && stop && place
+        home && route.length > 0
           ? leaveByFor(
               data.timetable(),
               plan.startsAt,
-              [{ station: stop.stationId, at: place, walkM }],
+              route.map(({ stop: s, spot }) => ({
+                station: s.stationId,
+                at: spot,
+                walkM: spot.walkM ?? 0,
+              })),
               { station: home.id, at: home },
             )
           : null;
@@ -186,7 +206,7 @@ export async function joinPlan(token: unknown) {
   if (!plan || plan.isDemo !== viewer.isDemo) return { kind: "not-found" as const };
   if (plan.status === "ended") return { kind: "ended" as const };
   const stops = await db
-    .select({ placeId: planStops.placeId })
+    .select({ placeId: planStops.placeId, stationId: planStops.stationId })
     .from(planStops)
     .where(eq(planStops.planId, plan.id));
   if (adultsOnly(stops) && viewer.ageBand !== "21plus") return { kind: "adults-only" as const };

@@ -1,10 +1,30 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { leaveByFor } from "@/lib/lasttrain/leave-by";
+import { checkIn } from "@/server/actions/live";
+import { planByInvite } from "@/server/actions/plans";
+import { data } from "@/server/data";
 import { createDb, type Db } from "@/server/db/client";
 import { planParticipants, planStops, plans, profiles, weeklyPlans } from "@/server/db/schema";
 import { copyWeeklyPlan, makeWeeklyPlans, weeklyPlansFor } from "@/server/weekly";
 import { createScratchDatabase } from "./scratch-database";
+
+type Profile = typeof profiles.$inferSelect;
+
+const session = vi.hoisted(() => ({ db: null as unknown, viewer: null as Profile | null }));
+vi.mock("@/server/db/client", async (original) => ({
+  ...(await original<typeof import("@/server/db/client")>()),
+  getDb: () => session.db,
+}));
+vi.mock("@/server/profile", async (original) => ({
+  ...(await original<typeof import("@/server/profile")>()),
+  currentProfile: async () => session.viewer,
+}));
+vi.mock("@/server/session", async (original) => ({
+  ...(await original<typeof import("@/server/session")>()),
+  sessionProfileId: async () => session.viewer?.id ?? null,
+}));
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
 const monday6am = new Date("2026-11-23T06:00:00-05:00");
@@ -16,6 +36,7 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
   beforeAll(async () => {
     scratch = await createScratchDatabase(testUrl);
     db = createDb(scratch.url);
+    session.db = db;
     await migrate(db, { migrationsFolder: "drizzle" });
   });
 
@@ -76,5 +97,49 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
       weekly.stops.map((s) => s.leg?.mode === "walk"),
     );
     expect(await copyWeeklyPlan(db, crypto.randomUUID(), maya)).toBeNull();
+  });
+
+  it("[F10.3] [F10.6] lists every stop of a copied crawl and times leave-by from the event", async () => {
+    const [maya] = await db.select().from(profiles).where(eq(profiles.profileCode, "MAYA2345"));
+    session.viewer = maya;
+    const [weekly] = await weeklyPlansFor(db, monday6am);
+    const copy = await copyWeeklyPlan(db, weekly.id, maya);
+    if (!copy) throw new Error("expected a copy");
+    const page = await planByInvite(copy.inviteToken);
+    if (!page) throw new Error("expected the plan");
+    expect(page.stops.map((s) => s.id)).toEqual(weekly.stops.map((s) => s.id));
+    const event = data.events().find((e) => e.id === weekly.stops.at(-1)?.id);
+    if (!event) throw new Error("expected the event stop");
+    expect(page.stops.at(-1)?.name).toBe(event.venue);
+
+    const home = data.stations().find((s) => s.id === maya.homeStationId);
+    if (!home) throw new Error("no home station");
+    const [first] = weekly.stops;
+    const dinner = data.places().find((p) => p.id === first.id);
+    if (!dinner) throw new Error("no dinner spot");
+    const expected = leaveByFor(
+      data.timetable(),
+      new Date(weekly.startsAt),
+      [
+        {
+          station: first.station.id,
+          at: dinner,
+          walkM: dinner.stations.find((s) => s.id === first.station.id)?.walkM ?? 0,
+        },
+        { station: event.station.id, at: event, walkM: event.station.walkM },
+      ],
+      { station: home.id, at: home },
+    );
+    expect(page.people.find((p) => p.you)?.leaveBy).toEqual(expected);
+
+    // A check-in at the event stop is judged against the venue, not refused as unknown.
+    const result = await checkIn({
+      planId: copy.id,
+      seq: weekly.stops.length - 1,
+      lat: event.lat,
+      lon: event.lon,
+      accuracyM: 10,
+    });
+    expect(result).not.toEqual({ valid: false, reason: "not-found" });
   });
 });

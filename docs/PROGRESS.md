@@ -280,6 +280,24 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:15 ET · Builder B · Phase 7 server side on `b/crawls` (from `main`; PR to follow):
+  - **Crawls (F10.1–F10.3):** `src/lib/crawl.ts` (`buildCrawls`), OSM opening hours in `src/lib/places/hours.ts` (967 of 1,000 parse), `planCrawl` + `findCrawl` Server Action. DATA 3.15.
+  - **Dinner before (F10.6):** `src/lib/dinner-before.ts`, `planDinnerBefore` + `findDinnerBefore`. DATA 3.16.
+  - **Squad (F12.2, F12.3):** `squadCells`, `squadStreak`, `squadOf`, the `mySquad` Server Action. DATA 3.12 and D-071. A's #41 builds on it.
+  - **Weekly plans (F10.4, F10.5):**
+    - campus-fair drafts (`src/lib/weekly.ts`), the Monday cron `/api/cron/weekly-plans`;
+    - Server Actions `thisWeeksPlans` and `inviteToWeeklyPlan`;
+    - migration `0004_phase7_weekly_plans` (`weekly_plans`, `plan_stops.walked_from_previous`);
+    - DATA 3.17 and D-072 (B's human chose campus stations).
+  - **Plain-English violations (F11.2):** the `pnpm data:violations` pipeline and `violationWords`. Gemini returned 429 (quota exceeded), so `data/violations.json` is empty and the city's words show until it reruns.
+  - Reviews: code-critic PASS on crawls, Dinner before and squad, with every SHOULD FIX done (OSM `,` vs `;`, T legs need a boarding train, full stay before the last train, T-leg, blocker and privacy tests). Weekly plans and violations are in review.
+  - Tests: 393 pass. The only failure is A's Windows-only token test.
+  - **For B's human:** apply migration 0004 to fogline-db in your terminal (`MIGRATE_DATABASE_URL=<url> pnpm db:migrate`), and rerun `pnpm data:violations` once Gemini quota is back.
+  - **For A:**
+    - #40: in `spotInspection`, map each violation's `text` through `violationWords(text, data.violations())` from `src/lib/violations.ts`. F11.2 also wants a link to the city record, for example https://data.boston.gov/dataset/food-establishment-inspections.
+    - A Dinner before plan or a weekly plan stores the event ID as its last stop's `placeId` (ARCHITECTURE section 6 allows it). The plan page has to show the event's venue for it instead of skipping it.
+    - Screens: crawl builder (`findCrawl`), Dinner before on Plan it (`findDinnerBefore`), weekly plans (`thisWeeksPlans`, `inviteToWeeklyPlan`).
+
 - 2026-11-22 04:20 ET · Builder A · Phase 5 daily puzzle (`a/daily`) and #37 merged:
   - #37 (plans) squash `49aed51` after code-critic FAIL → fixes (arrival order refreshes every 8 s while live, `[F6.3]` e2e; arrivals only to members; live mode closes 4 h after start; keys) → PASS. CI first failed on `format:check` (Prettier not run before push); fixed, and format:check is now in A's pre-push checks.
   - **For B (SHOULD FIX from code-critic):** `checkIn` accepts check-ins until `endedAt` is set, and nothing ends a plan automatically yet (F6.4 cron). Either the cron or a 4 h cap in `checkInValidity`.
