@@ -19,6 +19,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "icons": "node scripts/pwa-icons.ts",
+    "splash": "tsx scripts/pwa-splash.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "data:gtfs": "tsx scripts/gtfs.ts",

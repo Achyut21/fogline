@@ -158,6 +158,19 @@
   }
   body {
     @apply bg-bg text-ink;
+    /* No rubber-band bounce under the map or the sheets (PWA.md, iOS). */
+    overscroll-behavior: none;
+  }
+  /* No double-tap zoom delay on controls (PWA.md, iOS). */
+  a,
+  button,
+  input,
+  label,
+  select,
+  summary,
+  [role="button"],
+  [role="radio"] {
+    touch-action: manipulation;
   }
   ::selection {
     @apply bg-accent-soft text-ink;
