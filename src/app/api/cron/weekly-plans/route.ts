@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { cronAuthorized } from "@/server/cron";
 import { log } from "@/lib/log";
 import { weeklyCronDue } from "@/lib/weekly";
 import { getDb } from "@/server/db/client";
@@ -10,8 +11,7 @@ import { makeWeeklyPlans } from "@/server/weekly";
 const headers = { "cache-control": "no-store" };
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!cronAuthorized(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers });
   }
   const now = new Date();

@@ -21,7 +21,9 @@ export const daily = {
   row: (n: number) => `Guess ${n}`,
   letter: (letter: string, result: LetterResult | null) =>
     result === null
-      ? letter
+      ? letter === ""
+        ? "Empty"
+        : letter.toUpperCase()
       : `${letter.toUpperCase()}, ${{ correct: "right spot", present: "wrong spot", absent: "not in the word" }[result]}`,
   legend: {
     correct: "Right spot",

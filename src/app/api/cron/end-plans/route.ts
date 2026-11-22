@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { cronAuthorized } from "@/server/cron";
 import { log } from "@/lib/log";
 import { getDb } from "@/server/db/client";
 import { endDuePlans } from "@/server/end-plans";
@@ -8,8 +9,7 @@ import { endDuePlans } from "@/server/end-plans";
 const headers = { "cache-control": "no-store" };
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!cronAuthorized(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers });
   }
   const ended = await endDuePlans(getDb(), new Date());

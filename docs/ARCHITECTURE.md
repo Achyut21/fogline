@@ -182,7 +182,7 @@ Keep each client-facing file small. Split by line or load lazily where needed. `
 - AI never produces the facts shown as numbers or verdicts: times, distances, grades, fairness scores, leave-by times, badges. Those come from code.
 - **Mastra planner agent:** its tools are `solveFairMeetup`, `buildCrawl`, `lastTrains`, `searchPlaces` and `gradeFor`. It picks among valid options and writes the blurb. An eval guard extracts every number from the agent's text and rejects the output if any number doesn't match a tool result.
 - Every AI output is cached (`ai_cache`, or built into `data/` files). Demo mode uses only cached output.
-- AI routes are rate-limited per profile and per IP (a token bucket in the database is enough).
+- Rate limits on AI routes are deferred (D-077); Find food's own hourly cap still applies.
 
 ## 10. PWA
 
@@ -225,6 +225,6 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
 - Zod on every input. Authorization checks on every action (profile ID from the signed httpOnly cookie, never from the client body).
 - Plan pages, Open Graph images, reminders and recaps need the participant cookie or the plan's invite token.
 - The cron routes require `CRON_SECRET`.
-- Rate limits on AI routes and on profile-code restore attempts.
+- Rate limits on AI routes and on profile-code restore attempts: deferred (D-077).
 - Image domains allowlisted (e.g. `upload.wikimedia.org`).
 - Run the `security-review` skill before the final release.

@@ -651,6 +651,31 @@ Decision:
 Why: A's review of #44 found that one failed 6 AM run left the week empty, and that a double tap made two plans.
 Consequences: ARCHITECTURE section 11 and DATA 3.17 updated. A copy is recognized by creator, title and start time, so no migration is needed.
 
+**D-077 · 2026-11-22 · No rate limiter for the prototype (Phase 10, B's human).**
+Decision: B's human chose to skip the rate limiter. Phase 10 adds no `rate_limits` table and no per-IP limits. Profile-code restore stays without one, as D-065 already allows. `/demo` seeding keeps A's global cap.
+Why: the hackathon deadline. A limiter needs a migration and tuning that the prototype doesn't need to be demoed.
+Consequences: Phase 10's security item covers the security review's findings and the timing-safe cron secret, not rate limits. A later release adds a token bucket (ARCHITECTURE section 6) before the app is opened widely.
+
+**D-078 · 2026-11-22 · Phase 10 security fixes (B).**
+Decision:
+- **Squad privacy:** a mate's squad-map cells are limited to their check-ins on nights you shared (DATA 3.12). Rides are left out because a ride can be a replay played from anywhere. Check-ins trust the phone's reported position, so anyone holding an invite link could fake one and become a mate. Before this, that showed them each attendee's whole history, home area included.
+- **Solver inputs:** `categories` arrays are capped at the number of categories. One 5 MB request could otherwise make the solver scan millions of entries.
+- **Demo replays:** a demo profile's replayed rides are written as demo rows, so How it works' real counts leave them out (F16.2).
+- **Headers:** `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy, and a Permissions-Policy limiting the camera, microphone and location to this site. A full CSP waits until it can be tested against MapLibre's blob workers and the tile hosts.
+- **Unused actions:** `playPuzzle` and `todaysPuzzle` are removed. `playPuzzle` ignored the six-guess limit, so it would have become an answer oracle once anything imported it.
+- **Cron secret:** compared in constant time (`src/server/cron.ts`).
+- **No rate limiter** (D-077). The review's rate-limit findings are left for a later release: profile-code restore (M1), demo seeding (M3), profile creation (M4), and unbounded check-in and replay writes (L1).
+Why: the Phase 10 security review found no data exposure or takeover. It found the CPU amplification, the squad privacy gap and the smaller items above.
+Consequences: for A, the global demo cap can be used up by one client. Find doesn't check the photo's type from its bytes, and the sensory query isn't cached. All are logged in PROGRESS.
+
+**D-079 · 2026-11-22 · The map home's JavaScript budget is deferred (Phase 10, B's human).**
+Decision: the map home's app shell is about 263 KB gzip, against PRD section 7's 200 KB. B's human chose to defer the fix: the Phase 10 gate doesn't require the map home to meet the JavaScript budget. Its LCP is within budget (about 0.7 s under Lighthouse mobile throttling), and the welcome page meets both budgets (194 KB).
+Why: the hackathon deadline. The excess is about 30 KB of Zod reaching the client through a value import of a module with a schema (at least two paths), plus a 38 KB polyfill-style chunk. Finding and cutting both is more than the prototype needs.
+Consequences:
+- `tests/e2e/perf.spec.ts` keeps the map home check marked `test.fail()`, so it runs every time and reports when the page fits.
+- PRD section 7 is unchanged; the budget is still the target.
+- The fix (keeping schema modules out of client components, finding the polyfill chunk's source) is logged for a later release.
+
 **D-080 · 2026-11-22 · The tab bar is fixed to the screen's bottom edge; screens don't size themselves with viewport units.**
 Why: installed on an iPhone, the map's tab bar floated about one status bar above the bottom edge, and A's human saw the same on Android. Installed iOS apps with `viewport-fit=cover` report the dynamic viewport height short by the top safe-area inset (WebKit bug 254868), so the map's `h-dvh` column ended early. On Plans, Daily, Me and How it works the bar sat in the page flow, so it scrolled away on long screens and floated wherever a short screen ended.
 Consequences: `BottomNav` is `position: fixed` at the bottom with an in-flow spacer of the same height (tab row plus `env(safe-area-inset-bottom)`). The map screen is `fixed inset-0`. The Demo chip no longer floats over content: it's a row inside the tab bar (the spacer grows to match), in `PageHeader` next to its actions, and in the ride replay's header (design-critic BLOCKING, Phase 9 item 5). Other screens still use `min-h-dvh`; in an installed iOS app their bottom-anchored actions (the recap's Share) sit about one status bar higher than the edge. Not checked on a real device yet: PWA.md's install checks cover it.

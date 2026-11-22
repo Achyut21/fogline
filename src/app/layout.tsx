@@ -6,7 +6,7 @@ import { InstallListener } from "@/components/system/install";
 import { MotionProvider } from "@/components/system/motion-provider";
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { ThemeProvider } from "@/components/system/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { LazyToaster } from "@/components/ui/lazy-toaster";
 import { app } from "@/copy";
 import { startupImages } from "@/styles/splash-screens";
 import { themeColor } from "@/styles/theme-color";
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <OfflineBanner />
               </div>
             </div>
-            <Toaster />
+            <LazyToaster />
           </ThemeProvider>
         </SerwistProvider>
       </body>

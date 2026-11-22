@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: ride.pageTitle };
 
 const query = z.object({ from: z.string().max(40) });
 
-// Recorded trips to replay from a station (F3.5), opened from its sheet's "Ride from here".
+// Recorded trips to replay from a station (F3.5), opened from its sheet's Ride button.
 export default async function RidePage({ searchParams }: PageProps<"/ride">) {
   const profile = await currentProfile();
   if (!profile) redirect("/welcome");

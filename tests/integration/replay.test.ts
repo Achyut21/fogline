@@ -124,6 +124,22 @@ describe.skipIf(testUrl === "")("ride replay", () => {
     expect(cell).toMatchObject({ state: "seen", source: "ride" });
   });
 
+  it("[F16.2] marks a demo profile's replayed stops as demo, so real counts leave them out", async () => {
+    const viewer = session.viewer;
+    if (!viewer) throw new Error("no viewer");
+    await db.update(profiles).set({ isDemo: true }).where(eq(profiles.id, viewer.id));
+    await recordReplayStop({ tripId: "trip-long", from: "place-kencl", index: 2 });
+    await db.update(profiles).set({ isDemo: false }).where(eq(profiles.id, viewer.id));
+    const events = await db.select().from(rideEvents);
+    const demoStop = events.filter((e) => e.isDemo);
+    expect(demoStop).toHaveLength(1);
+    expect(demoStop[0].stopId).not.toBe("place-kencl");
+    expect(events.filter((e) => !e.isDemo).map((e) => e.stopId)).toEqual([
+      "place-kencl",
+      "place-fenwy",
+    ]);
+  });
+
   it("[F3.8] refuses a stop the recorded trip never reached", async () => {
     expect(await recordReplayStop({ tripId: "trip-long", from: "place-kencl", index: 40 })).toEqual(
       {

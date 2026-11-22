@@ -15,8 +15,8 @@ This is the shared status board for both builders. Update it after every finishe
 | 6 Badges, stats, recap, How it works | B's server, recap image and How it works on `main` (#36); Me stats, badges and recap screens now Phase 9; gate not run | A + B |
 | 7 Crawls, weekly plans, grades, squad | Built (#40, #41, #44); weekly plans screen now Phase 9; gate not run | B (+A UI) |
 | 8 Extras | Built (#43, #46); F13.3 map layer and F13.4 calm routing open; gate not run | A + B |
-| 9 PWA polish and UI/UX | Plan below, waiting for A's yes (D-075) | A |
-| 10 Hardening and release | Not started; B can start now, gate runs last (D-075) | B |
+| 9 PWA polish and UI/UX | Items 1–5 merged (#49, #51, #52, #53, #55); gate next | A |
+| 10 Hardening and release | In progress (B, 2026-11-22); gate runs last (D-075) | B |
 
 ## Board
 
@@ -135,6 +135,17 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production). Waiting on the humans: the PWA.md real-device checks (install on an iPhone and an Android phone).
 
 ### Builder B
+- **Now (2026-11-22 07:30):** Phase 10, hardening and release (D-075), on `b/phase10`. B's human said to start. Plan, in order of risk:
+  1. **Security:**
+     - a whole-app security review (subagent);
+     - timing-safe `CRON_SECRET` checks in one shared helper;
+     - no rate limiter: B's human skipped it (D-077);
+     - fix the review's findings.
+  2. **Copy:** copy-critic over all of `src/copy/`, then a no-ai-slop pass; fix the findings.
+  3. **Ship kit:** README (what it is, how to run it, architecture, data credits), Devpost text, a 1-minute video script.
+  4. **Accessibility:** axe in e2e on every route, then keyboard and screen-reader notes. A owns the UI fixes in Phase 9, so B logs them for A.
+  5. **Performance:** a Lighthouse budget and bundle analysis. The real mid-range Android check is for the humans.
+  6. **WALKTHROUGH** for every feature plus the 10-minute tour, and visual baselines for `/design`. Last, on the final app.
 - **Now (2026-11-22 04:05):** Phase 7 server side on `b/crawls`, from `main` (independent of #36). B's human said to start the parts with no dependency and keep merging as A lands work. Plan:
   1. **Crawl builder (F10.1–F10.3):** `src/lib/crawl.ts` (2–4 stops; first stop by fairness; each next stop within 10 min by walk or T; open at its time where OSM hours parse, unknown hours flagged; last train from the last stop) and `src/lib/places/hours.ts`. DATA 3.15 defines it. Tests `[F10.1]` `[F10.2]` `[F10.3]`.
   2. **Dinner before (F10.6):** a 2-stop crawl ending at a puzzle event's venue. Test `[F10.6]`.
@@ -294,6 +305,41 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 09:10 ET · Builder B · Phase 10 on `b/phase10` (PR to follow):
+  - **Security:** code changes and the review's findings are in D-078:
+    - timing-safe cron secret; squad maps show a mate's cells only from nights you shared;
+    - capped solver inputs; demo replays marked demo; security headers;
+    - the unused puzzle actions removed. No rate limiter (D-077).
+  - **Accessibility:** `tests/e2e/a11y.spec.ts` runs axe on every route signed in with a demo copy; it passes. Fixed: empty puzzle tiles now have a name, and map attribution links are underlined.
+  - **Copy:** a full pass over `src/copy/`:
+    - calm mode's loudness sentence grammar fixed;
+    - specific errors for onboarding and Find;
+    - the "change this later in Settings" claim removed;
+    - buttons cut to 1–2 words;
+    - thousands separators and singulars;
+    - the percent format with one decimal under 10% written into COPY.md.
+  - **Ship kit:** `README.md` and `docs/SHIP.md` describe only what's on screen today; regenerate after Phase 9.
+  - **Performance:** `tests/e2e/perf.spec.ts` uses Lighthouse's mobile throttling with a cold cache.
+    - The welcome page passes: app shell 194 KB gzip, LCP under 2.5 s.
+    - The map home is over budget at about 263 KB gzip. Its check is marked `test.fail()` until fixed.
+    - Deferred by B's human (D-079): the map home's JavaScript budget doesn't block the Phase 10 gate, and its check stays `test.fail()`. Rechecked after #53: the welcome page still passes.
+    - The toaster now loads after first paint, saving about 16 KB on every page.
+  - **For A (Phase 9):**
+    - Map home JS: about 30 KB of Zod reaches the client through a value import of a module with a schema (`@/lib/places/types` is one path; there's at least one more), plus a 38 KB polyfill-style chunk. The map and three.js already load after first paint.
+    - Strings outside `src/copy/`: "Other" in `src/server/schools.ts`, the friend legend in `plan-builder.tsx:228`, and " · " separators in `plans/page.tsx`, `daily-puzzle.tsx` and `plan-builder.tsx`.
+    - From the security review (no limiter, D-077):
+      - one client can use up the global `/demo` cap;
+      - Find trusts the photo's MIME type;
+      - `stationSensory` isn't cached;
+      - invite links can't be revoked.
+  - Not done in Phase 10 by request of B's human: WALKTHROUGH for every feature, the 10-minute tour, `/design` visual baselines.
+
+- 2026-11-22 08:05 ET · Builder B · Phase 10 under way on `b/phase10`:
+  - Security: `CRON_SECRET` is compared in constant time through `src/server/cron.ts` in all four cron routes. No rate limiter (D-077, B's human). The whole-app security review is running.
+  - Ship kit: `README.md` (what it is, how to run it, architecture, data credits) and `docs/SHIP.md` (Devpost text and a 1-minute video script from the judge path). Numbers in the video script are checked against the app before recording.
+  - Copy pass over all of `src/copy/` is running.
+  - #50 (weekly fixes) re-review PASS; waiting on A with #47.
+
 - 2026-11-22 07:15 ET · Builder A · #55 (design pass) review fixes, #54 review, launch video:
   - code-critic on #55: FAIL with one BLOCKING item. RideProgress's moving dot widened the page, so the riding view scrolled sideways. Fixed: the dot layer is clipped inside a box padded by the dot's radius, and the ride e2e asserts no sideways scroll mid-ride. The line fill no longer sits 2 px high, its color comes from `LineBadge`'s map, and its stats use the Stat role (`text-xl`).
   - Also from the review: recap stages are inert until they appear, so a tap can't land on an unseen Share; a tap or key press anywhere skips (listeners on `document`); stages always start hidden, which removes the reduced-motion hydration mismatch. `planByInvite` now keeps demo and real plans apart (F16.2), and the invite-token pattern lives once in `src/lib/invite-token.ts`. The Demo chip now shows on status pages and the empty ride, plan and squad screens. The welcome hero is drawn on the server, which keeps `h3-js` and the shapes out of `/welcome`'s client bundle. The tab bar's spacer matches its border, and the demo row has a fixed height. WALKTHROUGH F9 is updated with screenshots.
@@ -321,7 +367,6 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - design-critic SHOULD FIX, new (not done, for the next pass): /welcome hero isn't the canvas's full-bleed fog map with a floating card; /plans lists Past above This week; /me's name outranks its numbers; RideProgress stats are `text-lg`, not the Stat role; /find shows the browser's "Choose File" strings; the How it works heading wraps around its chip. NIT: no h1 on the map, puzzle keys under 44 px (record an exception), /offline buttons not aligned.
   - Also merged B's #47 (`1ebede9`) and #50 (`62253e1`, after bringing `main` in; CI green). Removed the `b-merge` scratch worktree. #54 (B's Phase 10) is in code-critic.
   - Next: merge `main` in, PR, code-critic, then `/phase-gate 9`.
-
 - 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
   - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
   - The image is the same for every link holder, so a 21+ plan always hides its title and venue.

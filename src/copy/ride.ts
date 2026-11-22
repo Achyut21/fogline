@@ -19,13 +19,13 @@ export const ride = {
   startFrom: "Ride from here",
   mapButton: "Ride",
   list: {
-    title: (station: string) => `Recorded trips from ${station}`,
+    title: (station: string) => `Trips from ${station}`,
     body: "Replay a real train the MBTA tracked in the last 24 hours. Each stop clears the fog around it.",
     trip: (destination: string) => `To ${destination}`,
     detail: (boardedAt: Date, stops: number, total: number) =>
       `Left ${clock(boardedAt)} · ${stops} stops · ${minutes(total)}`,
     empty: {
-      title: "No recorded trips from here yet",
+      title: "No recorded trips here yet",
       body: "The recorder keeps the last 24 hours of trains. Try a busier station, or come back after the next train passes.",
     },
   },

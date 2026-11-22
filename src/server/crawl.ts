@@ -13,7 +13,11 @@ export const crawlInput = z.object({
     .max(8),
   startsAt: z.iso.datetime({ offset: true }),
   stops: z
-    .array(z.object({ categories: z.array(z.enum(placeCategories)).min(1) }))
+    .array(
+      z.object({
+        categories: z.array(z.enum(placeCategories)).min(1).max(placeCategories.length),
+      }),
+    )
     .min(crawlStops.min)
     .max(crawlStops.max),
   budget: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),

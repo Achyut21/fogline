@@ -206,13 +206,13 @@ B owns this phase and can start it alongside Phase 9. Its gate runs after Phase 
 **Items**
 1. **Performance:** Lighthouse CI budgets, bundle analysis, 3D quality tiers on a real mid-range Android.
 2. **Accessibility:** a full keyboard and screen-reader pass, axe on every route.
-3. **Security:** run the `security-review` skill and fix its findings. Rate limits verified, including profile-code restore (D-065) and timing-safe cron secrets.
+3. **Security:** run the `security-review` skill and fix its findings. Timing-safe cron secrets. Rate limits, including profile-code restore (D-065), are deferred (D-077).
 4. **Copy:** a `copy-critic` pass on all of `src/copy/`, then a `no-ai-slop` pass.
 5. **WALKTHROUGH.md** complete for every feature, plus the 10-minute full tour.
 6. **Visual baselines** for `/design` at 390×844 and 1440×900 in both themes (deferred from Phase 1, D-060).
 7. **Ship kit:** README (what it is, how to run it, architecture summary, data credits), Devpost text, a 1-minute video script, screenshots, Open Graph images.
 
-**Gate:** every standing check passes on production, every WALKTHROUGH entry is verified, the README is complete, and both humans sign off.
+**Gate:** every standing check passes on production, every WALKTHROUGH entry is verified, the README is complete, and both humans sign off. The map home's JavaScript budget is deferred (D-079): its check stays marked as a known failure and doesn't block this gate.
 
 ## Ship kit
 
