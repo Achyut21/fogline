@@ -386,3 +386,13 @@ Decision:
 - The token check no longer exempts `src/components/ui/` (D-037, D-054).
 - `.claude/worktrees/` (agent worktrees) is ignored by git and ESLint.
 Why: the approved item 6 plan, D-054's consequences, and A's request to move faster.
+
+**D-060 · 2026-11-21 · Phase 1 scope cut for the hackathon deadline.**
+Decision (A, 2026-11-21): A has about 10 hours left in the hackathon and asked to skip the canvas wherever possible and not run parallel subagents. Phase 1 closes with:
+- Item 2 (canvas): stops at the three moods, Onboarding and Map. Ride, Daily, Plans, Me, Squad and System aren't drawn. `/design` and its components are the visual reference for those screens.
+- Item 3 (motion storyboards): cut. `/design`'s live demos (count-up, countdown, sheet, toast, reduced-motion switch, fog reveal on `/design/fog`) stand in.
+- Item 7 (microcopy): deferred. Each feature adds its strings to `src/copy/` with the feature, and copy-critic reviews them there. `src/copy/badges.ts` and its `[F8.5]` test come with F8.
+- Item 8 (visual baselines): deferred to Phase 9.
+- The gate keeps the token check, the fog frame-rate and fallback checks, one design-critic and copy-critic pass on `/design`, and both humans' approval of `/design` and the canvas as cut. B's human still confirms direction C.
+Why: the hackathon ends in about 10 hours, and the remaining canvas pages and storyboards were the largest part of the 6–8 hours left in Phase 1.
+Consequences: features in Phases 3–8 are designed in code against `/design` and DESIGN.md, without a canvas artboard to compare against. design-critic reviews them against DESIGN.md, the Direction and the canvas pages that exist.

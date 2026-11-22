@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/system/theme-toggle";
 import { ComponentsDemo } from "./components-demo";
+import { DisplayDemo } from "./display-demo";
 import { app, design } from "@/copy";
 import { contrast } from "@/lib/contrast";
 import { duration, ease, spring, stagger } from "@/lib/motion";
@@ -134,6 +135,10 @@ export default function DesignPage() {
 
       <Section id="components" title={design.sections.components}>
         <ComponentsDemo />
+      </Section>
+
+      <Section id="display" title={design.sections.display}>
+        <DisplayDemo />
       </Section>
 
       <Section id="brand" title={design.sections.brand}>

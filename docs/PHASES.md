@@ -61,20 +61,20 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 
 **Items:** follow `DESIGN.md` section 12 in order.
 1. Direction with impeccable `shape`, design-taste-frontend and frontend-design. Write it into DESIGN.md.
-2. Claude Design canvas: 2–3 mood directions, the humans pick one, then every key screen at 390×844 in both themes.
-3. Motion storyboards for every choreography row.
+2. Claude Design canvas: 2–3 mood directions, the humans pick one, then every key screen at 390×844 in both themes. **Cut on 2026-11-21 (D-060):** the canvas stops at the three moods, Onboarding and Map. `/design` is the visual reference for everything else.
+3. Motion storyboards for every choreography row. **Cut (D-060):** `/design`'s live motion demos stand in for them.
 4. The 3D fog spike, approaches A and B, measured under 4× CPU throttling. Pick one and log it in DECISIONS.
 5. Final tokens in DESIGN.md, `src/styles/tokens.css` and the Tailwind theme. Fonts and icons.
 6. Base components and the `/design` living style guide (tokens with contrast ratios, every component and state, motion demos, 3D previews with tier and reduced-motion toggles, theme toggle).
-7. Microcopy drafted in `src/copy/` for every screen in DESIGN.md section 6.
-8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes.
+7. Microcopy drafted in `src/copy/` for every screen in DESIGN.md section 6. **Deferred (D-060):** each feature brings its own strings in `src/copy/`, reviewed by copy-critic with the feature; `badges.ts` lands with F8.
+8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes. **Deferred to Phase 9 (D-060).**
 
 **Gate**
-- Both humans have approved the canvas and `/design`. The canvas link is recorded in DESIGN.md and DECISIONS.md.
+- Both humans have approved the canvas (as cut by D-060) and `/design`. The canvas link is recorded in DESIGN.md and DECISIONS.md.
 - `design-critic` and `copy-critic` PASS on `/design`.
 - The token check passes.
 - The fog layer holds 45 fps or better on the mid tier under 4× CPU throttling with mobile emulation, and the 2D fallback renders when WebGL is disabled.
-- Visual baselines are committed.
+- ~~Visual baselines are committed.~~ Deferred to Phase 9 (D-060).
 
 ---
 
