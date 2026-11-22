@@ -7,7 +7,7 @@ import type { Place, PlaceCategory } from "@/lib/places/types";
 import type { SpotFilters } from "@/lib/solver/fair";
 import { addDays, mondayOf, serviceDateOf, serviceTimeToDate, zone } from "@/lib/time";
 
-// Weekly plans (F10.4, DATA 3.17, D-072): every Monday, 3 suggested plans for the week. A puzzle
+// Weekly plans (F10.4, DATA 3.17, D-073): every Monday, 3 suggested plans for the week. A puzzle
 // event that week gets a Dinner before; crawl templates fill the rest. Fairness and last trains
 // are checked for a mixed group from five campuses, and a plan is kept only when every check
 // passes. Templates are all-ages, so every viewer can use every plan.

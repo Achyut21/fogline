@@ -599,7 +599,7 @@ Decision:
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
 Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).
 
-**D-072 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5).**
+**D-073 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5).**
 Decision:
 - Weekly plans are fair for a group from five campuses (Kendall/MIT, Harvard, BU Central, Northeastern, Medford/Tufts), because the Monday cron runs before anyone joins. Inviting friends copies the plan, and leave-by times then follow the real group.
 - "Crawl templates" (F10.4) are a fixed list of stop categories with a start time: dinner, then dessert on Friday at 7 PM; coffee, then museum or show on Saturday at 2 PM; brunch, then a park walk on Sunday at 11 AM. A meal before the week's first puzzle event comes first, named by its hour: breakfast before 11 AM, lunch before 4 PM, dinner after. Titles are headings under six words: the venue when it's short ("Dinner, then Symphony Hall"), "the event" otherwise. The event's title isn't sent, because it can give away a coming day's puzzle word. All are all-ages, and a plan whose stop leaves the data or turns 21+ is hidden.

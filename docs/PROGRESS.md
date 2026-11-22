@@ -293,7 +293,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - campus-fair drafts (`src/lib/weekly.ts`), the Monday cron `/api/cron/weekly-plans`;
     - Server Actions `thisWeeksPlans` and `inviteToWeeklyPlan`;
     - migration `0004_phase7_weekly_plans` (`weekly_plans`, `plan_stops.walked_from_previous`);
-    - DATA 3.17 and D-072 (B's human chose campus stations).
+    - DATA 3.17 and D-073 (B's human chose campus stations).
   - **Plain-English violations (F11.2):** the `pnpm data:violations` pipeline and `violationWords`. Gemini returned 429 (quota exceeded), so `data/violations.json` is empty and the city's words show until it reruns.
   - Reviews: code-critic PASS on crawls, Dinner before and squad, with every SHOULD FIX done (OSM `,` vs `;`, T legs need a boarding train, full stay before the last train, T-leg, blocker and privacy tests).
   - Weekly plans and violations: code-critic FAIL and copy-critic FAIL on the first pass. All fixed:
