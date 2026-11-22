@@ -1,14 +1,15 @@
 "use client";
 
-import { Link2, MapPin } from "lucide-react";
+import { CalendarClock, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
-import { plans } from "@/copy";
+import { alerts, plans } from "@/copy";
+import { dueLeaveAlert } from "@/lib/leave-alerts";
 import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
@@ -91,6 +92,17 @@ export function PlanView({
   const hidden = plan.adultsOnly && plan.spot === null;
   const started = clock !== null && clock >= startsAt.getTime();
   const countdownTo = started && myLeaveBy ? myLeaveBy : startsAt;
+
+  // F5.4: alerts 20 and 5 minutes before your leave-by, with a buzz on Android. They don't wait
+  // for live mode, which ends 4 hours after the start while a leave-by can come later.
+  const alerted = useRef(new Set<number>());
+  useEffect(() => {
+    if (ended || !myLeaveBy || clock === null) return;
+    const left = (myLeaveBy.getTime() - clock) / minute;
+    if (dueLeaveAlert(left, alerted.current) === null) return;
+    toast(p.leaveAlert(Math.max(1, Math.ceil(left))));
+    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+  }, [ended, myLeaveBy, clock]);
 
   useEffect(() => {
     if (!live) return;
@@ -225,9 +237,14 @@ export function PlanView({
         )}
 
         {ended && (
-          <p role="status" className="rounded-md bg-surface-sunken px-4 py-3 font-semibold">
-            {p.ended}
-          </p>
+          <div role="status" className="flex flex-col gap-2 rounded-md bg-surface-sunken px-4 py-3">
+            <p className="font-semibold">{p.ended}</p>
+            {plan.viewer.member && (
+              <Button asChild className="self-start">
+                <Link href={`/p/${plan.id}/recap?t=${token}`}>{p.recapLink}</Link>
+              </Button>
+            )}
+          </div>
         )}
 
         {live && (
@@ -308,6 +325,16 @@ export function PlanView({
                 {person.leaveBy && person.name && (
                   <LeaveByLine name={person.name} leaveBy={person.leaveBy} />
                 )}
+                {person.alerts?.kind === "disrupted" && (
+                  <ul className="flex flex-col gap-1 border-l-2 border-warning pl-3 text-sm">
+                    {person.alerts.texts.map((text) => (
+                      <li key={text}>{text}</li>
+                    ))}
+                  </ul>
+                )}
+                {person.alerts?.kind === "check" && (
+                  <p className="text-sm font-semibold text-warning">{alerts.check}</p>
+                )}
               </li>
             ))}
           </ul>
@@ -327,6 +354,17 @@ export function PlanView({
                 <Link href="/welcome">{p.joinNeedsProfile}</Link>
               </Button>
             ))}
+          {myLeaveBy && !ended && (
+            <div className="flex flex-col gap-1">
+              <Button variant="secondary" asChild>
+                <a href={`/api/plans/${plan.id}/remind`} download>
+                  <CalendarClock aria-hidden="true" />
+                  {p.remind}
+                </a>
+              </Button>
+              <p className="text-xs text-ink-muted">{p.remindHelp}</p>
+            </div>
+          )}
           {plan.viewer.member && !ended && (
             <Button variant="secondary" onClick={invite}>
               <Link2 aria-hidden="true" />

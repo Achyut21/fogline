@@ -294,6 +294,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:45 ET · Builder A · Phase 9 item 3, plan extras (`a/plan-extras`, stacked on `a/me`):
+  - Plans tab: this week's plans (F10.4) with their stops, hours and legs, and Invite friends copying one into your own plan (F10.5).
+  - Plan page: MBTA alerts on each member's route home as MBTA wrote them, or "Check MBTA alerts" (F5.6); Remind me (F5.8) only when you have a train home, so B's route never shows its JSON errors; in-app alerts 20 and 5 min before your leave-by with a buzz on Android (F5.4); "See the night's recap" once a plan ends.
+  - `/p/[id]/recap?t=`: 1st, 2nd and last, the night in numbers (walked labeled "about"), badges with names, and Share the recap (B's image; Web Share with the file, else a download) (F9).
+  - Tests: `tests/component/weekly-plans.test.tsx` (`[F10.4]` `[F10.5]`), the plans e2e now ends on the recap (`[F9.1]`), `[F1.4]` primer step.
+
 - 2026-11-22 05:39 ET · Builder A · Phase 9 item 2, Me and Settings (`a/me`):
   - Me shows stats (share of Boston to one decimal, miles on the T, stations of the total, stops, lines, nights out) and earned badges from B's `myStats`. Badges whose line needs a number show their name only, because awards don't store the number. **For B:** fill `badges_awarded.meta` (minutes late, ride minutes, minutes to spare, neighborhood) so those lines can show; `myStats` now also returns `shareUncovered`.
   - `/me/settings`: theme, Automatic or Always 2D map (per device; `useFogRenderer` reads it), age band (`updateAgeBand`), and delete my data with a confirmation (`deleteMyData`, `endSession`; F1.7). A deleted person's seat shows as "Former member" with no name or station (`planByInvite` returns `former`).
