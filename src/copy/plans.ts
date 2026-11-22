@@ -16,7 +16,7 @@ const dayFormat = new Intl.DateTimeFormat("en-US", {
 });
 
 /** "7:12 PM" in New York time, with a no-break space before AM or PM (COPY.md). */
-export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, " ");
+export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, "\u00a0");
 
 export const plans = {
   pageTitle: "Plans",
@@ -68,7 +68,7 @@ export const plans = {
     },
     arrivals: "Arrival order",
     noArrivals: "Nobody has checked in yet.",
-    end: "End the night",
+    end: "End night",
     ending: "Ending",
     ended: "This plan has ended.",
     notFound: {
@@ -112,7 +112,7 @@ export const plans = {
     walk: (meters: number) => `about ${Math.max(1, Math.round(meters / 80))} min walk`,
     noTrain: (name: string, at: Date) => `No train home for ${name} after ${clock(at)}.`,
     noTrainAtAll: (name: string, walk: number) =>
-      `No train gets ${name} home tonight. Walk is about ${walk} min; a rideshare may be easier.`,
+      `No train gets ${name} home tonight. Split a ride, or walk ${walk} min.`,
     noTimetable: "No schedule for that night.",
     mode: "Plan",
     modes: { spot: "One spot", crawl: "Crawl" },
@@ -155,6 +155,7 @@ export const plans = {
         spots: "No spot is open near the fair stations",
       } satisfies Record<Blocker, string>,
       relax: "Allow every kind of spot",
+      relaxGrade: "Allow any grade",
     },
     errors: {
       noProfile: "Make a profile first.",

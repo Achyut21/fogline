@@ -117,7 +117,12 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** merge #35, then the core-loop screens for Phases 4 and 5 on B's existing actions (plan builder, plan page with leave-by and check-in, daily puzzle, demo entry). B is taking Phase 6 alone (`b/recap`). Still open from Phase 1: B's human approves `/design` and direction C.
+- **Now (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
+  1. **Grades** (`a/grades`; F11.1, F11.3, F11.4, F11.5): grade badge with the unofficial label and inspection date on food spots, "No inspection match" when unmatched, a spot detail with the cited violations, a minimum-grade filter in the builder. F11.2's plain-English rewrite needs a cached Gemini summary per spot (B's data job); until then the city's own wording is shown.
+  2. **Crawl builder and Dinner before** (F10.1–F10.3, F10.6) on B's `src/server/crawl.ts` and `dinner-before.ts` once `b/crawls` is merged. **B: please open the `b/crawls` PR.**
+  3. **Squad screen under Me** (F12.2, F12.3) on B's `src/server/squad.ts`.
+  4. **Weekly plans** on the Plans tab (F10.4, F10.5) once the weekly cron exists.
+  - Done before this: Phases 3–5 core-loop screens, merged as #35 ride replay, #37 plans, #38 daily puzzle, #39 demo mode (production checks passed for #35, #37, #38).
 - **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
 
 ### Builder B
@@ -280,19 +285,30 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
-- 2026-11-22 04:20 ET · Builder A · Phase 5 daily puzzle (`a/daily`) and #37 merged:
+- 2026-11-22 04:05 ET · Builder A · Phase 7 item 1, grades (`a/grades`) and #39 merged:
+  - #39 (demo) squash `7207882` after code-critic FAIL (no cap on `/demo` seeding) → fixes (200 copies an hour, an existing demo is kept, demo sessions last 24 h, failures shown and logged, a warning for a signed-in real profile; `[F16.2]` cap test) → PASS. copy-critic over all new strings: FAIL (plain space before AM/PM, walk shown before rideshare) → fixed → PASS.
+  - Grades: `GradeBadge` (letter and inspection date, "No inspection match" for unmatched food spots), `InspectionDetails` (violations loaded on open through `spotInspection`, so map and plan payloads only carry the letter and date), the unofficial label under each list, and a food-grade filter in the builder with "Allow any grade" when it blocks. **For B:** `SheetSpot` and the meetup spot gained `inspected` (date); F11.2's plain-English rewrite (cached Gemini text per spot) and the city record link are yours; until then the city's wording shows.
+  - Tests: `tests/component/grades.test.tsx` (`[F11.1]` `[F11.2]` `[F11.4]`), `[F11.5]` in `plan-builder.test.tsx`, `[F11.3]` sheet test updated. 362 unit/component/integration pass; sheet and plans e2e 9/9.
+
+- 2026-11-22 03:40 ET · Builder A · F16 demo entry ([#39](https://github.com/Achyut21/fogline/pull/39), `a/demo`) and #38 merged:
+  - #38 (daily puzzle) squash `c3a9178` after code-critic FAIL → fix (each guess locks the `puzzle_results` row in one transaction; `tests/integration/daily.test.ts` `[F7.2]` sends 10 guesses at once and fails on the old code) → PASS. Also: no 60-day cap on the streak, a separate no-puzzle error.
+  - `/demo`: a start page and `startDemo` (B's `seedDemo`, then `startSession(id, true)`). `startSession` sets a readable `fogline_demo` flag cookie for demo profiles and deletes it for real ones; `DemoMark` in the root layout shows the Demo chip from it on every screen, so the layout stays static. The flag only labels; access still comes from the signed profile cookie.
+  - Tests: e2e `tests/e2e/demo.spec.ts` (`[F16.1]` `[F16.3]`, a second visitor gets a separate copy) 3/3. WALKTHROUGH F4–F7 and F16 updated.
+  - Log times earlier tonight (A) were corrected from commit times; two were written ahead of the clock.
+
+- 2026-11-22 03:32 ET · Builder A · Phase 5 daily puzzle (`a/daily`) and #37 merged:
   - #37 (plans) squash `49aed51` after code-critic FAIL → fixes (arrival order refreshes every 8 s while live, `[F6.3]` e2e; arrivals only to members; live mode closes 4 h after start; keys) → PASS. CI first failed on `format:check` (Prettier not run before push); fixed, and format:check is now in A's pre-push checks.
   - **For B (SHOULD FIX from code-critic):** `checkIn` accepts check-ins until `endedAt` is set, and nothing ends a plan automatically yet (F6.4 cron). Either the cron or a 4 h cap in `checkInValidity`.
   - `/daily`: the board as stops on a line (filled = right spot, ringed = wrong spot, dashed = not in the word; DESIGN asks for no borrowed word-game tiles), on-screen and hardware keyboard, guesses stored in `puzzle_results` through `submitGuess` (`src/server/actions/daily.ts`), k=1 cells around the venue on a solve, the event card with station, walk, minutes from home and source, Plan it (prefills the builder's time), share grid, streak. `src/server/daily.ts` replays stored guesses.
   - Tests: e2e `tests/e2e/daily.spec.ts` (`[F7.2]` `[F7.3]` `[F7.4]` `[F7.5]` `[F7.7]`) 6/6; screenshots at 390×844 in both themes.
 
-- 2026-11-22 03:50 ET · Builder A · Phase 4 screens, plan builder and plan page (`a/plan-builder`):
+- 2026-11-22 03:15 ET · Builder A · Phase 4 screens, plan builder and plan page (`a/plan-builder`):
   - `/plans` (upcoming and past), `/plans/new` (friends with stations, start time, kinds of spot → up to 3 fair options with minutes bars, leave-by and no-train warnings, spots → createPlan), `/p/[id]?t=` (spot, people, leave-by for members, Join, invite link, live mode 30 min before the start with countdown, check-in with location and its failure lines, arrival order, End for the organizer).
   - **Note for B (your file):** `planByInvite` in `src/server/actions/plans.ts` now also returns `inviteToken` (members only), `viewer` (member, organizer), `arrivals` (first valid check-in per person) and per-person `you` and `placeholder`. `src/server/plans.ts` adds `myPlans`.
   - Tests: `tests/component/plan-builder.test.tsx` (`[F4.6]` `[F4.9]` `[F4.1]` `[F5.3]` `[F5.7]`), e2e `tests/e2e/plans.spec.ts` (Phase 4 gate run: build, create, join in a second context, check in with mocked location, end) 3/3 on desktop-chrome, iphone, pixel.
   - Not built: F4.7 agent text, F5.4 20/5-minute alerts, F5.6 alerts text, F5.8 .ics, Open Graph images, F6.1 directions to the station.
 
-- 2026-11-22 03:20 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
+- 2026-11-22 03:10 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
   - Rebased onto `main` (`7ef3feb`); replay reads shapes through `data.shapes()`. Component test `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`) and the Phase 3 gate e2e `tests/e2e/ride.spec.ts` (seeded Green-D trip, onboarding, sheet → Ride from here → 20× past three stops → summary → stations uncovered; plus End with reduced motion). e2e 15/15 with onboarding and the sheet on desktop-chrome, iphone, pixel; 350 unit/component/integration passed; lint and typecheck clean.
   - Seen at 390×844 in night theme on a local build against the test DB; fixed "1 lines" in the summary.
   - code-critic: PASS, no BLOCKING. Fixed two SHOULD FIX: trip IDs repeat daily, so a 30-minute gap now starts a new run and only the latest is kept (test fails on the old code); the stop action allows 2 h past the 24 h list window so a replay started from the list keeps recording.

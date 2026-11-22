@@ -9,14 +9,25 @@ import { Button } from "@/components/ui/button";
 import { FilterChips } from "@/components/ui/filter-chips";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { map, plans } from "@/copy";
-import { adultCategories, placeCategories, type PlaceCategory } from "@/lib/places/types";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { grades, map, plans } from "@/copy";
+import {
+  adultCategories,
+  gradedCategories,
+  placeCategories,
+  type PlaceCategory,
+} from "@/lib/places/types";
 import { createPlan } from "@/server/actions/plans";
 import { findMeetup } from "@/server/actions/core-loop";
 import type { MeetupResult } from "@/server/meetup";
 import { OptionCard } from "./option-card";
 
 const b = plans.builder;
+type MinGrade = "any" | "B" | "A";
+const gradeOptions = (["any", "B", "A"] as const).map((value) => ({
+  value,
+  label: grades.minGradeOptions[value],
+}));
 const maxFriends = 7;
 const selectClass =
   "h-12 w-full rounded-md border border-field-border bg-field px-4 text-base font-semibold text-ink";
@@ -44,6 +55,7 @@ export function PlanBuilder({
   const [friends, setFriends] = useState<Friend[]>([{ key: 0, name: "", station: "" }]);
   const [startsAt, setStartsAt] = useState(times[0] ?? "");
   const [kinds, setKinds] = useState<ReadonlySet<PlaceCategory>>(new Set(["food"]));
+  const [minGrade, setMinGrade] = useState<MinGrade>("any");
   const [result, setResult] = useState<MeetupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [finding, startFinding] = useTransition();
@@ -68,7 +80,7 @@ export function PlanBuilder({
     setResult(null);
   }
 
-  function find(categories: readonly PlaceCategory[]) {
+  function find(categories: readonly PlaceCategory[], grade: MinGrade = minGrade) {
     if (friends.some((f) => !f.name.trim() || !f.station)) {
       setError(b.needName);
       return;
@@ -85,7 +97,7 @@ export function PlanBuilder({
             startsAt,
             categories,
             budget: null,
-            minGrade: null,
+            minGrade: grade === "any" ? null : grade,
           }),
         );
       } catch (e) {
@@ -223,6 +235,18 @@ export function PlanBuilder({
           <FilterChips label={b.what} chips={chips} selected={kinds} onToggle={toggle} />
         </div>
 
+        {[...kinds].some((k) => gradedCategories.includes(k)) && (
+          <SegmentedControl
+            label={grades.minGrade}
+            options={gradeOptions}
+            value={minGrade}
+            onValueChange={(value) => {
+              setMinGrade(value);
+              setResult(null);
+            }}
+          />
+        )}
+
         {error && (
           <p role="alert" className="text-sm font-semibold text-danger">
             {error}
@@ -267,6 +291,18 @@ export function PlanBuilder({
                 <li key={blocker}>{b.none.blocker[blocker]}</li>
               ))}
             </ul>
+            {result.blockedBy.includes("minGrade") && (
+              <Button
+                variant="secondary"
+                className="self-start"
+                onClick={() => {
+                  setMinGrade("any");
+                  find([...kinds], "any");
+                }}
+              >
+                {b.none.relaxGrade}
+              </Button>
+            )}
             {result.blockedBy.includes("categories") && (
               <Button
                 variant="secondary"
