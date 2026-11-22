@@ -8,3 +8,4 @@ export { onboarding } from "./onboarding";
 export { system } from "./system";
 export { demo } from "./demo";
 export { badges } from "./badges";
+export { howItWorks } from "./how-it-works";
