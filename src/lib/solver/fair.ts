@@ -3,6 +3,7 @@ import type { Graph, Timetable } from "@/lib/gtfs/types";
 import {
   adultCategories,
   gradedCategories,
+  maxWalkM,
   placeCategories,
   type Grade,
   type Place,
@@ -12,7 +13,6 @@ import { dayTypeOf, hourBucketOf, toServiceTime } from "@/lib/time";
 import { travelTimesFrom, type Travel } from "./travel";
 
 const maxTravelSeconds = 75 * 60;
-const maxWalkM = 600;
 const optionCount = 3;
 
 export type Participant = { id: string; station: string };

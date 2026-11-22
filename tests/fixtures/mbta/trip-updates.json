@@ -1,0 +1,2768 @@
+{
+  "header": {
+    "timestamp": 1795327205,
+    "gtfs_realtime_version": "2.0",
+    "incrementality": "FULL_DATASET"
+  },
+  "entity": [
+    {
+      "id": "NONREV-1580843295",
+      "trip_update": {
+        "timestamp": 1795326984,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70502",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 9,
+            "passthrough_time": 1795327295,
+            "arrival": {
+              "time": 1795327295,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327347,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70208",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 10,
+            "passthrough_time": 1795327414,
+            "arrival": {
+              "time": 1795327414,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327455,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70206",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 20,
+            "passthrough_time": 1795327599,
+            "arrival": {
+              "time": 1795327599,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327612,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70204",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 30,
+            "passthrough_time": 1795327711,
+            "arrival": {
+              "time": 1795327711,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327759,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70202",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 40,
+            "passthrough_time": 1795327857,
+            "arrival": {
+              "time": 1795327857,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327906,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70198",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 60,
+            "passthrough_time": 1795327996,
+            "arrival": {
+              "time": 1795327996,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328097,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70159",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 90,
+            "passthrough_time": 1795328180,
+            "arrival": {
+              "time": 1795328180,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328220,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70157",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 100,
+            "passthrough_time": 1795328318,
+            "arrival": {
+              "time": 1795328318,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328352,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70155",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 110,
+            "passthrough_time": 1795328399,
+            "arrival": {
+              "time": 1795328399,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328463,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70153",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 120,
+            "passthrough_time": 1795328548,
+            "arrival": {
+              "time": 1795328548,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328597,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70151",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 130,
+            "passthrough_time": 1795328699,
+            "arrival": {
+              "time": 1795328699,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328748,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70187",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 450,
+            "passthrough_time": 1795328986,
+            "arrival": {
+              "time": 1795328986,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329038,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70183",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 460,
+            "passthrough_time": 1795329114,
+            "arrival": {
+              "time": 1795329114,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329154,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70181",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 470,
+            "passthrough_time": 1795329222,
+            "arrival": {
+              "time": 1795329222,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329269,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70179",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 480,
+            "passthrough_time": 1795329350,
+            "arrival": {
+              "time": 1795329350,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329389,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70177",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 490,
+            "passthrough_time": 1795329476,
+            "arrival": {
+              "time": 1795329476,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329527,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70175",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 500,
+            "passthrough_time": 1795329653,
+            "arrival": {
+              "time": 1795329653,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329695,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70173",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 510,
+            "passthrough_time": 1795329800,
+            "arrival": {
+              "time": 1795329800,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329847,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70171",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 520,
+            "passthrough_time": 1795329974,
+            "arrival": {
+              "time": 1795329974,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795330018,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70169",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 530,
+            "passthrough_time": 1795330090,
+            "arrival": {
+              "time": 1795330090,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795330122,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70167",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 540,
+            "passthrough_time": 1795330206,
+            "arrival": {
+              "time": 1795330206,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795330233,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70165",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 550,
+            "passthrough_time": 1795330301,
+            "arrival": {
+              "time": 1795330301,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795330342,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70163",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 560,
+            "passthrough_time": 1795330423,
+            "arrival": {
+              "time": 1795330423,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795330462,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70161",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 570,
+            "passthrough_time": 1795330534,
+            "arrival": {
+              "time": 1795330534,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:49:00",
+          "direction_id": 0,
+          "trip_id": "NONREV-1580843295",
+          "route_id": "Green-D",
+          "start_date": "20261121",
+          "schedule_relationship": "ADDED",
+          "revenue": false,
+          "route_pattern_id": "Green-D-855-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10142",
+          "label": "3865-3629"
+        }
+      }
+    },
+    {
+      "id": "77656263",
+      "trip_update": {
+        "timestamp": 1795327154,
+        "update_type": "at_terminal",
+        "stop_time_update": [
+          {
+            "stop_id": "Union Square-02",
+            "stop_sequence": 1,
+            "departure": {
+              "time": 1795328040,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70502",
+            "stop_sequence": 9,
+            "arrival": {
+              "time": 1795328227,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795328279,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70208",
+            "stop_sequence": 10,
+            "arrival": {
+              "time": 1795328346,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795328387,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70206",
+            "stop_sequence": 20,
+            "arrival": {
+              "time": 1795328531,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795328544,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70204",
+            "stop_sequence": 30,
+            "arrival": {
+              "time": 1795328643,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795328691,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70202",
+            "stop_sequence": 40,
+            "arrival": {
+              "time": 1795328789,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795328838,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70198",
+            "stop_sequence": 60,
+            "arrival": {
+              "time": 1795328928,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329029,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70159",
+            "stop_sequence": 90,
+            "arrival": {
+              "time": 1795329112,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329152,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795329250,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329284,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795329331,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329395,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795329480,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329529,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795329631,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329680,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70187",
+            "stop_sequence": 450,
+            "arrival": {
+              "time": 1795329918,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795329970,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70183",
+            "stop_sequence": 460,
+            "arrival": {
+              "time": 1795330046,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330086,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70181",
+            "stop_sequence": 470,
+            "arrival": {
+              "time": 1795330154,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330201,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70179",
+            "stop_sequence": 480,
+            "arrival": {
+              "time": 1795330282,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330321,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70177",
+            "stop_sequence": 490,
+            "arrival": {
+              "time": 1795330408,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330459,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70175",
+            "stop_sequence": 500,
+            "arrival": {
+              "time": 1795330585,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330627,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70173",
+            "stop_sequence": 510,
+            "arrival": {
+              "time": 1795330732,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330779,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70171",
+            "stop_sequence": 520,
+            "arrival": {
+              "time": 1795330906,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795330950,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70169",
+            "stop_sequence": 530,
+            "arrival": {
+              "time": 1795331022,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795331054,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70167",
+            "stop_sequence": 540,
+            "arrival": {
+              "time": 1795331138,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795331165,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70165",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795331233,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795331274,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70163",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795331355,
+              "uncertainty": 120
+            },
+            "departure": {
+              "time": 1795331394,
+              "uncertainty": 120
+            }
+          },
+          {
+            "stop_id": "70161",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795331466,
+              "uncertainty": 120
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "25:14:00",
+          "direction_id": 0,
+          "trip_id": "77656263",
+          "route_id": "Green-D",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-D-855-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10043",
+          "label": "3625-3863"
+        }
+      }
+    },
+    {
+      "id": "77655914",
+      "trip_update": {
+        "timestamp": 1795327178,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795327178,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327212,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795327259,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327323,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795327408,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327457,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795327559,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327608,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70211",
+            "stop_sequence": 320,
+            "arrival": {
+              "time": 1795327814,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327856,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70213",
+            "stop_sequence": 330,
+            "arrival": {
+              "time": 1795327904,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327922,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70215",
+            "stop_sequence": 340,
+            "arrival": {
+              "time": 1795327937,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327968,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70217",
+            "stop_sequence": 350,
+            "arrival": {
+              "time": 1795327988,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328021,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70219",
+            "stop_sequence": 360,
+            "arrival": {
+              "time": 1795328057,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328105,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70223",
+            "stop_sequence": 370,
+            "arrival": {
+              "time": 1795328169,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328203,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70225",
+            "stop_sequence": 380,
+            "arrival": {
+              "time": 1795328257,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328268,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70227",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 390,
+            "passthrough_time": 1795328302
+          },
+          {
+            "stop_id": "70229",
+            "stop_sequence": 400,
+            "arrival": {
+              "time": 1795328338,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328379,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70231",
+            "stop_sequence": 410,
+            "arrival": {
+              "time": 1795328409,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328443,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70233",
+            "stop_sequence": 420,
+            "arrival": {
+              "time": 1795328477,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328491,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70235",
+            "stop_sequence": 430,
+            "arrival": {
+              "time": 1795328517,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328550,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70237",
+            "stop_sequence": 440,
+            "arrival": {
+              "time": 1795328588,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:55:00",
+          "direction_id": 0,
+          "trip_id": "77655914",
+          "route_id": "Green-C",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-C-832-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10162",
+          "label": "3820-3617"
+        }
+      }
+    },
+    {
+      "id": "77656261",
+      "trip_update": {
+        "timestamp": 1795327124,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795327209,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327258,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795327360,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327409,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70187",
+            "stop_sequence": 450,
+            "arrival": {
+              "time": 1795327647,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327699,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70183",
+            "stop_sequence": 460,
+            "arrival": {
+              "time": 1795327775,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327815,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70181",
+            "stop_sequence": 470,
+            "arrival": {
+              "time": 1795327883,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327930,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70179",
+            "stop_sequence": 480,
+            "arrival": {
+              "time": 1795328011,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328050,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70177",
+            "stop_sequence": 490,
+            "arrival": {
+              "time": 1795328137,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328188,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70175",
+            "stop_sequence": 500,
+            "arrival": {
+              "time": 1795328314,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328356,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70173",
+            "stop_sequence": 510,
+            "arrival": {
+              "time": 1795328461,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328508,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70171",
+            "stop_sequence": 520,
+            "arrival": {
+              "time": 1795328635,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328679,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70169",
+            "stop_sequence": 530,
+            "arrival": {
+              "time": 1795328751,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328783,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70167",
+            "stop_sequence": 540,
+            "arrival": {
+              "time": 1795328867,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328894,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70165",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795328962,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329003,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70163",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795329084,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329123,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70161",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795329195,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:36:00",
+          "direction_id": 0,
+          "trip_id": "77656261",
+          "route_id": "Green-D",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-D-855-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10036",
+          "label": "3824-3606"
+        }
+      }
+    },
+    {
+      "id": "77656262",
+      "trip_update": {
+        "timestamp": 1795327156,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70204",
+            "stop_sequence": 30,
+            "arrival": {
+              "time": 1795327154,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327202,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70202",
+            "stop_sequence": 40,
+            "arrival": {
+              "time": 1795327300,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327349,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70198",
+            "stop_sequence": 60,
+            "arrival": {
+              "time": 1795327439,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327540,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70159",
+            "stop_sequence": 90,
+            "arrival": {
+              "time": 1795327623,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327663,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795327761,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327795,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795327842,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327906,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795327991,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328040,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795328142,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328191,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70187",
+            "stop_sequence": 450,
+            "arrival": {
+              "time": 1795328429,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328481,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70183",
+            "stop_sequence": 460,
+            "arrival": {
+              "time": 1795328557,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328597,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70181",
+            "stop_sequence": 470,
+            "arrival": {
+              "time": 1795328665,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328712,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70179",
+            "stop_sequence": 480,
+            "arrival": {
+              "time": 1795328793,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328832,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70177",
+            "stop_sequence": 490,
+            "arrival": {
+              "time": 1795328919,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328970,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70175",
+            "stop_sequence": 500,
+            "arrival": {
+              "time": 1795329096,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329138,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70173",
+            "stop_sequence": 510,
+            "arrival": {
+              "time": 1795329243,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329290,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70171",
+            "stop_sequence": 520,
+            "arrival": {
+              "time": 1795329417,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329461,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70169",
+            "stop_sequence": 530,
+            "arrival": {
+              "time": 1795329533,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329565,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70167",
+            "stop_sequence": 540,
+            "arrival": {
+              "time": 1795329649,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329676,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70165",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795329744,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329785,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70163",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795329866,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329905,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70161",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795329977,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:47:00",
+          "direction_id": 0,
+          "trip_id": "77656262",
+          "route_id": "Green-D",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-D-855-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10296",
+          "label": "3639-3834"
+        }
+      }
+    },
+    {
+      "id": "77655703",
+      "trip_update": {
+        "timestamp": 1795327195,
+        "update_type": "reverse_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70202",
+            "stop_sequence": 40,
+            "departure": {
+              "time": 1795328820,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70196",
+            "stop_sequence": 50,
+            "arrival": {
+              "time": 1795328910,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328981,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70159",
+            "stop_sequence": 90,
+            "arrival": {
+              "time": 1795329063,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329103,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795329201,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329235,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795329282,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329346,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795329431,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329480,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "71151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795329582,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329636,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70149",
+            "stop_sequence": 140,
+            "arrival": {
+              "time": 1795329679,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329745,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70147",
+            "stop_sequence": 150,
+            "arrival": {
+              "time": 1795329810,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329855,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70145",
+            "stop_sequence": 160,
+            "arrival": {
+              "time": 1795329889,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329931,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "170141",
+            "stop_sequence": 170,
+            "arrival": {
+              "time": 1795329999,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330037,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "170137",
+            "stop_sequence": 180,
+            "arrival": {
+              "time": 1795330086,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330127,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70135",
+            "stop_sequence": 210,
+            "arrival": {
+              "time": 1795330256,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330293,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70131",
+            "stop_sequence": 220,
+            "arrival": {
+              "time": 1795330341,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330414,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70129",
+            "stop_sequence": 230,
+            "arrival": {
+              "time": 1795330447,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330488,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70127",
+            "stop_sequence": 240,
+            "arrival": {
+              "time": 1795330505,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330563,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70125",
+            "stop_sequence": 250,
+            "arrival": {
+              "time": 1795330585,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330687,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70121",
+            "stop_sequence": 260,
+            "arrival": {
+              "time": 1795330750,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330794,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70117",
+            "stop_sequence": 270,
+            "arrival": {
+              "time": 1795330856,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330892,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70115",
+            "stop_sequence": 280,
+            "arrival": {
+              "time": 1795330940,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330982,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70113",
+            "stop_sequence": 290,
+            "arrival": {
+              "time": 1795331004,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795331080,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70111",
+            "stop_sequence": 300,
+            "arrival": {
+              "time": 1795331123,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795331136,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70107",
+            "stop_sequence": 310,
+            "arrival": {
+              "time": 1795331258,
+              "uncertainty": 360
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "25:27:00",
+          "direction_id": 0,
+          "trip_id": "77655703",
+          "route_id": "Green-B",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-B-812-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10126"
+        }
+      }
+    },
+    {
+      "id": "77655903",
+      "trip_update": {
+        "timestamp": 1795327195,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "170140",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795327258,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327299,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70144",
+            "stop_sequence": 150,
+            "arrival": {
+              "time": 1795327359,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327407,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70146",
+            "stop_sequence": 160,
+            "arrival": {
+              "time": 1795327468,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327514,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70148",
+            "stop_sequence": 170,
+            "arrival": {
+              "time": 1795327579,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327624,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "71150",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795327676,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327727,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70152",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795327823,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327870,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70154",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795327963,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328010,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70156",
+            "stop_sequence": 580,
+            "arrival": {
+              "time": 1795328066,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328109,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70158",
+            "stop_sequence": 590,
+            "arrival": {
+              "time": 1795328194,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328293,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70200",
+            "stop_sequence": 600,
+            "arrival": {
+              "time": 1795328369,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328434,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70201",
+            "stop_sequence": 610,
+            "arrival": {
+              "time": 1795328487,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:42:00",
+          "direction_id": 1,
+          "trip_id": "77655903",
+          "route_id": "Green-B",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-B-812-1",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10126",
+          "label": "3634-3894"
+        }
+      }
+    },
+    {
+      "id": "77656373",
+      "trip_update": {
+        "timestamp": 1795327188,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70174",
+            "stop_sequence": 380,
+            "arrival": {
+              "time": 1795327188,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327230,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70176",
+            "stop_sequence": 390,
+            "arrival": {
+              "time": 1795327345,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327370,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70178",
+            "stop_sequence": 400,
+            "arrival": {
+              "time": 1795327463,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327502,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70180",
+            "stop_sequence": 410,
+            "arrival": {
+              "time": 1795327567,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327607,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70182",
+            "stop_sequence": 420,
+            "arrival": {
+              "time": 1795327692,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327714,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70186",
+            "stop_sequence": 430,
+            "arrival": {
+              "time": 1795327778,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327812,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70150",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795327955,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327995,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70152",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795328101,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328148,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70154",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795328241,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328288,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70156",
+            "stop_sequence": 580,
+            "arrival": {
+              "time": 1795328344,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328387,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70158",
+            "stop_sequence": 590,
+            "arrival": {
+              "time": 1795328472,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328571,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70200",
+            "stop_sequence": 600,
+            "arrival": {
+              "time": 1795328647,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328712,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70201",
+            "stop_sequence": 610,
+            "arrival": {
+              "time": 1795328765,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328781,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70203",
+            "stop_sequence": 620,
+            "arrival": {
+              "time": 1795328870,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328924,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70205",
+            "stop_sequence": 630,
+            "arrival": {
+              "time": 1795328985,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329032,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70207",
+            "stop_sequence": 640,
+            "arrival": {
+              "time": 1795329151,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329177,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70501",
+            "stop_sequence": 650,
+            "arrival": {
+              "time": 1795329240,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795329287,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70503",
+            "stop_sequence": 660,
+            "arrival": {
+              "time": 1795329585,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:45:00",
+          "direction_id": 1,
+          "trip_id": "77656373",
+          "route_id": "Green-D",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-D-855-1",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10071",
+          "label": "3828-3642"
+        }
+      }
+    },
+    {
+      "id": "77655910",
+      "trip_update": {
+        "timestamp": 1795327195,
+        "update_type": "reverse_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70202",
+            "stop_sequence": 40,
+            "departure": {
+              "time": 1795327464,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70196",
+            "stop_sequence": 50,
+            "arrival": {
+              "time": 1795327554,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795327625,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70159",
+            "stop_sequence": 90,
+            "arrival": {
+              "time": 1795327707,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795327747,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795327845,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795327879,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795327926,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795327990,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795328075,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328124,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "71151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795328226,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328280,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70149",
+            "stop_sequence": 140,
+            "arrival": {
+              "time": 1795328323,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328389,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70147",
+            "stop_sequence": 150,
+            "arrival": {
+              "time": 1795328454,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328499,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70145",
+            "stop_sequence": 160,
+            "arrival": {
+              "time": 1795328533,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328575,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "170141",
+            "stop_sequence": 170,
+            "arrival": {
+              "time": 1795328643,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328681,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "170137",
+            "stop_sequence": 180,
+            "arrival": {
+              "time": 1795328730,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328771,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70135",
+            "stop_sequence": 210,
+            "arrival": {
+              "time": 1795328900,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328937,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70131",
+            "stop_sequence": 220,
+            "arrival": {
+              "time": 1795328985,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329058,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70129",
+            "stop_sequence": 230,
+            "arrival": {
+              "time": 1795329091,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329132,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70127",
+            "stop_sequence": 240,
+            "arrival": {
+              "time": 1795329149,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329207,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70125",
+            "stop_sequence": 250,
+            "arrival": {
+              "time": 1795329229,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329331,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70121",
+            "stop_sequence": 260,
+            "arrival": {
+              "time": 1795329394,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329438,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70117",
+            "stop_sequence": 270,
+            "arrival": {
+              "time": 1795329500,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329536,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70115",
+            "stop_sequence": 280,
+            "arrival": {
+              "time": 1795329584,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329626,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70113",
+            "stop_sequence": 290,
+            "arrival": {
+              "time": 1795329648,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329724,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70111",
+            "stop_sequence": 300,
+            "arrival": {
+              "time": 1795329767,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329780,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70107",
+            "stop_sequence": 310,
+            "arrival": {
+              "time": 1795329902,
+              "uncertainty": 360
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:57:00",
+          "direction_id": 0,
+          "trip_id": "77655910",
+          "route_id": "Green-B",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-B-812-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10048"
+        }
+      }
+    },
+    {
+      "id": "77656088",
+      "trip_update": {
+        "timestamp": 1795327171,
+        "update_type": "reverse_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70202",
+            "stop_sequence": 40,
+            "departure": {
+              "time": 1795328606,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70197",
+            "stop_sequence": 70,
+            "arrival": {
+              "time": 1795328696,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328766,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70159",
+            "stop_sequence": 90,
+            "arrival": {
+              "time": 1795328848,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795328888,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70157",
+            "stop_sequence": 100,
+            "arrival": {
+              "time": 1795328986,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329020,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70155",
+            "stop_sequence": 110,
+            "arrival": {
+              "time": 1795329067,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329131,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70153",
+            "stop_sequence": 120,
+            "arrival": {
+              "time": 1795329216,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329265,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70151",
+            "stop_sequence": 130,
+            "arrival": {
+              "time": 1795329367,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329416,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70211",
+            "stop_sequence": 320,
+            "arrival": {
+              "time": 1795329622,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329664,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70213",
+            "stop_sequence": 330,
+            "arrival": {
+              "time": 1795329712,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329730,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70215",
+            "stop_sequence": 340,
+            "arrival": {
+              "time": 1795329745,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329776,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70217",
+            "stop_sequence": 350,
+            "arrival": {
+              "time": 1795329796,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329829,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70219",
+            "stop_sequence": 360,
+            "arrival": {
+              "time": 1795329865,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795329913,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70223",
+            "stop_sequence": 370,
+            "arrival": {
+              "time": 1795329977,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330011,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70225",
+            "stop_sequence": 380,
+            "arrival": {
+              "time": 1795330065,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330076,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70227",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 390,
+            "passthrough_time": 1795330110
+          },
+          {
+            "stop_id": "70229",
+            "stop_sequence": 400,
+            "arrival": {
+              "time": 1795330146,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330187,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70231",
+            "stop_sequence": 410,
+            "arrival": {
+              "time": 1795330217,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330251,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70233",
+            "stop_sequence": 420,
+            "arrival": {
+              "time": 1795330285,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330299,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70235",
+            "stop_sequence": 430,
+            "arrival": {
+              "time": 1795330325,
+              "uncertainty": 360
+            },
+            "departure": {
+              "time": 1795330358,
+              "uncertainty": 360
+            }
+          },
+          {
+            "stop_id": "70237",
+            "stop_sequence": 440,
+            "arrival": {
+              "time": 1795330396,
+              "uncertainty": 360
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "25:22:00",
+          "direction_id": 0,
+          "trip_id": "77656088",
+          "route_id": "Green-C",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-C-832-0",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10007"
+        }
+      }
+    },
+    {
+      "id": "77656087",
+      "trip_update": {
+        "timestamp": 1795327171,
+        "update_type": "mid_trip",
+        "stop_time_update": [
+          {
+            "stop_id": "70212",
+            "stop_sequence": 300,
+            "arrival": {
+              "time": 1795327171,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327378,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70150",
+            "stop_sequence": 550,
+            "arrival": {
+              "time": 1795327527,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327567,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70152",
+            "stop_sequence": 560,
+            "arrival": {
+              "time": 1795327673,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327720,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70154",
+            "stop_sequence": 570,
+            "arrival": {
+              "time": 1795327813,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327860,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70156",
+            "stop_sequence": 580,
+            "arrival": {
+              "time": 1795327916,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795327959,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70158",
+            "stop_sequence": 590,
+            "arrival": {
+              "time": 1795328044,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328143,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70200",
+            "stop_sequence": 600,
+            "arrival": {
+              "time": 1795328219,
+              "uncertainty": 60
+            },
+            "departure": {
+              "time": 1795328284,
+              "uncertainty": 60
+            }
+          },
+          {
+            "stop_id": "70201",
+            "stop_sequence": 610,
+            "arrival": {
+              "time": 1795328337,
+              "uncertainty": 60
+            }
+          }
+        ],
+        "trip": {
+          "start_time": "24:47:00",
+          "direction_id": 1,
+          "trip_id": "77656087",
+          "route_id": "Green-C",
+          "start_date": "20261121",
+          "revenue": true,
+          "route_pattern_id": "Green-C-832-1",
+          "last_trip": false
+        },
+        "vehicle": {
+          "id": "G-10007",
+          "label": "3867"
+        }
+      }
+    },
+    {
+      "id": "81013071",
+      "trip_update": {
+        "stop_time_update": [
+          {
+            "stop_id": "70082",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 120
+          },
+          {
+            "stop_id": "70080",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 130
+          },
+          {
+            "stop_id": "70078",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 140
+          },
+          {
+            "stop_id": "70076",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 150
+          },
+          {
+            "stop_id": "70074",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 160
+          },
+          {
+            "stop_id": "70072",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 170
+          },
+          {
+            "stop_id": "70070",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 180
+          },
+          {
+            "stop_id": "70068",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 190
+          },
+          {
+            "stop_id": "70066",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 200
+          },
+          {
+            "stop_id": "70064",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 210
+          },
+          {
+            "stop_id": "70061",
+            "schedule_relationship": "SKIPPED",
+            "stop_sequence": 220
+          }
+        ],
+        "trip": {
+          "start_time": "24:47:00",
+          "direction_id": 1,
+          "trip_id": "81013071",
+          "route_id": "Red",
+          "start_date": "20261121",
+          "schedule_relationship": "CANCELED",
+          "revenue": true,
+          "last_trip": false
+        }
+      }
+    }
+  ]
+}

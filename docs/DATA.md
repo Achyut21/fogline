@@ -164,6 +164,16 @@ A ride's own summary (F3.4, F3.5) counts its events, replay or not, so a replay 
 
 Two profiles are squad mates once both have a valid check-in on the same ended plan (`src/lib/squad.ts`). The relation isn't transitive: a mate's mate is not a mate.
 
+### 3.13 Next departures (F2.5, F3.1)
+
+From `TripUpdates_enhanced.json` (`src/lib/predictions.ts`):
+
+- Keep subway trips (`Red`, `Orange`, `Blue`, `Mattapan`, `Green-B` to `Green-E`). Drop non-revenue trips (`revenue: false`), `CANCELED` trips and `SKIPPED` stops. An entity that doesn't parse is skipped, not the whole feed.
+- A trip leaves a stop at its `departure.time`, or its `arrival.time` when the stop isn't the trip's last. The last listed stop has no departure.
+- A station's departures are the trips that leave one of its child stops at or after now. A trip that ends at the station isn't a departure. The destination is the station of the trip's last listed stop, since the feed has no headsign.
+- Soonest first, at most 3 per `direction_id`. Directions are named per line: Red and Orange 0 Southbound, 1 Northbound; Blue and Green 0 Westbound, 1 Eastbound; Mattapan 0 Outbound, 1 Inbound (checked against the live feed's terminals, 2026-11-22).
+- `/api/mbta/predictions` fetches the feed once for every station for 5 s, and serves the last good copy when the feed fails. Its `updatedAt` is the feed header's timestamp, so the sheet shows the data's own age; past 90 s it shows as stale.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.

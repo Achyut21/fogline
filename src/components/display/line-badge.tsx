@@ -16,6 +16,8 @@ export const lines = [
 
 export type Line = (typeof lines)[number];
 
+export const isLine = (route: string): route is Line => lines.some((line) => line === route);
+
 const green = "bg-line-green text-line-ink";
 
 // White fails AA on orange, so orange takes --line-ink-orange (DESIGN section 4). Mattapan is red.
