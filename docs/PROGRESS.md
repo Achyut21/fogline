@@ -142,10 +142,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Asks for A:**
   - B's session has no Vercel login, so B can't run `vercel ls` or `vercel inspect`. After each of B's merges, please run the production deployment check in TEAM.md's merge checklist. B starts the preview check from the PR's Vercel status URL with `gh workflow run`.
   - The recorder: move it from Phase 3 into Phase 2, right after the hypertable migration, so replay has more recorded trips? It changes PHASES and adds a cron to `vercel.json`, so both humans decide. B agrees.
-- **Blocked:** B's PRs can't merge. Vercel refuses to build them ("You don't have permission to create a Preview Deployment for this Vercel project: fogline", first seen on #12), and the Vercel build is a required check on `main`. Options:
-  1. A invites Anand283 to the Vercel team with a role that can deploy (TEAM.md setup step 4). Pro bills per seat. This also lets B open previews and run `vercel ls` and `vercel inspect`.
-  2. A merges B's PRs with an admin override after CI, code-critic and the other checks pass. B's work then never gets a preview before it reaches production.
-  B prefers option 1.
+- **Blocked:** none. Vercel still won't build B-authored commits, so A merges B's PRs with an admin override after CI and the critics pass, then an A docs PR deploys production (D-052). B has no previews; B's human can join the Vercel team later to change that.
 
 ## Open questions
 
@@ -217,6 +214,43 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 22:40 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:
+  - `pnpm data:gtfs` (tsx) downloads the MBTA feed ("Fall 2026, 2026-11-19T01:01:13+00:00, version D", valid 2026-11-12 to 2026-12-12) and writes `data/stations.json` (125 stations), `graph.json` (3,446 weekday station pairs), `timetable.json` (19,807 trips, 42 station patterns) and `shapes.json` (18 canonical patterns). Representative dates: Mon 2026-11-16, Sat 2026-11-28, Sun 2026-11-29. A second run produced byte-identical files (sha256).
+  - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-054).
+  - **Known trips (PHASES gate).** `pnpm check:trips` compares the model with a replay of the raw timetable: a rider arriving at each minute of the hour catches the actual next trains along the usual path, with `transfers.txt` times. Minutes:
+
+    | Trip | When | Model | Timetable replay | Difference |
+    |---|---|---|---|---|
+    | Harvard → Park Street (Red) | Mon 6 PM | 11.3 | 11.0 | +0.3 |
+    | Kenmore → Government Center (Green B/C/D) | Mon 6 PM | 19.0 | 18.3 | +0.7 |
+    | Medford/Tufts → Park Street (Green E) | Mon 6 PM | 28.0 | 27.4 | +0.6 |
+    | Harvard → Kenmore (Red, then Green at Park Street) | Mon 7 PM | 30.4 | 28.4 | +2.0 |
+    | Wonderland → Downtown Crossing (Blue, then Orange at State) | Sat 8 PM | 27.2 | 28.4 | −1.2 |
+    | Sullivan Square → Lechmere (Orange, then Green at North Station) | Mon 6 PM | 16.8 | 16.0 | +0.8 |
+    | Savin Hill → North Quincy (Ashmont branch, then Braintree at JFK/UMass) | Mon 6 PM | 19.4 | 16.6 | +2.8 |
+
+    All seven are within 3 minutes. JFK/UMass is the closest because the model assumes a random wait after a transfer, while the schedule times the Ashmont-to-Braintree connection: 6.0 min modeled for the walk and wait at JFK against 3.5 in the replay. Harvard → Kenmore is high for the same reason (D-054).
+  - Data notes: Symphony is marked "no drop-off" on all but one trip in this feed, so it's never a destination or a home with a last train. 1,221 Green Line E trips carry that `noAlight`. Items 4 and 5 should say so rather than fail.
+  - Tests: 28 unit tests on a synthetic GTFS slice (`tests/fixtures/gtfs/`) and a hand-built graph.
+    - Feed: the subway filter, quoted fields, missing columns, Thanksgiving's `calendar_dates` swap, a diversion on the first Monday and Saturday, canonical trips on a service that never runs.
+    - Graph: child stops, the shared Green trunk, stops with no boarding or no alighting, trips past 24:00:00, subway-only transfers with a bus bay ignored, median walks, waits.
+    - Travel search: transfer stations for ride, walk, ride; a walk at the start; no service; unreachable; late night; invalid buckets.
+    - Timetable, shape distances, identical second runs, and the committed data files against their schemas. `src/lib` line coverage 99.4%.
+  - code-critic: first pass FAIL. BLOCKING fixed: transfer times counted commuter-rail and bus transfers (North Station 255 s against 117 s subway-only). SHOULD FIX items:
+    - Walks now use the median, not the shortest platform pair.
+    - Transfer stations count train changes only.
+    - Hour buckets are validated.
+    - The representative-date test can now fail.
+    - The fixture matches the real feed's canonical trips and boarding rules.
+    - The known-trip check is committed, with North Station and JFK trips.
+    - Combining platforms is kept and documented with the JFK figure.
+    Nits fixed too: one `bucketIndex`, the dead tie-break, `tripStops` built once, and typed loading through Zod.
+  - Second pass: PASS. Its SHOULD FIX corrected the reason given for the JFK trip, above and in D-054. Nits fixed:
+    - Walks only count platform pairs on different lines.
+    - The data-file test checks every index range.
+    - One default transfer constant, a `meters` schema, and a warning log.
+    For items 4 and 5: parse the data files once per process, which costs about 50 ms for `graph.json` and 35 ms for `timetable.json`.
+  - Next: item 4 (last train).
 - 2026-11-21 21:50 ET · Builder B · Phase 2 item 2b, hypertables, on `b/schema-hypertables` (migrations `0002_hypertable_columns` and `0003_hypertables`, its own PR, stacked on 2a):
   - `vehicle_positions`, `checkins`, `ride_events` and `noise_readings` as hypertables with foreign keys, columnstore and retention policies, and three continuous aggregates with refresh policies (D-053).
   - Tests: 11 integration tests.

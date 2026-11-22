@@ -1,0 +1,7 @@
+service_id,date,exception_type,holiday_name
+WKD,20261116,2,
+DIV,20261116,1,
+SAT,20261121,2,
+DIVS,20261121,1,
+WKD,20261126,2,Thanksgiving Day
+SUN,20261126,1,Thanksgiving Day

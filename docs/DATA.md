@@ -26,9 +26,9 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 1. **`data:gtfs`.** Download GTFS. Keep subway routes only: `route_type` 1 (Red, Orange, Blue) and 0 (Green Line B, C, D, E and Mattapan). Build:
    - `stations.json`: parent stations (`location_type = 1`) with coordinates, served routes and child stop IDs.
-   - `graph.json`: ride and transfer edges and headways per day type and hour bucket (section 3.1).
-   - `timetable.json`: a compact timetable for the last-train search (section 3.3), one entry per service type.
-   - `shapes.json`: simplified shapes per route and direction, plus each stop's distance along its shape (for miles).
+   - `graph.json`: direct rides between station pairs with their median ride, expected wait and routes per day type and hour bucket, plus transfer and walking times (section 3.1).
+   - `timetable.json`: a compact timetable for the last-train search (section 3.3): every subway trip with its service, station pattern and times, plus the services running on each date the feed covers.
+   - `shapes.json`: the shape of each canonical route pattern (`route_patterns.txt` typicality 1, so both Red Line branches), plus each station's distance along it (for miles).
 2. **`data:places`.** Run an Overpass query within 600 m of each station for:
    - `amenity` in restaurant, cafe, fast_food, bar, pub, nightclub, ice_cream, food_court, biergarten, arts_centre, theatre, cinema;
    - `tourism` in museum, gallery;
@@ -50,14 +50,15 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.1 Travel time `t(o, d, dayType, hour)`
 
-- **Graph nodes** are (station, route, direction) pairs. **Ride edges** join consecutive stops, weighted by the median scheduled run time from `stop_times` (arrival at next minus departure from current) for that day type and hour bucket.
-- **Day types:** weekday, Saturday, Sunday. Choose representative `service_id`s from `calendar.txt` and `calendar_dates.txt` for the current week.
+- **Rides.** For every pair of stations `(a, b)` that one train serves in order (boarding allowed at `a`, alighting at `b`), collect every departure from `a` on a train that later stops at `b`, whatever its route or platform. One train ride is one edge, so a trunk shared by branches (Green B, C and D from Kenmore; both Red Line branches) counts every train that goes your way (D-054). Where branches leave from separate platforms this is optimistic: at JFK/UMass northbound the model's wait to Park Street at 9 PM is 3.1 min, against about 6 min for a rider who picks one platform.
+- **Day types:** weekday, Saturday, Sunday. Each uses one representative date from the feed: the date whose set of running subway services is the most common for that day type, so a one-off diversion or holiday doesn't set typical times.
 - **Hour buckets:** one per hour from 5 to 23, plus "late" (00:00 to end of service). Buckets count GTFS service-day time: 24:00:00 and later is late, and times before 05:00:00 use the 5 AM bucket (D-048). A bucket doesn't say whether trains run at that moment, so the solvers check service separately.
 - **Day type** comes from the day of the week, and only picks which representative travel times to use. Which trips run on a given date (holidays, diversions) always comes from `calendar.txt` plus `calendar_dates.txt` for that date, never from the day type.
-- **Headway** per (route, direction, stop, day type, hour) is the median gap between departures. **Expected wait** is half the headway.
-- **Transfer edges** use `min_transfer_time` from `transfers.txt` when present, otherwise 3 minutes, plus the expected wait of the route you transfer to.
-- `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. It runs on request over the edges in `graph.json` (about 125 stations, so well under a millisecond) and returns the minutes plus the lines and transfer stations on the path, which F4.4 shows (D-047).
-- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. Record the comparison in `PROGRESS.md`.
+- **Ride time** per pair and bucket is the median scheduled ride (arrival at `b` minus departure from `a`).
+- **Expected wait** per pair and bucket is the average wait for someone arriving at a random moment: the sum of squared gaps over twice the sum of gaps, where a train's gap is the time since the previous departure (the next one for the first train of the day), capped at an hour. With even service this is half the headway; with uneven service it's longer.
+- **Transfers:** before a ride that follows another ride, add the station's transfer time: the median `min_transfer_time` between its subway platforms in `transfers.txt` (commuter-rail platforms and bus bays don't count), or 3 minutes when it has none. Walks between stations listed in `transfers.txt` (Downtown Crossing and Park Street) take the median over their subway platform pairs on different lines (a train already joins the same line's platforms) and add no further transfer time.
+- `t(o, d)` is the shortest path from `o` to `d` over these rides and walks for the day type and bucket. It runs on request over `graph.json` (about 125 stations, well under a millisecond) and returns the minutes plus each ride's lines and waits, and the transfer stations: where the trip leaves one train for another, perhaps walking to the next station. F4.4 shows these (D-047, D-054). The bucket must be 5 to 23 or late; anything else is an error.
+- **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. The reference replays the raw timetable: a rider arriving at each minute of the hour catches the actual next trains, with `transfers.txt` times. `pnpm check:trips` runs it against the committed `graph.json` and fails beyond 3 minutes. Record the comparison in `PROGRESS.md`.
 
 ### 3.2 Fair meetup score (F4.3)
 

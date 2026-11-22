@@ -155,10 +155,10 @@ Migration `0003_hypertables` sets these up (D-053). Chunks are 1 day for `vehicl
 ## 7. Static data
 
 Built by `scripts/` (see `docs/DATA.md`), committed under `data/`, imported by server code, and precached by the service worker where the client needs them:
-- `stations.json`, `graph.json` (ride and transfer edges and headways by day type and hour), `timetable.json` (compact departures for last-train search), `shapes.json`;
+- `stations.json`, `graph.json` (direct rides with median ride times, expected waits and routes by day type and hour, plus transfer and walk times), `timetable.json` (compact departures for last-train search), `shapes.json`;
 - `places.json`, `station-cards.json`, `neighborhoods-h3.json`, `events.json`, `words.json`.
 
-Keep each client-facing file small. Split by line or load lazily where needed.
+Keep each client-facing file small. Split by line or load lazily where needed. `graph.json` (about 2.9 MB) and `timetable.json` (about 3.4 MB) are server-only: the solvers run on the server.
 
 ## 8. Server Actions and routes
 
