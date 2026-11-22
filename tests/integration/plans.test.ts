@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import type { Alert } from "@/lib/alerts";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { myStats } from "@/server/actions/me";
 import { findMeetup } from "@/server/actions/core-loop";
@@ -14,7 +15,11 @@ import { createScratchDatabase } from "./scratch-database";
 
 type Profile = typeof profiles.$inferSelect;
 
-const session = vi.hoisted(() => ({ db: null as unknown, viewer: null as Profile | null }));
+const session = vi.hoisted(() => ({
+  db: null as unknown,
+  viewer: null as Profile | null,
+  alerts: [] as Alert[] | null,
+}));
 
 vi.mock("@/server/db/client", async (original) => ({
   ...(await original<typeof import("@/server/db/client")>()),
@@ -23,6 +28,10 @@ vi.mock("@/server/db/client", async (original) => ({
 vi.mock("@/server/profile", async (original) => ({
   ...(await original<typeof import("@/server/profile")>()),
   currentProfile: async () => session.viewer,
+}));
+vi.mock("@/server/alerts", async (original) => ({
+  ...(await original<typeof import("@/server/alerts")>()),
+  currentAlerts: async () => session.alerts,
 }));
 vi.mock("@/server/session", async (original) => ({
   ...(await original<typeof import("@/server/session")>()),
