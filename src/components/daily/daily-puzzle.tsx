@@ -10,6 +10,7 @@ import { daily } from "@/copy";
 import type { LetterResult } from "@/lib/puzzle";
 import { cn } from "@/lib/utils";
 import { submitGuess } from "@/server/actions/daily";
+import { InstallPrompt } from "@/components/system/install";
 import type { DailyState } from "@/server/daily";
 
 const keyRows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"] as const;
@@ -297,6 +298,7 @@ export function DailyPuzzle({ initial }: { initial: DailyState }) {
           ))}
         </div>
       )}
+      {over && <InstallPrompt />}
     </main>
   );
 }

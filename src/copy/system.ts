@@ -29,4 +29,14 @@ export const system = {
     body: "Check the link, or go to the home page.",
     home: "Home page",
   },
+  update: { title: "Update ready", refresh: "Refresh" },
+  install: {
+    title: "Add Fogline to your home screen",
+    body: "It opens full screen and keeps your map ready offline.",
+    install: "Install",
+    iosSteps: "Tap Share, then Add to Home Screen.",
+    iosCode:
+      "The installed app starts fresh: copy your profile code from Me first, then enter it there.",
+    notNow: "Not now",
+  },
 } as const;

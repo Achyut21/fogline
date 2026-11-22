@@ -12,6 +12,7 @@ import { ride } from "@/copy";
 import { duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { recordReplayStop } from "@/server/actions/ride";
+import { InstallPrompt } from "@/components/system/install";
 import type { SheetCard } from "@/server/station-sheet";
 
 export type ReplayStop = {
@@ -127,6 +128,7 @@ export function RideReplay({
           <StatTile label={ride.summary.cells} value={newCells} accent className="col-span-2" />
         </dl>
         <p className="text-sm text-ink-muted">{ride.summary.replayNote}</p>
+        <InstallPrompt />
         <Button asChild className="mt-auto w-full">
           <Link href="/">{ride.summary.done}</Link>
         </Button>
