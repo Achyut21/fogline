@@ -648,3 +648,15 @@ Consequences: PHASES sections 9 and 10 rewritten, the PROGRESS phase table updat
 Decision: B's human chose to skip the rate limiter. Phase 10 adds no `rate_limits` table and no per-IP limits. Profile-code restore stays without one, as D-065 already allows. `/demo` seeding keeps A's global cap.
 Why: the hackathon deadline. A limiter needs a migration and tuning that the prototype doesn't need to be demoed.
 Consequences: Phase 10's security item covers the security review's findings and the timing-safe cron secret, not rate limits. A later release adds a token bucket (ARCHITECTURE section 6) before the app is opened widely.
+
+**D-078 · 2026-11-22 · Phase 10 security fixes (B).**
+Decision:
+- **Squad privacy:** a mate's squad-map cells are limited to rides and check-ins on nights you shared (DATA 3.12). Check-ins trust the phone's reported position, so anyone holding an invite link could fake one and become a mate. Before this, that showed them each attendee's whole history, home area included.
+- **Solver inputs:** `categories` arrays are capped at the number of categories. One 5 MB request could otherwise make the solver scan millions of entries.
+- **Demo replays:** a demo profile's replayed rides are written as demo rows, so How it works' real counts leave them out (F16.2).
+- **Headers:** `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy, and a Permissions-Policy limiting the camera, microphone and location to this site. A full CSP waits until it can be tested against MapLibre's blob workers and the tile hosts.
+- **Unused actions:** `playPuzzle` and `todaysPuzzle` are removed. `playPuzzle` ignored the six-guess limit, so it would have become an answer oracle once anything imported it.
+- **Cron secret:** compared in constant time (`src/server/cron.ts`).
+- **No rate limiter** (D-077). The review's rate-limit findings are left for a later release: profile-code restore (M1), demo seeding (M3), profile creation (M4), and unbounded check-in and replay writes (L1).
+Why: the Phase 10 security review found no data exposure or takeover. It found the CPU amplification, the squad privacy gap and the smaller items above.
+Consequences: for A, the global demo cap can be used up by one client. Find doesn't check the photo's type from its bytes, and the sensory query isn't cached. All are logged in PROGRESS.

@@ -11,7 +11,7 @@ export const meetupInput = z.object({
     .min(1)
     .max(8),
   startsAt: z.iso.datetime({ offset: true }),
-  categories: z.array(z.enum(placeCategories)).min(1),
+  categories: z.array(z.enum(placeCategories)).min(1).max(placeCategories.length),
   budget: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
   minGrade: z.enum(["A", "B"]).nullable(),
   under21: z.boolean(),

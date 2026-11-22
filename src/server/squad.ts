@@ -3,6 +3,8 @@ import { squadCells, squadStreak, squads, type SquadCell } from "@/lib/squad";
 import type { Db } from "@/server/db/client";
 import { checkins, plans, profiles, revealedCells } from "@/server/db/schema";
 
+const earlyMs = 30 * 60_000;
+
 export type Squad = {
   members: { id: string; name: string; you: boolean }[];
   cells: SquadCell[];
@@ -31,6 +33,7 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
             planId: checkins.planId,
             valid: checkins.valid,
             startsAt: plans.startsAt,
+            endedAt: plans.endedAt,
           })
           .from(checkins)
           .innerJoin(plans, eq(plans.id, checkins.planId))
@@ -39,10 +42,18 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
   const ids = [profileId, ...mates];
 
   const sharedNights = new Map<string, Date>();
+  // The nights the viewer shared with each mate, as check-in windows (DATA 3.9, 3.12).
+  const together = new Map<string, { from: Date; to: Date }[]>();
+  const minePlans = new Set(rows.filter((r) => r.profileId === profileId).map((r) => r.planId));
   for (const row of rows) {
-    if (row.profileId !== profileId && mates.has(row.profileId)) {
-      sharedNights.set(row.planId, row.startsAt);
+    if (row.profileId === profileId || !mates.has(row.profileId) || !minePlans.has(row.planId)) {
+      continue;
     }
+    sharedNights.set(row.planId, row.startsAt);
+    if (row.endedAt === null) continue;
+    const windows = together.get(row.profileId) ?? [];
+    windows.push({ from: new Date(row.startsAt.getTime() - earlyMs), to: row.endedAt });
+    together.set(row.profileId, windows);
   }
 
   const [people, cells] = await Promise.all([
@@ -55,11 +66,21 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
         profileId: revealedCells.profileId,
         h3: revealedCells.h3,
         state: revealedCells.state,
+        source: revealedCells.source,
         firstAt: revealedCells.firstAt,
       })
       .from(revealedCells)
       .where(inArray(revealedCells.profileId, ids)),
   ]);
+  // A mate's map shows only what they uncovered riding or checking in on a night you shared, so a
+  // squad never shows where a mate lives or goes without you (D-078). Your own cells all count.
+  const visible = cells.filter((cell) => {
+    if (cell.profileId === profileId) return true;
+    if (cell.source !== "ride" && cell.source !== "checkin") return false;
+    return (together.get(cell.profileId) ?? []).some(
+      (w) => cell.firstAt >= w.from && cell.firstAt <= w.to,
+    );
+  });
   const names = new Map(people.map((p) => [p.id, p.name]));
   return {
     members: ids
@@ -68,7 +89,7 @@ export async function squadOf(db: Db, profileId: string, now: Date): Promise<Squ
         return name === undefined ? [] : [{ id, name, you: id === profileId }];
       })
       .sort((a, b) => Number(b.you) - Number(a.you) || a.name.localeCompare(b.name)),
-    cells: squadCells(cells),
+    cells: squadCells(visible),
     streak: squadStreak([...sharedNights.values()], now),
   };
 }

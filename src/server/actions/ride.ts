@@ -1,9 +1,10 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { revealAround } from "@/lib/geo/cells";
 import { getDb } from "@/server/db/client";
-import { revealedCells, rideEvents } from "@/server/db/schema";
+import { profiles, revealedCells, rideEvents } from "@/server/db/schema";
 import { recordedRide } from "@/server/replay";
 import { sessionProfileId } from "@/server/session";
 import { stationById } from "@/server/stations";
@@ -31,8 +32,14 @@ export async function recordReplayStop(input: unknown): Promise<ReplayStopResult
   const station = stop ? stationById(stop.station) : undefined;
   if (!ride || !stop || !station) return { kind: "not-found" };
   const { cells, state } = revealAround("ride", station);
+  // A demo profile's replay is demo data, kept out of How it works' real counts (F16.2).
+  const [profile] = await db
+    .select({ isDemo: profiles.isDemo })
+    .from(profiles)
+    .where(eq(profiles.id, me));
   const added = await db.transaction(async (tx) => {
     await tx.insert(rideEvents).values({
+      isDemo: profile?.isDemo ?? false,
       ts: new Date(),
       profileId: me,
       tripId,
