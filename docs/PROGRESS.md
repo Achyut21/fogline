@@ -117,7 +117,8 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Now (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
+- **Now (2026-11-22 05:02 ET):** Phases 7 and 8 screens are on `main` (grades #40, squad and crawls #41, calm and Find food #43); B's recap #36 merged, weekly plans #44 merging; `fogline.boston` live. Open: #46 (Find food quotes Google's review summaries), then the gates for Phases 3–8 and a design-critic pass over the new screens.
+- **Earlier (2026-11-22 03:49 ET):** Phase 7 screens (A said "next phase"; B is taking Phase 6 and has Phase 7's server side on `b/crawls`). Order:
   1. **Grades** (`a/grades`; F11.1, F11.3, F11.4, F11.5): grade badge with the unofficial label and inspection date on food spots, "No inspection match" when unmatched, a spot detail with the cited violations, a minimum-grade filter in the builder. F11.2's plain-English rewrite needs a cached Gemini summary per spot (B's data job); until then the city's own wording is shown.
   2. **Crawl builder and Dinner before** (F10.1–F10.3, F10.6) on B's `src/server/crawl.ts` and `dinner-before.ts` once `b/crawls` is merged. **B: please open the `b/crawls` PR.**
   3. **Squad screen under Me** (F12.2, F12.3) on B's `src/server/squad.ts`.
