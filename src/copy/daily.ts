@@ -34,7 +34,7 @@ export const daily = {
   sending: "Checking",
   errors: {
     length: "Use exactly 5 letters.",
-    "not-a-word": "That word isn't on the list.",
+    "not-a-word": "Not in the word list.",
     finished: "Today's puzzle is done. A new one comes at midnight.",
     "no-puzzle": "There's no puzzle for today. Come back after midnight.",
     failed: "Couldn't reach Fogline. Check your connection and try again.",
@@ -42,10 +42,11 @@ export const daily = {
   solved: (guesses: number) =>
     guesses === 1 ? "Solved in 1 guess" : `Solved in ${guesses} guesses`,
   failed: "Out of guesses. Here's today's event anyway.",
-  newCells: (n: number) => `${n} cells cleared around the venue.`,
+  newCells: (n: number) =>
+    n === 1 ? "1 cell cleared around the venue." : `${n} cells cleared around the venue.`,
   event: {
     heading: "Today's event",
-    when: (at: Date) => eventFormat.format(at).replace(/\s(?=[AP]M)/, " "),
+    when: (at: Date) => eventFormat.format(at).replace(/\s(?=[AP]M)/, "\u00a0"),
     station: (name: string, walk: number) => `${name} · about ${walk} min walk`,
     fromHome: (minutes: number) => `${minutes} min by T from home`,
     source: (source: string) => `Details on ${source}`,
