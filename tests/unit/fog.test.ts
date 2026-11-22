@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyReveal, cellOf, revealAround, type CellState } from "@/lib/geo/cells";
-import { fogDensity, rasterizeFog, type Bounds } from "@/three/mask";
+import { fogDensity, rasterizeFog, revealReach, type Bounds } from "@/three/mask";
+import { colorVector } from "@/three/materials/fog-material";
 import { fogRenderer } from "@/three/tier";
 
 const buCentral = { lat: 42.350082, lon: -71.106865 };
@@ -37,6 +38,36 @@ describe("fog mask", () => {
 
   it("[F2.2] covers everything in fog when nothing is uncovered", () => {
     expect(new Set(rasterizeFog(new Map(), bounds, 16))).toEqual(new Set([fogDensity.fog]));
+  });
+});
+
+describe("fog reveal", () => {
+  it("[F2.2] burns off as far as the farthest pixel that lost fog and no farther", () => {
+    const n = 8;
+    const before = new Uint8Array(n * n).fill(fogDensity.fog);
+    before[n * n - 1] = fogDensity.visited;
+    const after = before.slice();
+    after[n * n - 1] = fogDensity.fog;
+    after[2 * n + 5] = fogDensity.visited;
+    after[2 * n + 3] = fogDensity.seen;
+    const center: [number, number] = [2.5 / n, 2.5 / n];
+
+    expect(revealReach(before, after, n, center, 1)).toBeCloseTo(4 / n);
+    expect(revealReach(before, after, n, center, 2)).toBeCloseTo(7 / n);
+  });
+});
+
+describe("fog colors", () => {
+  it("reads token colors in every form the CSS build writes them", () => {
+    const rgba = (v: string) =>
+      colorVector(v)
+        .toArray()
+        .map((n) => Math.round(n * 255));
+    expect(rgba("#0b7a75")).toEqual([11, 122, 117, 255]);
+    expect(rgba("#0b7a7573")).toEqual([11, 122, 117, 115]);
+    expect(rgba("#fff")).toEqual([255, 255, 255, 255]);
+    expect(rgba("#0008")).toEqual([0, 0, 0, 136]);
+    expect(rgba("rgb(150 236 228 / 0.7)")).toEqual([150, 236, 228, 179]);
   });
 });
 

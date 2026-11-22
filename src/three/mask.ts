@@ -28,3 +28,24 @@ export function rasterizeFog(
   }
   return mask;
 }
+
+/**
+ * How far a reveal's burn front travels: from the center to the farthest pixel that lost fog, in
+ * mask heights, with x scaled by the mask's aspect. One pixel extra covers the filtered edge.
+ */
+export function revealReach(
+  before: Uint8Array,
+  after: Uint8Array,
+  size: number,
+  center: [number, number],
+  aspect: number,
+): number {
+  let reach = 0;
+  for (let i = 0; i < after.length; i++) {
+    if (after[i] >= before[i]) continue;
+    const dx = ((i % size) + 0.5) / size - center[0];
+    const dy = (Math.floor(i / size) + 0.5) / size - center[1];
+    reach = Math.max(reach, Math.hypot(dx * aspect, dy));
+  }
+  return reach + 1 / size;
+}

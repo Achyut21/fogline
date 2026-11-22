@@ -226,24 +226,20 @@ Where 3D is used, and why:
 
 | Scene | What it does | 2D fallback |
 |---|---|---|
-| Fog layer | Volumetric-looking fog over the map: FBM noise (2–3 octaves), slow drift, a density mask from the cell states, a bright edge during reveals, parting slightly under the finger | MapLibre fill layer of fog cells with a CSS grain texture |
+| Fog layer | Volumetric-looking fog over the map: FBM noise (2–3 octaves), slow drift, a density mask from the cell states, a bright edge during reveals, parting slightly under the finger | MapLibre fill layer of fog cells on tier 0–1; an SVG map with the same cells, lines and stations without WebGL |
 | Ride scene | The line as a tube along the GTFS shape, stations as instanced rings, a low-poly train, a damped follow camera, fog around the track | SVG line with a moving dot |
 | Recap podium | Three blocks, initial discs for avatars, instanced confetti (300 instances at most), soft lighting; goes static after 4 s | Motion-animated 2D podium |
 | Badge tokens | Coin-like tokens with a clearcoat material and a slow idle turn while visible | 2D badge chips |
 | Onboarding hero | Fog particles parting to reveal a Boston skyline silhouette | Static illustration with a CSS fade |
 
-**Integrating the fog with MapLibre:** Phase 1 builds a spike and picks one approach.
-- (A) A MapLibre custom layer that renders three.js into the map's WebGL context, following MapLibre's three.js custom-layer example.
-- (B) A separate R3F canvas above the map, synced to the map camera every frame.
-
-Measure both under Chrome's 4× CPU throttle with mobile emulation, then record the choice in `docs/DECISIONS.md`.
+**Integrating the fog with MapLibre (D-058):** the fog is a MapLibre custom layer that renders three.js into the map's WebGL context (`src/three/fog-layer.ts`), added before the T-line layers so every line and station stays above it (F2.3). The Phase 1 spike also built a separate R3F canvas synced to the map camera. Both ran far inside the frame budget under Chrome's 4× CPU throttle with mobile emulation, but the overlay covered the lines, so it was deleted. Reduced motion stops the drift and turns a reveal into a `duration.fast` crossfade. Frame timing: `tests/perf/fog-fps.ts`.
 
 **Budgets and rules:**
 - Device pixel ratio clamped to 1–2 (1–1.5 on mid tier).
 - 100 draw calls or fewer per scene, 150k triangles or fewer, textures 1024² or smaller.
 - No shadows on mobile. Post-processing only on the top tier, off by default.
 - Use `frameloop="demand"` when idle. Stop rendering when `document.hidden` or when the canvas is off-screen.
-- Use drei's `PerformanceMonitor` to step quality down when frames drop.
+- Use drei's `PerformanceMonitor` to step quality down when frames drop. The fog layer isn't an R3F scene, so it would measure its own frame time (D-058).
 - Dispose geometries, materials and textures on unmount.
 
 **GPU tiers:** use `detect-gpu`. Tier 0–1 gets the 2D fallback, tier 2 reduced effects, tier 3 everything. Users can force 2D in Settings.
