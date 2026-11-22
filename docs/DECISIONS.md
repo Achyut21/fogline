@@ -626,6 +626,16 @@ Decision:
 Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
 Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).
 
+**D-074 · 2026-11-22 · Plan end cron, Remind me and route alerts (Phase 4 leftovers: F6.4, F5.8, F5.6).**
+Decision:
+- `end-plans` runs every 15 minutes and sets `ended_at` to the rule's time (DATA 3.19), then awards badges.
+- "Remind me" is a route handler, `/api/plans/[planId]/remind`, that answers only the signed-in participant, because the file names their last train home.
+- Route alerts follow DATA 3.18. An alert that names a station the train stops at between where the person boards and gets off says "Check MBTA alerts" rather than guessing which trains it affects.
+- Known limit: Google Calendar's import drops an .ics file's alarms and uses the person's default notifications, and its Android app doesn't open .ics files. Apple Calendar keeps both alarms. The in-app 20 and 5 minute alerts (F5.4) still cover people with the app open.
+- The reminder's description names the first train home, its line, station and time ("Last Green Line E from Kenmore is 12:22 AM"), since a trip home can start with a walk to another station.
+Why: F6.4, F5.8 and F5.6 were the open Phase 4 server items.
+Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. 
+
 **D-075 · 2026-11-22 · Phase 9 split: PWA polish and UI/UX (A), hardening and release as Phase 10 (B).**
 Decision:
 - A's human asked that Phase 9 hold only PWA polish and a pass over the whole app's UI and UX, with the rest pushed to a new Phase 10 that B runs.
