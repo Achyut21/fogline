@@ -1,10 +1,15 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { app } from "@/copy";
+import { onboarding } from "@/copy";
 
-test("home shows the app name with no serious or critical axe violations", async ({ page }) => {
+test("home sends a new visitor to onboarding with no serious or critical axe violations", async ({
+  page,
+}) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+  await expect(page).toHaveURL(/\/welcome$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: onboarding.welcome.title }),
+  ).toBeVisible();
 
   const { violations } = await new AxeBuilder({ page }).analyze();
   const blocking = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
