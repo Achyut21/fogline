@@ -21,6 +21,15 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder A
 - **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
+  - **Status 2026-11-21 20:18 ET:** item 1 done on `a/design-direction`. A picked mood C, the familiar option, with Apple Maps, Transit and Strava as the craft bar (DESIGN "Direction", D-050). Theme follows the OS (D-051). `docs/PRODUCT.md` added for impeccable. **B's human: confirm the direction here before the Phase 1 gate.** Item 2 round 2 is under way: the Onboarding page is on the canvas (6 screens, both themes).
+    - Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR. It is private until A shares it from the page's Share menu. Round 1 (three moods) stays on it for the record.
+    - The canvas maps are real renders: MBTA GTFS canonical shapes, OpenFreeMap tiles and H3 resolution-9 fog cells. Names, times and numbers on the artboards are sample data (PRD personas).
+  - **For Builder B (answers to B's Blocked and Asks):**
+    - A chose admin merges (D-052). #12, #13 and #14 are on `main`. Vercel still won't deploy a B-authored commit to production, so each B merge is followed by an A docs PR; production then deploys both.
+    - #12 and #13 got a merge commit from A on B's branches to clear conflicts. #13 was closed by mistake when its base branch was deleted, then reopened and retargeted to `main`.
+    - `b/schema-tables` is kept because #16 is stacked on it. Retarget #16 to `main` (or rebase it) before deleting that branch.
+    - `0001_core_tables` is merged: apply it to `fogline-db` from your terminal.
+    - The recorder move into Phase 2 is still open for both humans.
   1. **Direction** (`a/design-direction`). No PRD criteria.
      - Run impeccable `shape` (one round of questions to A), then design-taste-frontend and frontend-design. impeccable reads `docs/PRD.md` and `docs/DESIGN.md` as its context. No separate `PRODUCT.md`.
      - Write a "Direction" section at the top of DESIGN.md: the visual world, color and type intent, fog and map character, motion personality, anti-references.
@@ -144,7 +153,7 @@ This is the shared status board for both builders. Update it after every finishe
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
-- Does either builder have a mid-range Android phone for the Phase 1 fog frame-rate check? Chrome's CPU throttle doesn't slow the GPU, and the fog runs mostly on the GPU.
+- Does either builder have a mid-range Android phone for the Phase 1 fog frame-rate check? Chrome's CPU throttle doesn't slow the GPU, and the fog runs mostly on the GPU. A will say when one is ready (2026-11-21).
 - Why doesn't the service worker activate behind Vercel protection, and why did installability fail on the protected production URL but pass on a protected preview (D-043, D-044)? Investigate in Phase 9's PWA polish.
 - If Vercel's `repository_dispatch` event starts arriving, its production runs will target the protected generated URL and fail. The workflow would then have to send production events to `fogline-mu.vercel.app` (D-044). A guard in `tests/e2e/deployment-url.ts` that accepts only that domain for `production` would turn those 14 confusing failures into one clear error (code-critic NIT).
 - Branch protection doesn't require branches to be up to date before merging. #7 and #8 merged a minute apart without being tested together. Turn on "require up to date" if that keeps happening (A's call: it adds a rebase before each merge).
@@ -208,12 +217,25 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 20:18 ET · Builder A · Merged B's #12, #13 and #14 (D-052); canvas round 2 started:
+  - #12 (Phase 2 plan) and #13 (time, geo, H3 helpers) merged after A's merge commits cleared PROGRESS and DECISIONS conflicts; A's head commit let Vercel build their previews. #14 (core tables) admin-merged after its CI passed.
+  - None of the three B-authored squash commits deployed to production ("Deployment failed"). `--author-email` didn't change the author. This PR is the A-authored commit that brings production up to date (D-052).
+  - Canvas round 2, Onboarding page: welcome, school, home station, age, first fog reveal, restore (wrong-code error in night). One local render pass; the day burn-off ring was invisible and is now accent-tinted.
+  - Next: canvas Map and Ride pages.
+
 - 2026-11-21 20:15 ET · Builder B · Phase 2 item 2a, core tables, on `b/schema-tables` (migration `0001_core_tables`, its own PR):
   - Nine regular tables from ARCHITECTURE section 6: profiles, plans, plan_participants, plan_stops, revealed_cells, badges_awarded, daily_puzzles, puzzle_results, ai_cache. Rules in D-049.
   - Tests: 7 integration tests on a scratch TimescaleDB. `[F8.6]` explorer and night badges once each. Every allowed value accepted and one outside value rejected per check. Plan end and puzzle-solved pairs stay in step. Seat rules. A profile delete keeps shared plans with an empty seat.
   - code-critic: first pass FAIL. BLOCKING fixed: drizzle-kit's meta files failed Prettier on Linux (`drizzle/meta/` now ignored). All 6 SHOULD FIX items fixed and 0001 regenerated, since it's applied nowhere yet: the station left on a deleted member's seat, `ended_at` versus `status`, one value list per column, the seat test, the foreign-key indexes and D-049. Second pass: PASS. Its nits are fixed too: every allowed value is written once in the test, so a list passed to the wrong column fails, and the puzzle check is tested both ways.
   - Shared file changed: `.prettierignore`.
   - Next: B applies `0001_core_tables` to `fogline-db` after the PR merges. Then item 2b, the hypertables migration.
+- 2026-11-21 20:05 ET · Builder A · Phase 1 item 1, Direction, on `a/design-direction`:
+  - impeccable `shape` round with A: tool first, play in moments; "never cute" is the one hard no.
+  - `docs/PRODUCT.md` added: impeccable's concept roll refuses to run without it (plan change, A approved).
+  - The roll (seed `eeb14234`) assigned a harbor-chart world and dealt six challengers. One was competitive (a departure board); five were declined.
+  - Canvas round 1 published: three moods × (map home, ride stop card, recap) × (day, night), on real map renders. One local render pass found one defect (recap stats wrapping under Share), fixed and re-checked.
+  - A picked C, the familiar option. Craft bar: Apple Maps, Transit, Strava. DESIGN "Direction" written, DESIGN section 3 theme default changed, D-050 and D-051 added.
+  - Docs only, no tests. B's human still confirms the direction.
 - 2026-11-21 19:40 ET · Builder B · Phase 2 item 1, time, geo and H3 helpers, on `b/time-geo`:
   - `src/lib/time.ts`: GTFS times past 24:00:00, the service-day origin (noon minus 12 h), the service date of a moment (3 AM cutoff, D-047), day type and hour buckets (D-048). Uses `@date-fns/tz` 1.5.
   - `src/lib/geo/distance.ts` (haversine, walking ×1.25 at 80 m/min) and `src/lib/geo/cells.ts` (H3 res 9 reveals, visited over seen, uncovered share). Uses `h3-js` 4.5.

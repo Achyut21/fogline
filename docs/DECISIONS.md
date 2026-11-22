@@ -290,3 +290,27 @@ Decision:
 - `drizzle/meta/` is in `.prettierignore`.
 Why: Drizzle applies every pending migration in one transaction, and Postgres can't use a new enum value inside the transaction that adds it. A type-only enum list next to a hand-written check would drift: drizzle-kit sees no change when only the type changes. Storing a joined person's station on the seat would keep it after they delete their data, against D-019. DATA 3.9's check-in window needs the plan's end time. Scratch databases keep test files from seeing each other's rows. drizzle-kit writes meta files Prettier rejects, and every `db:generate` rewrites them.
 Consequences: ARCHITECTURE section 6 updated. Joined participants' origin comes from `profiles.home_station_id` (F4.1, F5.1). `deleteMyData` (Phase 3) also deletes plans whose only participant was the person, since D-019 keeps plans for other participants and there are none. Weekly plans (F10.4) need their own marker column; a null `created_by` means the organizer deleted their data. A person who changes their home station also changes where past plans place them, so the recap (F9.1) draws past routes from `ride_events` if that matters.
+
+**D-050 · 2026-11-21 · Phase 1 direction: the familiar option.**
+Decision: Fogline follows the category standard for map apps, played straight, with Apple Maps, Transit and Strava as the craft bar. The world is written in DESIGN.md, "Direction".
+Why: A compared three moods on the Claude Design canvas (https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR): a harbor-chart world (assigned by impeccable's concept roll, seed `eeb14234`), a departure-board world (the competitive challenger), and the familiar option. A picked the familiar option. The shape round set "tool first, play in moments" and "never cute".
+Consequences:
+- DESIGN section 1's "avoid a layout that looks like a template" no longer applies to layout. The identity has to come from the fog, the numbers and the copy, so the fog reveals and the recap get the best motion and the most review.
+- `docs/PRODUCT.md` exists because impeccable's concept roll refuses to run without a product record. It defers to PRD.md. This changes the approved Phase 1 plan, which said there would be no PRODUCT.md. A approved the change.
+- B's human confirms the direction before the Phase 1 gate. Until then round 2 of the canvas proceeds on this direction.
+
+**D-051 · 2026-11-21 · Theme follows the OS (Phase 1 flag 2). Supersedes the `suncalc` default in DESIGN section 3.**
+Decision: the theme follows `prefers-color-scheme`. Settings offers System, Day and Night. Only a manual override updates the `theme-color` meta at runtime.
+Why: an iPhone set to Automatic already switches at sunset. Some people need dark mode at all hours. The `theme-color` media tags stay correct without runtime work, and visual tests stay deterministic.
+Consequences: no `suncalc` dependency. Item 5 builds the override with next-themes (class strategy). The profile's `theme_pref` column stores `system`, `light` or `dark`, the values in B's schema (#14). Settings labels them System, Day and Night.
+
+**D-052 · 2026-11-21 · Builder B's PRs merge with an admin override until B can deploy on Vercel.**
+Decision: once a B PR's CI `check` and code-critic pass, A's session merges it with `gh pr merge --admin --squash`. The Vercel build is the only required check it skips. A chose this over inviting B to the Vercel team, which costs a Pro seat.
+Why: Vercel refuses to build commits by Anand283 ("You don't have permission to create a Preview Deployment for this Vercel project"), and the Vercel build is a required check on `main`.
+Consequences:
+- Vercel decides by the author of the newest commit. A B-authored commit on `main` doesn't deploy to production either: #12, #13 and #14 each got "Deployment failed" and no deployment. Production catches up at the next A-authored commit on `main`, which includes B's changes. So after each B merge, A lands a docs PR (the PROGRESS entry for that merge) and runs the production check on that deployment (TEAM.md).
+- Merging as A with `gh pr merge --author-email` didn't change the author; GitHub kept B. It probably needs an email verified on the merging account, which wasn't checked because `gh` lacks the `user` scope.
+- A PR whose newest commit is A's gets a Vercel preview, so a merge commit from A on B's branch makes its preview build.
+- Stacked PRs: retarget the child to `main` before deleting the parent's branch. Deleting it closed #13, which had to be reopened.
+- Merge conflicts still block an admin merge. B rebases B's own branches. A resolved #12 and #13 with merge commits on B's branches (no force-push).
+- B applies B's own migrations to `fogline-db` after they merge, from B's terminal.
