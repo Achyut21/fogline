@@ -625,3 +625,12 @@ Decision:
 - `weekly_plans` stores each week's 3 plans, with their stops as JSON. Migration `0004_phase7_weekly_plans` also adds `plan_stops.walked_from_previous` (DATA 3.11).
 Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
 Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).
+
+**D-075 · 2026-11-22 · Phase 9 split: PWA polish and UI/UX (A), hardening and release as Phase 10 (B).**
+Decision:
+- A's human asked that Phase 9 hold only PWA polish and a pass over the whole app's UI and UX, with the rest pushed to a new Phase 10 that B runs.
+- Phase 9 (A): `PWA.md`'s polish list and checklist, `design-critic` on every route, screens for server work that has no UI yet (Me stats and badges, recap, weekly plans, Remind me and route alerts, leave-by alerts, plain-English violations), the Phase 3 UI left over (location primer, Settings with delete my data), navigation and screen states, map polish.
+- Phase 10 (B): performance, accessibility, security with the rate limits (D-065), copy, WALKTHROUGH, visual baselines (from Phase 1, D-060) and the ship kit. B can start it now; its gate runs last, on the final app.
+Why: the hackathon deadline. Both builders work at once instead of one phase waiting on the other.
+Consequences: PHASES sections 9 and 10 rewritten, the PROGRESS phase table updated. Earlier decisions that point at "Phase 9" items (D-043, D-044 protected previews, the update toast) stay with Phase 9; performance (D-058's Android check), rate limits (D-065) and visual baselines now belong to Phase 10.
+
