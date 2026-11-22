@@ -66,7 +66,7 @@ type Kind = "android" | "ios" | null;
 
 function installKind(): Kind {
   const standalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia?.("(display-mode: standalone)").matches ||
     ("standalone" in navigator && navigator.standalone === true);
   if (standalone || dismissedRecently()) return null;
   if (deferred) return "android";

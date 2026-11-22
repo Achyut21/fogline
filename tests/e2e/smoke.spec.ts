@@ -30,3 +30,11 @@ test("runs the browser in America/New_York", async ({ page }) => {
     "America/New_York",
   );
 });
+
+test("lists an iOS splash screen for each iPhone size in day and night", async ({ page }) => {
+  await page.goto("/welcome");
+  const links = page.locator('link[rel="apple-touch-startup-image"]');
+  await expect(links).toHaveCount(12);
+  const first = await links.first().getAttribute("href");
+  expect((await page.request.get(first ?? "")).status()).toBe(200);
+});

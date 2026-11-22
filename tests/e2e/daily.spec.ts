@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { daily, onboarding as o, plans } from "@/copy";
+import { daily, onboarding as o, plans, system } from "@/copy";
 import { puzzleFor } from "@/lib/puzzle";
 import { calendarDateOf } from "@/lib/time";
 import { data } from "@/server/data";
@@ -79,4 +79,33 @@ test("[F7.7] still shows the event after six wrong guesses", async ({ page }) =>
   for (const [i, word] of wrong.entries()) await guess(page, word, i + 1);
   await expect(page.getByText(daily.failed)).toBeVisible();
   await expect(page.getByRole("heading", { name: daily.event.heading })).toBeVisible();
+});
+
+test("[F1.6] offers Install only after the first finished puzzle, and remembers Not now", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "chromium", "beforeinstallprompt is Chrome's");
+  await onboard(page);
+  // Chrome fires beforeinstallprompt once, early; the test stands in for it.
+  const fire = () =>
+    page.evaluate(() => {
+      const event = Object.assign(new Event("beforeinstallprompt"), {
+        prompt: () => Promise.resolve(),
+      });
+      window.dispatchEvent(event);
+    });
+  await fire();
+  await expect(page.getByRole("button", { name: system.install.install })).toHaveCount(0);
+
+  await page.goto("/daily");
+  await fire();
+  for (const [i, word] of wrong.entries()) await guess(page, word, i + 1);
+  await expect(page.getByRole("button", { name: system.install.install })).toBeVisible();
+  await page.getByRole("button", { name: system.install.notNow }).click();
+  await expect(page.getByRole("button", { name: system.install.install })).toHaveCount(0);
+  await page.reload();
+  await fire();
+  await expect(page.getByText(daily.failed)).toBeVisible();
+  await expect(page.getByRole("button", { name: system.install.install })).toHaveCount(0);
 });
