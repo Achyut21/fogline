@@ -36,8 +36,9 @@ export const daily = {
     length: "Use exactly 5 letters.",
     "not-a-word": "That word isn't on the list.",
     finished: "Today's puzzle is done. A new one comes at midnight.",
+    "no-puzzle": "There's no puzzle for today. Come back after midnight.",
     failed: "Couldn't reach Fogline. Check your connection and try again.",
-  } satisfies Record<GuessError | "failed", string>,
+  } satisfies Record<GuessError | "no-puzzle" | "failed", string>,
   solved: (guesses: number) =>
     guesses === 1 ? "Solved in 1 guess" : `Solved in ${guesses} guesses`,
   failed: "Out of guesses. Here's today's event anyway.",

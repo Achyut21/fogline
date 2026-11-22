@@ -1,5 +1,5 @@
-import { and, eq, gte } from "drizzle-orm";
-import { addDays, calendarDateOf } from "@/lib/time";
+import { eq } from "drizzle-orm";
+import { calendarDateOf } from "@/lib/time";
 import { puzzleFor, shareGrid, streak } from "@/lib/puzzle";
 import { data } from "@/server/data";
 import type { Db } from "@/server/db/client";
@@ -10,8 +10,6 @@ import { stationById } from "@/server/stations";
 
 // Today's puzzle for one profile (F7): the stored guesses replayed against the answer, the streak,
 // and the spoiler-free share grid once the game is over.
-
-const streakDays = 60;
 
 export type DailyState = {
   date: string;
@@ -33,12 +31,7 @@ export async function dailyState(
   const results = await db
     .select()
     .from(puzzleResults)
-    .where(
-      and(
-        eq(puzzleResults.profileId, profile.id),
-        gte(puzzleResults.date, addDays(date, -streakDays)),
-      ),
-    );
+    .where(eq(puzzleResults.profileId, profile.id));
   const today = results.find((r) => r.date === date);
   const guesses = today?.guesses ?? [];
   const play =
