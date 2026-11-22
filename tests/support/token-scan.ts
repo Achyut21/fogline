@@ -9,7 +9,10 @@ const rules: { rule: string; pattern: RegExp; allow?: (m: RegExpMatchArray) => b
   { rule: "hex color", pattern: /(?<![\w&/])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b/gi },
   { rule: "color function", pattern: /\b(?:rgba?|hsla?|oklch|oklab|lab|lch|color-mix)\(/g },
   { rule: "pixel value", pattern: /\b\d+(?:\.\d+)?px\b/g },
-  { rule: "arbitrary Tailwind value", pattern: /(?<![\w-])[a-z][\w:-]*-\[[^\]\s]*[\d#][^\]\s]*\]/g },
+  {
+    rule: "arbitrary Tailwind value",
+    pattern: /(?<![\w-])[a-z][\w:-]*-\[[^\]\s]*[\d#][^\]\s]*\]/g,
+  },
   {
     rule: "Tailwind palette color",
     pattern:
