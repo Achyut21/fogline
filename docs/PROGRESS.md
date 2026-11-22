@@ -118,7 +118,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Now (2026-11-22 06:20 ET, handoff): Phase 9, PWA polish and UI/UX** (D-075, approved by A). Items 1–4 merged (#49 shell, #51 Me and Settings, #52 plans extras, #53 PWA polish). Item 5, the design pass, is in progress on `a/design-pass` (WIP, not a PR yet). **First task next session (from A's human): rewrite `README.md`** — see the 06:20 handoff entry. Plan as approved:
+- **Now (2026-11-22 06:20 ET, handoff): Phase 9, PWA polish and UI/UX** (D-075, approved by A). Items 1–4 merged (#49 shell, #51 Me and Settings, #52 plans extras, #53 PWA polish). Item 5, the design pass, is in progress on `a/design-pass` (WIP, not a PR yet). **Next session, in this order (A's human):** 1) finish Phase 9 (design pass, then `/phase-gate 9`); 2) merge every open PR (B's #47, #50, the design-pass PR); 3) rewrite `README.md` with the `brag` promo video and the feature walkthrough GIFs. Details in the 06:20 handoff entry. Plan as approved:
   1. **App shell and navigation** (`a/shell`): one header and back pattern; every feature reachable (Ride from the map, Find food and weekly plans from Plans, Calm, Squad, Settings and How it works from Me); OfflineBanner and loading, empty and error states on every route; the first-reveal card shown once; theme changes restyle the map; fog updates after reveals; readable pins.
   2. **Me** (`a/me`): stats and badges (F8) from B's `myStats` and badge copy, Settings (theme, force 2D, calm mode, age band) with delete my data (F1.7), the location primer (F1.4) before the first check-in.
   3. **Plans** (`a/plan-extras`): weekly plans list and copy (F10.4, F10.5), Remind me only when a train runs home (F5.8), route alerts (F5.6), the 20 and 5 minute in-app leave-by alerts with vibration on Android (F5.4), and the night recap screen with its share image (F9).
@@ -295,7 +295,10 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
 - 2026-11-22 06:20 ET · Builder A · Handoff (session limit; the next session runs under A's personal Claude account):
-  - **First task, from A's human: rewrite `README.md`.** Order:
+  - **Order for the next session, from A's human:**
+    1. **Finish Phase 9:** the design pass on `a/design-pass` (exact steps under "In progress" below), then `/phase-gate 9`.
+    2. **Merge every open PR:** B's #47 and #50 (reviewed PASS, admin-merge per D-052 once CI is green; bring `main` in first if they conflict again) and the design-pass PR, then the production deployment check.
+    3. **Rewrite `README.md` and make the walkthrough video**, in this order:
     1. A promotional video at the top, made with the `brag` skill (`/brag`; it reads the code and builds a short launch video with Hyperframes). Embed or link it first.
     2. An index.
     3. The first half, non-technical: every feature in plain language (onboarding, fog map, station sheet, ride replay, plans and crawls, last train and leave-by alerts, live night and check-in, recap, daily puzzle, badges and stats, squad, grades, calm mode, Find food, weekly plans, demo mode, install), each with a short "how to use it" GIF recorded at 390×844 (Playwright video or screenshots stitched, from `/demo` on production or a local build against the test DB).
