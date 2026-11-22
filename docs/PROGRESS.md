@@ -215,6 +215,20 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:10 ET · Builder B · Phase 2 item 5, fair solver and miles, on `b/fair-solver` (stacked on `b/last-train`):
+  - `src/lib/solver/fair.ts`: `rankStations` (S(d), sum and station tie-breaks, the 75-minute cut), `spotsNear` and `fairOptions` (3 stations with matching spots, one named blocker when nothing fits), D-056.
+  - `src/lib/solver/travel.ts` now searches once per origin (`travelTimesFrom`).
+  - `src/lib/geo/miles.ts`: ride miles along canonical shapes, to 0.1 mi.
+  - `src/lib/places/types.ts`: the place schema for item 6.
+  - Real data: the demo plan (BU, Harvard, Tufts, Friday 7 PM) ranks Government Center first (26, 19 and 25 min), then Aquarium, Bowdoin and Park Street (23, 11 and 28 min). Miles: Harvard → Park Street 3.3, Medford/Tufts → Park Street 5.1, JFK/UMass → Braintree 8.7.
+  - Tests: 9 unit tests on a hand-built network whose scores were worked out by hand.
+    - `[F4.2]` per-friend times; `[F4.3]` ranking, ties and the 75-minute cut, and a lone participant.
+    - `[F4.4]` 3 options with lines, transfers and spots; `[F4.5]` walking distance, budget, grade and where the grade applies.
+    - `[F1.5]` `[F4.9]` the under-21 rule; `[F4.6]` each blocker; `[F3.4]` miles in both directions.
+  - Next: code-critic, then item 6 (places and grades).
+- 2026-11-21 23:30 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
+  - `src/lib/lasttrain/search.ts` (backward round-based search, at most two transfers, walks, no-pickup and no-drop-off stops) and `leave-by.ts` (F5.2 buffer, F5.3 warning, F5.5 last stop, F5.7 walk home), D-055. `timetable.json` now carries transfer times and walks, regenerated from the same feed.
+  - **Known last trains (PHASES gate).** `pnpm check:last-trains 2026-11-23` against the MBTA V3 schedules API:
 - 2026-11-22 00:30 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
   - `src/lib/lasttrain/search.ts`: backward round-based search with two times per station (board, arrive by train), at most two transfers, walks into home and between stations, and no-pickup or no-drop-off stops skipped.
   - `src/lib/lasttrain/leave-by.ts`: the F5.2 buffer, the F5.3 warning, the F5.5 last stop, the F5.7 walk home. Results also give `firstTrain`. D-055.

@@ -62,9 +62,11 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.2 Fair meetup score (F4.3)
 
-- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`.
+- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`, then by station ID. `t_i` uses the plan's day type and hour bucket (section 3.1).
 - Exclude `d` when any participant can't reach it or any `t_i` is over 75 minutes.
-- Take the top 3 distinct stations, then pick spots within 600 m walking distance (section 3.5) that match the filters.
+- Walk down the ranking and keep the first 3 stations that have at least one spot within 600 m walking (section 3.5) matching the filters (D-056). Spots are listed nearest first.
+- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B), applied only to food, coffee and dessert spots, where a spot with no inspection match fails it; and the age rule (no 21+ spot once any joined participant is under 21, F1.5, F4.9).
+- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. When no station is within 75 minutes for everyone, the blocker is time; when even all categories give no spots, it's spots. The age rule is never relaxed.
 
 ### 3.3 Last train (F5)
 
@@ -79,7 +81,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.4 Miles on the T (F3.4, F8.3)
 
-Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile.
+Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile. `shapes.json` stores each station's distance along each canonical pattern, so a ride's miles are the difference between the alighting and boarding stations on a pattern of that route that passes both in that order (`src/lib/geo/miles.ts`).
 
 ### 3.5 Walking distance
 

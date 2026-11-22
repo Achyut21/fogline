@@ -65,23 +65,22 @@ function edgesFor(graph: Graph, dayType: DayType, bucket: number): Edge[][] {
 }
 
 /**
- * Expected platform-to-platform time by T (DATA 3.1): the expected wait and the median scheduled
- * ride for each ride, plus the station's transfer time before any ride that follows another
- * ride. Walks between stations already include their transfer time.
+ * Expected platform-to-platform time by T from one station to every station it reaches
+ * (DATA 3.1): the expected wait and the median scheduled ride for each ride, plus the station's
+ * transfer time before any ride that follows another ride. Walks between stations already
+ * include their transfer time.
  */
-export function travelTime(
+export function travelTimesFrom(
   graph: Graph,
   fromStation: string,
-  toStation: string,
   dayType: DayType,
   bucket: HourBucket,
-): Travel | null {
-  const origin = graph.stations.indexOf(fromStation);
-  const target = graph.stations.indexOf(toStation);
-  if (origin === -1 || target === -1) return null;
-  if (origin === target) return { seconds: 0, steps: [], transfers: [] };
-
+): Map<string, Travel> {
   const edges = edgesFor(graph, dayType, bucketIndex(bucket));
+  const origin = graph.stations.indexOf(fromStation);
+  const found = new Map<string, Travel>();
+  if (origin === -1) return found;
+
   // State = station * 2 + (1 when the station was reached by a ride).
   const states = graph.stations.length * 2;
   const best = new Array<number>(states).fill(Infinity);
@@ -92,13 +91,16 @@ export function travelTime(
   for (;;) {
     let current = -1;
     for (let s = 0; s < states; s++) {
-      if (!done[s] && best[s] < Infinity && (current === -1 || best[s] < best[current]))
+      if (!done[s] && best[s] < Infinity && (current === -1 || best[s] < best[current])) {
         current = s;
+      }
     }
-    if (current === -1) return null;
-    const station = Math.floor(current / 2);
-    if (station === target) return route(previous, current, best[current]);
+    if (current === -1) break;
     done[current] = true;
+    const station = Math.floor(current / 2);
+    if (!found.has(graph.stations[station])) {
+      found.set(graph.stations[station], route(previous, current, best[current]));
+    }
 
     const rode = current % 2 === 1;
     for (const edge of edges[station]) {
@@ -112,6 +114,18 @@ export function travelTime(
       }
     }
   }
+  return found;
+}
+
+/** The expected time from one station to another, or null when no train connects them then. */
+export function travelTime(
+  graph: Graph,
+  fromStation: string,
+  toStation: string,
+  dayType: DayType,
+  bucket: HourBucket,
+): Travel | null {
+  return travelTimesFrom(graph, fromStation, dayType, bucket).get(toStation) ?? null;
 }
 
 function route(

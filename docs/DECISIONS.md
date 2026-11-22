@@ -366,3 +366,16 @@ Decision:
 - `pnpm check:last-trains [date]` compares three known last trains with the MBTA V3 schedules API.
 Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded". code-critic's first pass found that one time per station plus a walked flag mixed "board here" with "walk on from here": the trace could return an impossible connection (Kenmore → Assembly listed a 2-minute change at Park Street, below its 154 s transfer time), and walks into home were skipped, making some leave-by times up to 58 minutes too early.
 Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is deferred until the end of the project (PROGRESS, Open questions).
+
+Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded".
+Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is an open question.
+
+**D-056 · 2026-11-21 · Fair options, spot filters and the blocking filter (Phase 2 item 5).**
+Decision:
+- `rankStations` ranks every station everyone can reach within 75 minutes by `S(d)`, then `sum(t_i)`, then station ID. It runs one travel search per participant over every station.
+- `fairOptions` walks down that ranking and keeps the first 3 stations with at least one matching spot within 600 m walking, instead of taking the top 3 stations and then looking for spots.
+- Spot filters: an unknown price passes the budget. The minimum grade applies only to food, coffee and dessert spots, and a spot with no inspection match fails it. 21+ spots are dropped once anyone joined is under 21.
+- When nothing fits, the result names one blocker: budget, minimum grade or category (the first whose relaxing gives options), else time or spots. The age rule is never relaxed.
+- `src/lib/places/types.ts` holds the place schema that `data:places` (item 6) writes.
+Why: a top-ranked station with no matching spot isn't an option the UI can show. OpenStreetMap rarely tags prices, so failing unknown prices would empty most results. Parks and museums have no food inspections. F4.6 needs a single constraint to offer relaxing.
+Consequences: DATA 3.2 and 3.4 updated. Vibe isn't a filter yet: F4.5 doesn't require it and no place data carries vibe tags. A real-data check on the walkthrough's demo plan (BU, Harvard and Tufts, Friday 7 PM) puts Government Center first at 26, 19 and 25 minutes.
