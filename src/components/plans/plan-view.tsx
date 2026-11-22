@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
 import { plans } from "@/copy";
+import { clock } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
 import { LeaveByLine } from "./option-card";
@@ -170,6 +171,25 @@ export function PlanView({
           <section role="status" className="flex flex-col gap-2 rounded-lg bg-surface p-4">
             <h2 className="text-lg font-extrabold">{p.adultsOnly}</h2>
             <p className="text-sm text-ink-muted">{p.adultsOnlyBody}</p>
+          </section>
+        ) : plan.stops.length > 1 ? (
+          <section aria-labelledby="stops" className="flex flex-col gap-2 rounded-lg bg-surface p-4">
+            <h2 id="stops" className="text-sm font-bold text-ink-muted">
+              {p.stops(plan.stops.length)}
+            </h2>
+            <ol className="flex flex-col gap-3">
+              {plan.stops.map((stop, i) => (
+                <li key={`${stop.id}-${i}`} className="flex items-baseline gap-3">
+                  <span className="w-20 shrink-0 text-sm font-bold tabular-nums">
+                    {clock(new Date(stop.scheduledAt))}
+                  </span>
+                  <span className="flex flex-col">
+                    <span className="font-extrabold">{stop.name}</span>
+                    <span className="text-sm text-ink-muted">{stop.station}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </section>
         ) : (
           plan.spot && (
