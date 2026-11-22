@@ -152,6 +152,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 19:40 ET · Builder B · Phase 2 item 1, time, geo and H3 helpers, on `b/time-geo`:
+  - `src/lib/time.ts`: GTFS times past 24:00:00, the service-day origin (noon minus 12 h), the service date of a moment (3 AM cutoff, D-047), day type and hour buckets (D-048). Uses `@date-fns/tz` 1.5.
+  - `src/lib/geo/distance.ts` (haversine, walking ×1.25 at 80 m/min) and `src/lib/geo/cells.ts` (H3 res 9 reveals, visited over seen, uncovered share). Uses `h3-js` 4.5.
+  - Tests: 26 unit tests, including both 2026 DST nights, the second 1:30 AM on 2026-11-01 (26:30:00) and dates that don't exist. `src/lib` line coverage 98.8%. No UI, so no 390×844 check.
+  - code-critic: PASS. All 4 SHOULD FIX and 4 NITs fixed: tests on the fall-back night, an east-west distance test, D-048 and DATA 3.1 for buckets and holidays, rounding down, and date validation.
+  - Next: item 2, schema and migrations.
 - 2026-11-21 18:30 ET · Builder A · Phase 0 gate passed. Handoff:
   - **Finished:**
     - Phase 0 PRs on `main`: [#1](https://github.com/Achyut21/fogline/pull/1) `f3351ea`, [#2](https://github.com/Achyut21/fogline/pull/2) `fe8c9ea`, [#3](https://github.com/Achyut21/fogline/pull/3) `d2363ce`, [#4](https://github.com/Achyut21/fogline/pull/4) `f9cba34`, [#5](https://github.com/Achyut21/fogline/pull/5) `17a1f05`, [#6](https://github.com/Achyut21/fogline/pull/6) `859b85d`, [#7](https://github.com/Achyut21/fogline/pull/7) `71825a8`, [#8](https://github.com/Achyut21/fogline/pull/8) `07f3191`, [#9](https://github.com/Achyut21/fogline/pull/9) `4b7aa05` (the gate fixes).

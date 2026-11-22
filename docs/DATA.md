@@ -52,7 +52,8 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 - **Graph nodes** are (station, route, direction) pairs. **Ride edges** join consecutive stops, weighted by the median scheduled run time from `stop_times` (arrival at next minus departure from current) for that day type and hour bucket.
 - **Day types:** weekday, Saturday, Sunday. Choose representative `service_id`s from `calendar.txt` and `calendar_dates.txt` for the current week.
-- **Hour buckets:** one per hour from 5 to 23, plus "late" (00:00 to end of service).
+- **Hour buckets:** one per hour from 5 to 23, plus "late" (00:00 to end of service). Buckets count GTFS service-day time: 24:00:00 and later is late, and times before 05:00:00 use the 5 AM bucket (D-048). A bucket doesn't say whether trains run at that moment, so the solvers check service separately.
+- **Day type** comes from the day of the week, and only picks which representative travel times to use. Which trips run on a given date (holidays, diversions) always comes from `calendar.txt` plus `calendar_dates.txt` for that date, never from the day type.
 - **Headway** per (route, direction, stop, day type, hour) is the median gap between departures. **Expected wait** is half the headway.
 - **Transfer edges** use `min_transfer_time` from `transfers.txt` when present, otherwise 3 minutes, plus the expected wait of the route you transfer to.
 - `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. It runs on request over the edges in `graph.json` (about 125 stations, so well under a millisecond) and returns the minutes plus the lines and transfer stations on the path, which F4.4 shows (D-047).
