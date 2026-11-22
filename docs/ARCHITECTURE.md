@@ -83,6 +83,7 @@ src/
     checkin.ts     # check-in validity
     rides.ts       # rides, lines and stations from ride events
     events.ts      # events.json and words.json schemas
+    cards.ts       # station-cards.json schema
     grades.ts  badges.ts  stats.ts  squad.ts  puzzle.ts  flags.ts  motion.ts  log.ts
   server/
     db/            # drizzle schema, client, queries
@@ -176,7 +177,7 @@ Keep each client-facing file small. Split by line or load lazily where needed. `
 
 ## 9. AI boundaries
 
-- Gemini runs through the AI SDK Google provider. Model IDs come from env (`GEMINI_MODEL`). Use the Flash tier for speed. Maps grounding has been free on 2.5 Flash; check current terms in AI Studio.
+- Gemini runs through the AI SDK Google provider (AI SDK 7: `instructions`, not `system`). Model IDs come from env (`GEMINI_MODEL`). `gemini-2.5-flash` is no longer offered to new API keys (2026-11-21); `data:cards` used `gemini-3.1-flash-lite` (D-066). Use the Flash tier for speed. Maps grounding has been free on 2.5 Flash; check current terms in AI Studio.
 - AI writes words: stop-card facts (grounded in the Wikipedia extract), plain-English violation summaries, vibe tags, plan blurbs, dish identification (F14).
 - AI never produces the facts shown as numbers or verdicts: times, distances, grades, fairness scores, leave-by times, badges. Those come from code.
 - **Mastra planner agent:** its tools are `solveFairMeetup`, `buildCrawl`, `lastTrains`, `searchPlaces` and `gradeFor`. It picks among valid options and writes the blurb. An eval guard extracts every number from the agent's text and rejects the output if any number doesn't match a tool result.

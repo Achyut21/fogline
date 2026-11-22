@@ -546,3 +546,27 @@ Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data not
 Decision: `restoreProfile` checks the code but doesn't yet limit attempts. D-005 asks for a limit and ARCHITECTURE puts a token-bucket table with restore. That table needs a new migration on B's schema and B applying it to `fogline-db`, so it lands as a follow-up, not in item 1.
 Why: the hackathon deadline (D-060). Codes have about 39.6 bits of randomness (8 characters from 31), so guessing one takes on the order of 10^11 tries per existing profile.
 Consequences: the limit stays open on the Phase 9 hardening list until it ships. Needs A's sign-off as an accepted risk until then.
+
+**D-066 · 2026-11-21 · Station cards (Phase 2 item 9).**
+Decision:
+- The card's article is the longest of the 20 nearest Wikipedia articles within 600 m that isn't about transit, a bar or nightclub (F1.5), a violent event, a list or a disambiguation, with an intro of 150 characters or more, and not used by another card. Length stands in for notability; the exclusions keep tragedies and bars off cards everyone sees.
+- An image is kept only when it's Creative Commons or public domain, not non-free, and credits an author.
+- Gemini writes the sentence from the intro alone. Code checks it: 140 characters, one sentence, no dash between clauses, exclamation mark or COPY.md banned word, and every number must appear in the intro. A failed check retries with the reason, 3 times at most.
+- The spot is all-ages, rotating categories by station, grade A first.
+- Model: `gemini-3.1-flash-lite` through AI SDK 7 with a 120 s limit per call, retries included. `gemini-2.5-flash` answered 404 ("no longer available to new users"), and the Flash models answered 503 under load or stalled; Flash-Lite answered in about a second. One checked sentence doesn't need a bigger model.
+- Wikipedia responses and Gemini answers are cached, so reruns are reproducible and free.
+Why: DATA 2.4 asks for one notable article and a fact grounded in it; checks in code keep AI output to the rules COPY.md sets (ARCHITECTURE: AI writes words, never facts beyond the source).
+Consequences: DATA 2.4 and ARCHITECTURE updated; `.env.example` names `gemini-3.1-flash-lite`. The demo-line cards are listed in PROGRESS for B's check, and copy-critic reviews the sentences.
+
+**D-067 · 2026-11-22 · Prototype track to 4:00 AM (B's human).**
+Decision:
+- Until a presentable prototype runs (target 2026-11-22 04:00 ET), each item gets one code-critic pass, and only findings that would break the prototype or show wrong facts are fixed. Docs are updated once at the end of the track. This relaxes CLAUDE.md's "never skip a review" for the track only; the full loop resumes after it, starting with the deferred findings listed in PROGRESS.
+- Proposed scope for the prototype, the core loop:
+  - a profile with a home station
+  - the map with fog (2D)
+  - a plan with 2 or 3 friends showing fair options and leave-by times
+  - the daily puzzle and its reveal
+- Proposed deferrals: live ride mode (F3), live check-ins (F6), badges, recap and 3D (F8, F9), crawls, grades UI and squads (F10–F12), noise (F13), Find it (F14), How it works (F15), demo mode (F16), the Mastra planner, OG images, PWA install, Lighthouse budgets.
+Why: B's human set a 4:00 AM deadline for a working prototype. In Phase 2 about 40% of the time went to repeated review passes. Every domain rule the core loop needs is already built and tested.
+Consequences: scope and phase order (feature UI before the Phase 1 gate) need A's agreement; see Asks for A in PROGRESS.
+

@@ -8,7 +8,7 @@ This is the shared status board for both builders. Update it after every finishe
 |---|---|---|
 | 0 Foundations | Passed 2026-11-21 (gate table below) | A |
 | 1 Design | In progress (plan approved 2026-11-21) | A (both approve) |
-| 2 Data and domain logic | In progress (plan approved 2026-11-21) | B |
+| 2 Data and domain logic | Gate passed for code 2026-11-22 (two human checks open, see log) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
 | 5 Daily puzzle and demo mode | Not started | B + A |
@@ -109,7 +109,9 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none.
 
 ### Builder B
-- **Now:** Phase 2, approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
+- **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-067) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
+- **Next:** when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
+- **Earlier plan (Phase 2):** approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
   1. **Time, geo and H3 helpers** (`b/time-geo`; F2.1, F2.4, F3.3, F4.5, F5.1, F6.3, F7.3)
      - `src/lib/time.ts`: New York clock time to and from GTFS service-day seconds (noon minus 12 h, times past 24:00:00), the service date of a moment, day type and hour bucket.
      - `src/lib/geo/`: haversine, `walk_m = straight line × 1.25`, minutes at 80 m/min, H3 res-9 reveals (k=1 seen, k=2 visited, visited wins), neighborhood and Boston percent.
@@ -156,6 +158,10 @@ This is the shared status board for both builders. Update it after every finishe
   - Then `/phase-gate 2`.
 - **Decisions:** B confirms D-013 to D-044, with D-031 amended (demo rows flagged in the hypertables) and D-018's school list taken by B (D-045). B's Phase 2 answers are D-046 (data model) and D-047 (graph, service-date cutoff, demo lines).
 - **Asks for A:**
+  - **Prototype by 4:00 AM (D-067), from B's human.** Please do three things:
+    1. Merge B's stack now, in order: #16 (then B's human applies migrations 0002 and 0003), #17, #18, #19, #21, #22, #23, #26, then the station-cards PR.
+    2. Say whether you agree to the core-loop scope and to building feature UI before the Phase 1 gate.
+    3. If yes, build the screens: profile with home station, map with fog in 2D, plan builder with options and leave-by, puzzle. B wires Server Actions and route handlers to the existing `src/lib` rules.
   - B's session has no Vercel login, so B can't run `vercel ls` or `vercel inspect`. After each of B's merges, please run the production deployment check in TEAM.md's merge checklist. B starts the preview check from the PR's Vercel status URL with `gh workflow run`.
   - The recorder: move it from Phase 3 into Phase 2, right after the hypertable migration, so replay has more recorded trips? It changes PHASES and adds a cron to `vercel.json`, so both humans decide. B agrees.
 - **Blocked:** none. Vercel still won't build B-authored commits, so A merges B's PRs with an admin override after CI and the critics pass, then an A docs PR deploys production (D-052). B has no previews; B's human can join the Vercel team later to change that.
@@ -253,6 +259,31 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:
+  - **#29 onboarding:** squash `28babbf`. Preview check (run 44989873205) and production check (run 44990097301) passed. Merging it ships D-065 (restore without a rate limit); A's sign-off is still open.
+  - **#31 core loop, with #30's station cards:** admin squash `f61e868` (D-052). The Phase 2 commits under #30 were already on `main` through #16, so A merged `main` into `b/core-loop` keeping `main`'s side (`1ce35a5`). #30 is closed as included.
+  - **Renumbered:** B's D-061 (station cards) is now D-066 and D-062 (prototype track) is D-067. B's new lines citing D-057 and D-059 now cite D-061 and D-063.
+  - **Fixed on `b/core-loop` before merging:**
+    - Prettier on `plans.ts` had stopped CI before the tests ran.
+    - `f5f2769`: plan, check-in and stats actions read an unsigned `fogline_profile` cookie holding the raw profile ID. They now use `sessionProfileId()`. B's duplicate `createProfile` and `myProfile` are gone; onboarding and `currentProfile()` cover them.
+    - `ef03f8d`, `c64362e` (code-critic FAIL, 3 BLOCKING):
+      - `checkIn` needs a seat in the plan, and night badges count only members' check-ins (F6.2, F8.1).
+      - `planByInvite` shows home stations and leave-by times to members only (F4.8).
+      - A 21+ stop hides the venue from anyone not known to be 21+, and under-21 profiles can't create or join such a plan (F4.9). `findMeetup` takes the age rule from the profile, not the request (F1.5).
+      - Smaller fixes: every puzzle guess is checked, so earlier guesses can't probe letters (F7.2); `createPlan` checks the stop's station; `joinPlan` validates the token, refuses ended plans and ignores a double tap.
+    - Tests: `tests/integration/plans.test.ts` (`[F4.8]`, `[F4.9]`, `[F6.2]`, `[F1.5]`) and a `[F7.2]` unit test. 305 passed locally with the test database; the `[F6.2]` test fails with the participant check removed. code-critic re-check PASS. CI green on `c64362e`.
+  - **Known limits, not fixed (code-critic):**
+    - `myStats` reads every ended plan in the database on each call.
+    - `vehicleRows` parses the whole feed at once, so one malformed entity loses that minute.
+    - The cron's bearer check isn't timing-safe.
+    - `checkIn` has no rate limit, and invalid attempts are stored too.
+    - Badges awarded after `endPlan` commits have no retry.
+    - `me.ts` has its own data-file loader.
+    - `findMeetup` now needs the database to read the profile.
+    - `data.ts` reads `data/*.json` at runtime, so the first page that calls these actions needs `outputFileTracingIncludes` for `data/**` in `next.config.ts` (B's ask).
+  - **Production:** the recorder cron (`/api/cron/record-vehicles`, every minute) goes live with #32's deployment. `CRON_SECRET` is set in Vercel. **For B:** confirm migrations 0002 and 0003 are applied to `fogline-db`; until they are, the recorder logs an error every minute.
+  - **Next:** merge #32 (fog map), production check, then item 3 (F2.5 station sheet, plan awaiting A's yes).
+
 - 2026-11-22 00:27 ET · Builder A · Handoff (session limit; the next session runs under another Claude account):
   - **Done this session:** Phase 1 closed on A's side (gate table above; B's human still approves `/design` and confirms direction C). Items 4, 6a, 6b merged (#24, #25, #27), gate docs #28, B's Phase 2 stack merged as #16 (`7dadf7d`), production check passed on `1e7ba16`. A set `SESSION_SECRET` in Vercel (Production and Preview) and redeployed.
   - **Open PRs:** [#29](https://github.com/Achyut21/fogline/pull/29) Phase 3 item 1, onboarding (`a/onboarding`, CI re-running after the code-critic fixes and the last-train timeout). [#32](https://github.com/Achyut21/fogline/pull/32) item 2, the fog map home, stacked on #29 (`a/map`): retarget to `main` after #29 squash-merges, then rebase onto `main`. B's #30 (cards) and #31 (core loop) are open; merge them the D-052 way.
@@ -260,6 +291,107 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - **Pending A's word:** D-065 (restore without a rate limit until after the hackathon). Recommended: accept; fix = one `rate_limits` table keyed by IP, about 10 attempts per 15 min, in `restoreProfile`.
   - **Exact next step:** merge #29 when CI is green, check onboarding on production at 390×844, retarget and merge #32, then item 3: the station sheet (F2.5) with `/api/mbta/predictions`. `FogMap` already takes `onStation(id)`; `MapScreen` doesn't pass it yet.
   - **Local dev:** `pnpm dev` reads `DATABASE_URL` from `.env`, which is `fogline-db`. Don't submit onboarding there. To see a signed-in map, run next dev with `DATABASE_URL` set to `DATABASE_URL_TEST` (a node launcher that reads `.env` and spawns `next dev -p $PORT`); only one `next dev` per folder.
+
+- 2026-11-22 00:20 ET · Builder B · **Handoff**
+  - **Finished this session.** Each item is a stacked PR into the one before it; merge in this order, retargeting each to `main` as the one below it merges:
+    1. #16 hypertables
+    2. #17 GTFS
+    3. #18 last train
+    4. #19 fair solver
+    5. #21 places and grades (`ab581ee`)
+    6. #22 neighborhoods (`94a7041`)
+    7. #23 check-ins, badges, stats (`b844786`)
+    8. #26 puzzle (`fe194c2`, `983b3a2`)
+    9. #30 station cards (`eb98cd9`, rebased)
+    10. #31 core-loop Server Actions and the recorder
+  - **In progress:** none half-done. Every branch is pushed and its checks pass.
+  - **Blocked:**
+    - B's PRs need A's admin merge (Vercel won't build B-authored commits, D-052).
+    - The prototype needs A's screens. B's human chose to wait for A rather than have B build UI.
+  - **For A:**
+    - Shared files changed:
+      - `package.json`: `data:events`, `data:words` and `data:cards` scripts; `ai` and `@ai-sdk/google` dependencies.
+      - `vercel.json`: a `record-vehicles` cron every minute.
+      - `.env.example`: `GEMINI_MODEL` is now `gemini-3.1-flash-lite`.
+      - PHASES Phase 7 reading list, PRD F8.1.
+    - Environment variables (names only): `CRON_SECRET` (already listed), `GEMINI_MODEL`.
+    - Migrations: 0002 and 0003 (in #16); B's human applies them to fogline-db.
+    - New data files: `events.json`, `words.json`, `station-cards.json`. `places.json` was regenerated.
+    - Needed on Vercel: `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
+    - Decisions to read: D-063, D-064, D-066 and D-067.
+  - **Tests:** 253 pass and 1 is skipped (the live Tiger check). `pnpm build` passes. No e2e for B's work (no UI). The database Server Actions haven't run against Tiger yet.
+- 2026-11-22 00:18 ET · Builder B · **Phase 2 gate** on `b/core-loop` (the whole stack, items 1–10, plus the core-loop server work):
+  - `pnpm typecheck` and `pnpm lint` pass. `pnpm test` with the test database: 253 passed, 1 skipped (the live Tiger check), with integration tests running; `src/lib` line coverage 99.85%. `pnpm build` passes.
+  - Evidence:
+    - known trips within 3 minutes (item 3);
+    - known last trains match the MBTA schedule (item 4);
+    - grade calibration recorded in D-061;
+    - every pipeline rebuilds byte-identical files.
+  - test-auditor: FAIL on F11.3 only, which moved to Phase 7 (D-061). Its weak tests are fixed.
+  - Still open, both for B's human:
+    - apply migrations 0002 and 0003 to fogline-db once #16 merges, so the hypertables exist on Tiger;
+    - check the 47 demo-line station cards listed in the item 9 entry.
+- 2026-11-22 00:18 ET · Builder B · Prototype track (D-067), server side on `b/core-loop`:
+  - `src/server/actions/core-loop.ts`: `findMeetup` (fair options with each friend's trip and leave-by time), `todaysPuzzle`, `playPuzzle` (the answer never leaves the server).
+  - `src/server/actions/plans.ts`: `createProfile` (cookie, no auth), `myProfile`, `createPlan`, `planByInvite` (with everyone's leave-by), `joinPlan`.
+  - `src/server/actions/live.ts`: `checkIn` (validity rules, reveals 2 rings of cells), `endPlan` (awards night badges).
+  - `src/server/actions/me.ts`: `myStats` (miles, stops, stations, percent of Boston, neighborhoods, lines, nights out, badges).
+  - `/api/cron/record-vehicles` every minute (`vercel.json`), protected by `CRON_SECRET`.
+  - Data loads from `data/*.json` through `process.cwd()`. **Ask for A:** on Vercel, add `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
+  - Tests: 6 unit tests (meetup, puzzle, recorder). The database actions haven't been run against Tiger yet; they need migrations 0002 and 0003.
+- 2026-11-22 00:10 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
+  - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-066).
+  - The Gemini sentences come from `gemini-3.1-flash-lite`, and code checks them: 140 characters, one sentence, no banned words, and every number must be in the Wikipedia intro. Articles about bars, nightclubs and violent events are left out (F1.5).
+  - Tests: 11 unit tests, including the committed file (one card per station, all-ages spots).
+  - code-critic: one pass (D-067). Its blocking findings are fixed: bar articles, ungrounded numbers. Deferred under D-067: a reviewed exclusion list beyond the violent-event filter.
+  - **Demo-line cards for B's check** (Red Line and Green Line E, 47 cards). Each line is the station, then the article and its fact, then the spot:
+    - Alewife | Alewife Brook Reservation: Established in 1900, this Massachusetts state park and urban wild is located in Cambridge, Arlington, and Somerville. | Dunkin' (food)
+    - Andrew | Old Harbor Housing Project: The 27-acre Mary Ellen McCormack Project is located opposite Joe Moakley Park in South Boston. | Dunkin' (food A)
+    - Arlington | Arlington Street Church: The main sanctuary space has 16 large-scale stained-glass windows installed by Tiffany Studios from 1899 to 1930. | Tatte Bakery & Cafe (coffee A)
+    - Ashmont | Parish of All Saints Ashmont: The Parish of All Saints is located at 209 Ashmont Street in the Dorchester neighborhood of Boston. | Peabody Square (park)
+    - Ball Square | Powder House Square: The square is a six-way intersection of College Avenue, Broadway, Warner Street, and Powder House Boulevard. | Kelly's Diner (food)
+    - Back of the Hill | Mission Hill, Boston: The neighborhood population was estimated at 15,883 in 2011. | Dunkin' (food A)
+    - Boylston | Colonial Theatre (Boston): Opened in 1900, the Colonial Theatre is located at 106 Boylston Street on Boston Common. | Boston Common (park)
+    - Broadway | South Bay Interchange: The South Bay Interchange occupies a 10-acre site between Chinatown and the Leather District. | Dunkin' (food A)
+    - Brigham Circle | Boston Children's Hospital: It is the main pediatric training and research hospital of Harvard Medical School. | Thea and James M. Stoneman Centennial Park (park)
+    - Braintree | Braintree, Massachusetts: The population of Braintree was 39,143 at the 2020 census. | Daily Soccer Field (park)
+    - Charles/MGH | Massachusetts General Hospital: Massachusetts General Hospital is the third-oldest general hospital in the United States with a patient capacity of 999 beds. | Dunkin' (food A)
+    - Central | Harvard Graduate Students Union: The bargaining unit comprises about 5,000 student employees at Harvard University. | Veterans of Foreign Wars Memorial Park (park)
+    - Copley | Boston Public Library: Founded in 1848, the Boston Public Library contains approximately 24 million items. | Chick-fil-A (food A)
+    - Davis | Davis Square: The Red Line was extended to Davis in 1984. | Somerville Theater (culture)
+    - Downtown Crossing | Jordan Marsh: Eben Dyer Jordan and Benjamin L. Marsh founded the department store chain in 1841. | Winthrop Square (park)
+    - East Somerville | Inner Belt District: The Inner Belt District is a 126-acre industrial district located in the southeastern portion of Somerville, Massachusetts. | Life Drawing Boston (culture)
+    - Fenwood Road | Harvard T.H. Chan School of Public Health: The school was named after Chan Tseng-hsi in 2014 following a US$350 million donation. | Thea and James M. Stoneman Centennial Park (park)
+    - Fields Corner | Fields Corner Municipal Building: Built in 1875, this building is located at 1 Arcadia Street and 195 Adams Street in the Dorchester neighborhood of Boston. | AKOKO - Coco Leaf Dorchester (coffee A)
+    - Gilman Square | Somerville, Massachusetts: The city had a total population of 81,045 people as of the 2020 United States census. | Central Hill Memorial Park (park)
+    - Government Center | Boston City Hall: Groundbreaking for the nine-story building took place on September 18, 1963. | Old City Hall Grounds (park)
+    - Haymarket | John F. Kennedy Federal Building: Completed in 1966, this building consists of two 26-story towers and a four-story low-rise wing. | Civic Amphitheatre Steps (culture)
+    - Harvard | Harvard John A. Paulson School of Engineering and Applied Sciences: The school assumed its current structure in 2007 and was renamed after John Paulson in June 2015 following his US$400 million gift. | Kyōyo Haus (dessert)
+    - Heath Street | New England Baptist Hospital: New England Baptist Hospital is a 141-bed adult medical-surgical hospital in Boston specializing in orthopedic care. | Dunkin' (food A)
+    - JFK/UMass | Dorchester, Boston: Dorchester was annexed to Boston in 1870 when it had a population of 12,000. | Sharon's Park (park)
+    - Kendall/MIT | Abdul Latif Jameel Poverty Action Lab: As of 2020, the J-PAL network consisted of 500 researchers and 400 staff, and its programs had impacted over 400 million people globally. | Ripple Cafe (coffee)
+    - Lechmere | Hult International Business School: The Arthur D. Little School of Management was founded in 1964 in Cambridge, Massachusetts. | The Common at CX (park)
+    - Longwood Medical Area | Isabella Stewart Gardner Museum theft: On March 18, 1990, 13 works of art were stolen from the Isabella Stewart Gardner Museum. | Dunkin' (food A)
+    - Medford/Tufts | Tufts University: Tufts University was founded in 1852 as Tufts College. | Dunkin' (food)
+    - Museum of Fine Arts | Museum of Fine Arts, Boston: The museum was founded in 1870 in Copley Square and moved to its current Fenway location in 1909. | Dunkin' (food A)
+    - Magoun Square | Magoun Square: Playwright John Shea is a notable resident of this neighborhood. | Zaruma Gold (coffee)
+    - Mission Park | Beth Israel Deaconess Medical Center: Beth Israel Deaconess Medical Center was formed out of the 1996 merger of Beth Israel Hospital and New England Deaconess Hospital. | Brookline Avenue Playground (park)
+    - North Station | Boston Garden: The arena opened on November 17, 1928, and was demolished in 1998. | Chip City Cookies West End (dessert A)
+    - North Quincy | North Quincy High School: North Quincy High School serves grades 9 through 12 and has an enrollment of over 1,200 students. | Bear Hug Park (park)
+    - Northeastern University | New England Conservatory of Music: Approximately 750 students pursue undergraduate and graduate studies at the New England Conservatory of Music. | Boston Shawarma (food A)
+    - Park Street | Boston Christmas Tree: A tree has been lit each year since 1941. | Old City Hall Grounds (park)
+    - Porter | Yume Wo Katare: Yume Wo Katare is a ramen shop located at 1923 Massachusetts Avenue in the Porter Square neighborhood of Cambridge, Massachusetts. | Phinista Café Cambridge (food)
+    - Prudential | WBMX: The 104.1 MHz facility went on the air in 1958 as WBCN. | Thornton's Restaurant (food A)
+    - Quincy Adams | S. H. Barnicoat Monuments: The granite workshop at 114 Columbia Street featured a derrick more than 90 feet tall. | Paul Vincent Grasso Memorial Park (park)
+    - Quincy Center | Quincy College: Founded in 1958, this public community college enrolls approximately 3,500 students at campuses in Quincy and Plymouth, Massachusetts. | The QArts Gallery (culture)
+    - Riverway | Boston Psychopathic Hospital: The Boston Psychopathic Hospital was established at 74 Fenwood Road in 1912. | Brookline Avenue Playground (park)
+    - Savin Hill | Cristo Rey Boston High School: The school has 376 students in grades 9-12. | McKenna's Cafe (coffee A)
+    - Shawmut | Dorchester High School for Girls: Dorchester High School for Girls served students in ninth through twelfth grades from 1925 to 1953. | Dr. Loesch Family Park (park)
+    - Science Park/West End | Ether Dome: The Ether Dome served as the hospital's operating room from 1821 until 1867. | Dunkin' (food A)
+    - South Station | Occupy Boston: Protesters settled on Dewey Square in the Financial District on September 30, 2011. | Gong Cha (coffee A)
+    - Symphony | Matthews Arena: Matthews Arena was the original home of the NHL's Boston Bruins, the NBA's Boston Celtics, and the WHA's New England Whalers. | Symphony Hall (culture)
+    - Union Square | Union Square (Somerville): Union Square served as a recruitment and mustering site for the Union Army during the Civil War. | Life Alive (food)
+    - Wollaston | Wollaston (Quincy, Massachusetts): Wollaston Station is served by the B branch of the MBTA Red Line. | Fairy Cafe (coffee)
 
 - 2026-11-22 00:09 ET · Builder A · Phase 3 item 1, F1 onboarding and profile (`a/onboarding`): `/welcome` (name, school, home station, age, as on the canvas), `/restore`, `/me` with the profile code, and `/` sending new visitors to onboarding. `createProfile` and `restoreProfile` Server Actions (Zod) call `insertProfile` and `profileIdByCode` in `src/server/profile.ts`. The cookie is the profile ID plus an HMAC under `SESSION_SECRET` (`src/server/session.ts`). Codes use 31 characters without 0, O, 1, I or L. The school list (12 campuses) lives in `src/server/schools.ts`, and `src/server/stations.ts` parses `data/stations.json` with B's `stationSchema`. E2e global setup now migrates the local test database, and the e2e server gets a test-only `SESSION_SECRET` when none is set. Tests: `[F1.2]` and `[F1.3]` unit, `[F2.1]` and `[F1.3]` integration, `[F1.1] [F1.2] [F1.3]` e2e on desktop-chrome, iphone and pixel. Checked at 390×844.
   - **For B:** `[F5.1] returns only possible routes on the real timetable` in your `tests/unit/lasttrain.test.ts` now has a 20 s timeout. It timed out at 5 s on CI twice (5.2 s and 5.4 s); the test itself is unchanged.
