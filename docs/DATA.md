@@ -224,7 +224,7 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 ### 3.19 Plan end and reminders (F6.4, F5.8)
 
 - **Automatic end:** a cron job every 15 minutes ends an open plan 2 hours after the last valid check-in at its last stop, or 4 hours after the last stop's scheduled time when nobody checked in there. `ended_at` is that time, not the cron's, so the check-in window and the recap cover the night. The night's badges are awarded then.
-- **Remind me:** a calendar file (`text/calendar`) for the signed-in participant only. One event at their leave-by from the last stop, 5 minutes long, with display alarms 20 and 5 minutes before. Times are in UTC so every calendar shows local time. No file when there's no train to catch (home is a walk away, no train runs, or the date is past the timetable) or the plan has ended.
+- **Remind me:** a calendar file (`text/calendar`) for the signed-in participant only. One event at their leave-by from the last stop, 5 minutes long, with display alarms 20 and 5 minutes before. Times are in UTC so every calendar shows local time. The description names the first train home: its line, boarding station and time. No file when there's no train to catch (home is a walk away, no train runs, or the date is past the timetable) or the plan has ended.
 
 ## 4. Edge cases every algorithm test covers
 
