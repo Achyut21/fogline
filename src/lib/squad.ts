@@ -1,4 +1,4 @@
-import { addDays, serviceDateOf } from "@/lib/time";
+import { addDays, mondayOf, serviceDateOf } from "@/lib/time";
 
 /**
  * Squad mates (F12.1): two profiles become squad members once both have a valid check-in on the
@@ -54,21 +54,14 @@ export function squadCells(
     .sort((a, b) => (a.h3 < b.h3 ? -1 : a.h3 > b.h3 ? 1 : 0));
 }
 
-/** The Monday that starts a service date's week. */
-function weekOf(serviceDate: string): string {
-  const [year, month, day] = serviceDate.split("-").map(Number);
-  const sinceMonday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
-  return addDays(serviceDate, -sinceMonday);
-}
-
 /**
  * The squad streak (F12.3, D-071): consecutive Monday-to-Sunday weeks, by service date in Boston,
  * with at least one ended plan where you and a squad mate both checked in. This week counts once
  * it has one; until then the streak runs to last week, so it only breaks when a week ends empty.
  */
 export function squadStreak(nights: readonly Date[], now: Date): number {
-  const weeks = new Set(nights.map((at) => weekOf(serviceDateOf(at))));
-  const thisWeek = weekOf(serviceDateOf(now));
+  const weeks = new Set(nights.map((at) => mondayOf(serviceDateOf(at))));
+  const thisWeek = mondayOf(serviceDateOf(now));
   let week = weeks.has(thisWeek) ? thisWeek : addDays(thisWeek, -7);
   let count = 0;
   while (weeks.has(week)) {

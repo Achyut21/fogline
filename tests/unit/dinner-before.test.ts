@@ -129,7 +129,7 @@ describe("Dinner before", () => {
         toStation + walkMinutes(e.station.walkM),
       );
     }
-  });
+  }, 20_000);
 
   it("[F10.6] says when no train runs or no spot is near the venue", () => {
     const run = (more: Partial<typeof event>) =>

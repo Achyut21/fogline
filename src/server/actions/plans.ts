@@ -2,6 +2,7 @@
 
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { inviteToken } from "@/lib/invite-token";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
@@ -10,13 +11,6 @@ import { currentProfile } from "@/server/profile";
 
 // Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
 // an invite link, and joining it (F4.7, F4.8). The profile comes from the signed session (F1).
-
-const codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-function randomCode(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return [...bytes].map((b) => codeAlphabet[b % codeAlphabet.length]).join("");
-}
 
 const tokenInput = z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/);
 
@@ -53,7 +47,7 @@ export async function createPlan(input: unknown) {
     return { kind: "unknown-spot" as const };
   if (place.ageRule === "21plus" && creator.ageBand !== "21plus")
     return { kind: "adults-only" as const };
-  const inviteToken = randomCode(12);
+  const token = inviteToken();
   const startsAt = new Date(plan.startsAt);
   const id = await getDb().transaction(async (tx) => {
     const [row] = await tx
@@ -64,7 +58,7 @@ export async function createPlan(input: unknown) {
         title: plan.title,
         startsAt,
         status: "planned",
-        inviteToken,
+        inviteToken: token,
         isDemo: creator.isDemo,
       })
       .returning({ id: plans.id });
@@ -85,7 +79,7 @@ export async function createPlan(input: unknown) {
     });
     return row.id;
   });
-  return { kind: "created" as const, id, inviteToken };
+  return { kind: "created" as const, id, inviteToken: token };
 }
 
 /**

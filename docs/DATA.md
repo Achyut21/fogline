@@ -206,6 +206,14 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - Dinner is at the event's start minus the stay minus the leg. A spot closed then is skipped; unknown hours are flagged.
 - Leave-by times run from the event's station (section 3.3). A dinner is dropped when anyone with a train home has to leave before the event starts. With none left, the blocker is "time", "no-trains", "last-train" or "spots", as for crawls.
 
+### 3.17 Weekly plans (F10.4, F10.5)
+
+- A Vercel Cron job runs Mondays at 10:00 and 11:00 UTC and works only in the one that's 6 AM in New York. It makes up to 3 plans for the week (Monday to Sunday by service date), once: a second run that week adds nothing.
+- Fairness and last trains are worked out for a group from five campuses: Kendall/MIT, Harvard, Boston University Central, Northeastern University and Medford/Tufts (D-072). Every plan is all-ages, so it suits any viewer.
+- The first plan is Dinner before (section 3.16) the week's earliest puzzle event that hasn't started, when one fits. Then crawl templates fill the rest in order: dinner and dessert (Friday 7 PM), coffee and a museum (Saturday 2 PM), brunch and a park (Sunday 11 AM). A template is the categories of its stops and a start time; the crawl builder (section 3.15) picks the fairest crawl for it. A slot already past, or one with no valid crawl, is skipped.
+- A weekly plan stores its stops (spot or event ID, station, walk from the station, time, hours known or not, and the leg from the previous stop).
+- "Invite friends" (F10.5) copies a weekly plan into the viewer's own crawl: their plan with the same title, time and stops, their own invite link, and whether each leg is walked (section 3.11). Leave-by times are worked out for the people who join, like any plan.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.

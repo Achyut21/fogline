@@ -598,3 +598,11 @@ Decision:
 - Vibe and calm (F10.2) aren't crawl filters yet: places carry no vibe tags (D-057), and calm mode (F13) is an Extra.
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
 Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).
+
+**D-072 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5; B's human chose option A).**
+Decision:
+- Weekly plans are fair for a group from five campuses (Kendall/MIT, Harvard, BU Central, Northeastern, Medford/Tufts), because the Monday cron runs before anyone joins. Inviting friends copies the plan, and leave-by times then follow the real group.
+- "Crawl templates" (F10.4) are a fixed list of stop categories with a start time: dinner and dessert on Friday at 7 PM, coffee and a museum on Saturday at 2 PM, brunch and a park on Sunday at 11 AM. The week's earliest puzzle event gets a Dinner before first. All are all-ages.
+- `weekly_plans` stores each week's 3 plans, with their stops as JSON. Migration `0004_phase7_weekly_plans` also adds `plan_stops.walked_from_previous` (DATA 3.11).
+Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
+Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).
