@@ -6,20 +6,38 @@ import { adultCategories, gradedCategories, type Place } from "@/lib/places/type
 
 export type Grounded = { name: string; quote: string };
 
+/** A Maps grounding chunk: the place's title and the text Google returns about it. */
+export type MapsChunk = { title: string; text?: string };
+
+const summaryLine = /^\s*\*\s+(.+?)\s*$/;
+
+/** The bullet lines under "Generated Summary" in a Maps chunk's text: Google's review summary. */
+export function reviewSummary(text: string): string[] {
+  const lines = text.split("\n");
+  const start = lines.findIndex((line) => line.includes("**Generated Summary:**"));
+  if (start < 0) return [];
+  const out: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^\s*\*\s+\*\*/.test(line) || !summaryLine.test(line)) break;
+    out.push(line.replace(summaryLine, "$1"));
+  }
+  return out;
+}
+
 /**
- * Lines like `Name | "quote"` from the model. Only text inside quotation marks counts as a quote,
- * so a paraphrase ("Highly praised for…") is dropped with its place.
+ * Each grounded place with one line of Google's review summary, word for word: the first line
+ * that mentions a word of the search, else the first line (F14.2). Places without a summary are
+ * left out, so every shown claim comes from Maps, not from the model's own words.
  */
-export function parseGrounded(text: string): Grounded[] {
-  return text.split("\n").flatMap((line) => {
-    const [rawName, ...rest] = line.split("|");
-    const name = rawName?.replace(/^[\s*\-\d.)]+/, "").trim() ?? "";
-    const quoted = rest
-      .join("|")
-      .trim()
-      .match(/^["“](.+)["”]$/);
-    const quote = quoted?.[1].trim() ?? "";
-    return name.length > 1 && quote.length > 3 ? [{ name, quote }] : [];
+export function groundedQuotes(chunks: readonly MapsChunk[], search: string): Grounded[] {
+  const words = nameKey(search)
+    .split(" ")
+    .filter((w) => w.length >= 4);
+  return chunks.flatMap((chunk) => {
+    const lines = reviewSummary(chunk.text ?? "");
+    if (lines.length === 0) return [];
+    const quote = lines.find((line) => words.some((w) => nameKey(line).includes(w))) ?? lines[0];
+    return [{ name: chunk.title.replace(/\s+-\s+Google Maps$/, ""), quote }];
   });
 }
 

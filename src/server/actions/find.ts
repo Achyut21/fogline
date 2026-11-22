@@ -82,7 +82,7 @@ export async function tasteOfHome(_: FindResult | null, form: FormData): Promise
     dish: null,
     spots: await spotsFor(
       getDb(),
-      `food like home from ${query.data}`,
+      `${query.data} food`,
       filters,
       profile.homeStationId,
     ),
