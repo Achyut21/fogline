@@ -96,6 +96,8 @@ describe.skipIf(testUrl === "")("plan Server Actions", () => {
     const seen = await planByInvite(inviteToken);
     expect(seen).toMatchObject({ adultsOnly: true, spot: null, station: null });
     expect(await joinPlan(inviteToken)).toEqual({ kind: "adults-only" });
+    session.viewer = people.stranger;
+    expect((await planByInvite(inviteToken))?.spot?.id).toBe(bar.id);
   });
 
   it("[F4.8] shows names and count but no home stations to someone who isn't in the plan", async () => {
