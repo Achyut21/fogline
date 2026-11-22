@@ -23,7 +23,13 @@ This is the shared status board for both builders. Update it after every finishe
 - **Now:** Phase 3 (profile, map, fog, ride), approved by A on 2026-11-22. Order, sized for the hackathon's remaining ~9 hours:
   1. **F1 onboarding and profile** (`a/onboarding`): the four canvas screens (name, school, home station, age band), `createProfile` and `restoreProfile` Server Actions with Zod, an HMAC-signed httpOnly cookie (`SESSION_SECRET`), home cells revealed (F2.1), Me with the profile code (F1.3), restore by code. Tests `[F1.1]`, `[F1.2]`, `[F1.3]`, `[F2.1]`.
   2. **F2 map**: the real network from `data/stations.json` and `shapes.json`, the D-058 fog layer from the profile's `revealed_cells`, the 2D fallbacks, the station list view (F2.7).
-  3. **F2.5 station sheet**: name, lines, live departures through `/api/mbta/predictions`, "Ride from here".
+  3. **F2.5 station sheet** (`a/station-sheet`). Plan shown to A on 2026-11-22; A said to continue with Phase 3:
+     - `/api/mbta/predictions`: Zod-checked station, TripUpdates parsed to subway revenue trips, about 5 s shared cache, last good copy served with its age when the feed fails.
+     - Service worker: network-first for `/api/mbta/*` with a stale fallback, before the `/api/*` rule.
+     - StationSheet on the vaul Sheet: name, lines, minutes from home, departures by direction, MBTA credit, stop card once uncovered, 3 nearest spots (F1.5). TanStack Query polls every 30 s and stops while hidden; stale past 90 s. Loading, empty, error and offline states. Opens from the map and the list.
+     - "Ride from here" lands with item 4's ride route (no dead button).
+     - Tests `[F2.5]`: parser on a recorded snapshot, route cache and failure, sheet data, sheet states, e2e at 390×844.
+     - **Status 2026-11-22 02:05 ET:** done on [#34](https://github.com/Achyut21/fogline/pull/34), merging after CI and the preview check. Next: item 4, F3 ride replay (with "Ride from here").
   4. **F3 ride replay**: a recorded trip at 1× to 20×, stop cards, reveals, summary (miles, stops, minutes, lines, new cells), `ride_events`. Live mode if time allows. Until B's recorder has a trip, a timetable-built trip labeled as demo data.
   5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
   - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
@@ -259,6 +265,20 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-22 02:05 ET · Builder A · Phase 3 item 3, F2.5 station sheet ([#34](https://github.com/Achyut21/fogline/pull/34), `a/station-sheet`):
+  - Built: `/api/mbta/predictions` (TripUpdates parsed to subway revenue trips, one fetch per 5 s for every station, last good copy with its age on failure, failures remembered for 5 s), a network-first service-worker rule for `/api/mbta/*`, TanStack Query scoped to the map, and the StationSheet (lines, minutes by T from home, trains by line direction, stale chip, stop card once uncovered, 3 nearest spots with the F1.5 rule, all states). Opens from the map and the list. `next.config.ts` traces `data/*.json` for B's runtime reads. DATA 3.13, D-068, WALKTHROUGH F2.
+  - code-critic: FAIL, 3 BLOCKING (terminal track IDs like `Alewife-01` hid the train on the platform; the per-direction cap was shared across lines, hiding the Red Line at Park Street; departed trains read "Now" on old data), all fixed. Re-check PASS; its two SHOULD FIX (a body cut off mid-read gave a 500; a hanging feed was retried by most requests) fixed with tests that fail on the old code.
+  - copy-critic: FAIL (MBTA and photo credits not COPY.md's exact lines, grades without the unofficial label, walks without "about"), all fixed. Re-check PASS; its notes applied (the aged-out line no longer blames the MBTA when the user may be offline; `maxWalkM` moved to `src/lib/places/types.ts` so the client sheet doesn't import the solver).
+  - Tests: `[F2.5]` parser (recorded snapshot, terminal track, two-line cap), route (cache, failure memory, cut-off body), sheet data, sheet states, `[F11.3]` label, e2e sheet with axe and with reduced motion, offline train times in `pwa.spec.ts`. 327 unit/component/integration passed locally; sheet e2e 6/6 on desktop-chrome, iphone, pixel.
+  - Checked at 390×844 day and night with live trains (Kenmore, Park Street both lines); route 0.24 s on a fresh feed fetch, 4 ms cached (local).
+  - Logged for later (critics' NITs): track IDs map by station name, not GTFS `parent_station`; the e2e depends on the live feed; the map page's RSC payload is 187 KB uncompressed (spots about 40 KB).
+
+- 2026-11-22 01:55 ET · Builder A · Merged #32, the fog map home (`3926558`):
+  - code-critic (first recorded pass): FAIL, 1 BLOCKING. The 3D fog's mask stopped at Boston, Cambridge, Somerville and Brookline, so 21 outer home stations (Ashmont, Braintree, Oak Grove, Riverside and others) sat under solid fog on tiers 2–3 while the card said they were clear. Fixed in `3e4a496` (mask covers every station plus about 1.2 km; test `[F2.1] [F2.2] the map's mask shows the home cells of every station`), with the reveal band, finger radius and grain scaled back to their Phase 1 size and the map and list made keyboard- and screen-reader-friendly (`fa9faef`). Re-check PASS. Checked at 390×844 with home Braintree, day and night.
+  - CI, preview check (`fa9faef`) and production check (run 44993413583) passed.
+  - Logged from code-critic for later: the map ignores fog changes after load unless `revealAt` changes; the first-reveal card comes back on every visit; 110 KB of line shapes ride in every home response; MapLibre's controls inside the map region need an axe pass on `/`; the list collapses seen and visited; the SVG fallback ignores the home center; List → Map remounts the renderer and its probe WebGL context; `/` has no offline banner, no catch on the MapLibre chunk and no `loading.tsx`; `mapData` has no direct test; theme flips don't restyle the map.
+  - **For B (blocking the recorder):** production logs show `/api/cron/record-vehicles` failing every minute with `relation "vehicle_positions" does not exist`. Migrations 0002 and 0003 aren't on `fogline-db` yet. Apply them: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`, then check `timescaledb_information.hypertables`.
 
 - 2026-11-22 00:45 ET · Builder B · Prototype track (D-067) on `b/demo-seed`, from `main` after A merged #31:
   - `src/server/demo.ts`: `seedDemo(db)`, B's half of demo mode (F16.1, F16.2).
