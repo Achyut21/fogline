@@ -360,10 +360,11 @@ Consequences: seven known trips land within 2.8 minutes of a replay of the raw t
 
 **D-055 · 2026-11-21 · Last-train search (Phase 2 item 4).**
 Decision:
-- `src/lib/lasttrain/search.ts` runs a backward round-based search with at most three rides over the service date's trips in `timetable.json`. It uses the station transfer times and walks from D-054, which `timetable.json` now carries too.
+- `src/lib/lasttrain/search.ts` runs a backward round-based search with at most three rides over the service date's trips in `timetable.json`. It uses the station transfer times and walks from D-054, which `timetable.json` now carries too. Each round keeps a board time and an arrive-by-train time per station, and walks into home count.
 - The result says which case applies: a train, no train needed (home is the same station or a walk away), no timetable for that date, or none. A date outside the feed is "no timetable", never "no train home".
 - `src/lib/lasttrain/leave-by.ts` takes the plan's last stop (F5.5): `leave_by = departure − walk − 5 min` (F5.2). It flags a plan that starts after the leave-by (F5.3), and gives the walking minutes home when there's no train (F5.7).
-- An unknown station is an error, not "no train".
+- An unknown station is an error, not "no train". A broken trace throws instead of returning partial legs.
+- A train result gives `departs` (the last moment to leave the plan's station, possibly the start of a walk) and `firstTrain` (the first train's departure).
 - `pnpm check:last-trains [date]` compares three known last trains with the MBTA V3 schedules API.
-Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded".
-Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is an open question.
+Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded". code-critic's first pass found that one time per station plus a walked flag mixed "board here" with "walk on from here": the trace could return an impossible connection (Kenmore → Assembly listed a 2-minute change at Park Street, below its 154 s transfer time), and walks into home were skipped, making some leave-by times up to 58 minutes too early.
+Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is deferred until the end of the project (PROGRESS, Open questions).

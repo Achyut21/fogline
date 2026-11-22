@@ -11,7 +11,10 @@ export type Home = { station: string; at: LatLon };
 export type LeaveBy =
   | {
       kind: "train";
+      /** The last moment to leave the plan's station: its train, or the start of a walk. */
       departs: Date;
+      /** The first train's departure (later than `departs` when the trip starts with a walk). */
+      firstTrain: Date;
       leaveBy: Date;
       legs: LastTrainLeg[];
       transfers: string[];
@@ -46,6 +49,7 @@ export function leaveByFor(
   return {
     kind: "train",
     departs: serviceTimeToDate(serviceDate, result.departs),
+    firstTrain: serviceTimeToDate(serviceDate, result.firstTrain),
     leaveBy: serviceTimeToDate(serviceDate, leaveBySeconds),
     legs: result.legs,
     transfers: result.transfers,
