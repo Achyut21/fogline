@@ -97,7 +97,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** item 6a PR, then 6b (display components and motion demos) on `/design`. Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
+- **Next:** the Phase 1 gate needs A's and B's human approval of `/design` and the canvas as cut (D-060). Then Phase 3: profile and onboarding first, then the map with the D-058 fog layer and Phase 2's GTFS data. Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
 - **Blocked:** none.
 
 ### Builder B
@@ -201,6 +201,25 @@ Copy this table for each phase when its gate runs.
 | docs current | | |
 | phase-specific checks | | |
 
+### Phase 1 gate
+
+Run 2026-11-21 by Builder A. Code at `main` `957c3c4` (local runs on `2ed9c2c`, the same tree before the squash), then this PR's small follow-ups. Scope as cut by D-060.
+
+| Check | Result | Evidence |
+|---|---|---|
+| typecheck / lint / unit / e2e / build | PASS | Local on `2ed9c2c`: typecheck and lint clean. Vitest 95 passed, 1 skipped (the live DB check). Playwright 59 passed, 13 skipped (deployment-only specs, and Chromium-only specs on WebKit). Build compiled (`.next/BUILD_ID` 23:41:46, from the e2e web server). CI green on #24, #25 and #27, and on #16 (re-run, 3m28s) after Phase 2 joined. This PR: vitest 250 passed. |
+| token check | PASS | `design-tokens.test.ts` scan: 0 findings across `src/`. The `src/components/ui/` exemption is gone (D-059). AA for every text pair, 3:1 for controls and F2.3 lines, day and night. |
+| code-critic | PASS | Every item reviewed: item 4 FAIL, then narrow re-check PASS (`8a3be98`); 6a FAIL, 6b FAIL, then a narrow re-check of the fix commits `c1642ed`, `16e3348`, `bfa6a5f` and `2ed9c2c` PASS: all four blocking items fixed (safe areas for toast and sheet, tab-panel focus, a string outside `src/copy/`, the `/design` hydration mismatch), no new blocking bug. B's Phase 2 PRs each record their own code-critic PASS. |
+| test-auditor | PASS | Audited by Builder A, not the subagent (D-060, credits). Every criterion Phase 1 touched has a named test that runs: F2.2 (4 tests), F2.3 (3, plus LineBadge names), F2.5 (StaleChip), F2.6 (4, including the WebGL-off e2e), F5.4 (Countdown tones), F8.4 (count-up and reduced motion). F2.3's layer-order test belongs to the Phase 3 map (D-058). |
+| design-critic (if UI) | PASS | Gate pass on `/design` and `/design/fog`, run on production (`main` `957c3c4`): 390×844 day and night, 360, 768 and 1440 with no horizontal scroll, every target 44 px or more, every contrast pair AA, sheet focus and tap-to-snap, toast, chips, stepper, tabs, count-up, countdown tones, fog reveal on tiers 3, 2 and 1. No BLOCKING. Its should-fix: two pairs added to `pairs.ts` and the night offline banner softened (this PR); the rest is logged below. Earlier item passes: 4 FAIL, fixed; 6a FAIL, fixed. |
+| copy-critic (if copy) | PASS | The gate's design-critic pass covered copy (D-060): no BLOCKING. "Delete my data" became "Delete data" in this PR. Earlier copy-critic runs: item 4 FAIL, fixed; item 6 FAIL, fixed. |
+| axe | PASS | `design.spec.ts`: 0 serious or critical violations on `/design` with the OS in light and in dark, on desktop-chrome, iphone and pixel. |
+| docs current | PASS | This log covers items 1, 4, 5 and 6 and the D-060 cut of items 2, 3, 7 and 8. DECISIONS has D-050 to D-064 (B's numbers renumbered at merge). WALKTHROUGH: Phase 1 ships no PRD feature, so no entry is due. DATA: no data source or algorithm changed in Phase 1. |
+| Fog frame rate and 2D fallback | PASS | D-058: tier 3 and tier 2 mean 1.3 ms, p95 3 ms under 4× CPU throttle with Pixel 7 emulation (M4 Pro, vsync off). The real phone check waits on A's Android phone. `[F2.6]` e2e renders the SVG fog with WebGL disabled. |
+| Visual baselines | DEFERRED | Moved to Phase 9 (D-060). |
+| Both humans approve the canvas (as cut) and `/design` | WAITING | A, and B's human, approve here. B's human also confirms direction C. Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR |
+| Production works at phone size | WAITING | Runs on the production deployment after this PR merges (the first A-authored commit after Phase 2, D-052). |
+
 ### Phase 0 gate
 
 Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043 fixes.
@@ -225,6 +244,10 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 23:57 ET · Builder A · Merged item 6b ([#27](https://github.com/Achyut21/fogline/pull/27), `957c3c4`) and, at A's request, all of B's open Phase 2 PRs as one admin squash ([#16](https://github.com/Achyut21/fogline/pull/16), `7dadf7d`, D-052): #17, #18, #19, #22, #23 and #26 were merged into their parent branches first, then `main` was merged into `b/schema-hypertables` (A's merge commits `4dc0069`, `b0a6cce`, no force-push). #21's commits rode in with #16, so it was closed with a note. Each B PR records a code-critic PASS in its description. B's decisions were renumbered: D-054 to D-056 became D-055 to D-057, and D-057 to D-060 became D-061 to D-064, in every file that cites them. #16's CI first failed on a timeout in `[F5.1] returns only possible routes on the real timetable` (5 s, slow runner); the re-run passed. This PR is the A-authored commit that deploys it all to production (D-052).
+  - **For B:** apply the new migrations to `fogline-db` from your terminal, then check `timescaledb_information.hypertables` (your #16 note).
+  - Logged from the gate's design-critic for later: `/design` doesn't show StatTile `outlined`, disabled Input and IconButton, or success, warning and error toasts; Countdown announces nothing at 20 and 5 min (F5.4, Phase 4); the BottomNav demo links to routes that don't exist yet; the "lines above fog" swatch hides the fog states at 390 px; "1200 ms" lacks a separator; toasts use `rounded-md`. vaul's `isIPad()` treats the Mac pane's mobile emulation as iPadOS, so check tap-to-snap on a real phone.
 
 - 2026-11-21 23:37 ET · Builder A · A cut Phase 1 for the deadline (D-060): no more canvas pages or storyboards, microcopy goes with each feature, visual baselines move to Phase 9, and no parallel subagents. Item 6a got code-critic and design-critic fixes (safe areas, sheet focus and tap-to-snap, token motion for vaul, chip selection, copy). 6b (display components, `/design` demos, root MotionConfig) got copy-critic fixes; it skips its own design-critic run to save credits (I checked it at 390×844 in both themes), and the gate's design-critic pass covers it.
 

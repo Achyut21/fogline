@@ -22,7 +22,7 @@ export function OfflineBanner({ offline }: { offline?: boolean }) {
   );
   if (!(offline ?? !online)) return null;
   return (
-    <div role="status" className="bg-ink pt-safe text-bg">
+    <div role="status" className="bg-ink pt-safe text-bg dark:bg-surface-raised dark:text-ink">
       <p className="flex items-center gap-2 px-4 py-2 text-sm font-bold">
         <WifiOff aria-hidden="true" className="size-4 shrink-0" />
         {system.offlineBanner}

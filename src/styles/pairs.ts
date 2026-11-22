@@ -9,6 +9,8 @@ export const textPairs = [
   { fg: "ink-muted", bg: "bg" },
   { fg: "ink-muted", bg: "surface" },
   { fg: "ink-muted", bg: "surface-sunken" },
+  { fg: "ink-muted", bg: "surface-raised" },
+  { fg: "bg", bg: "ink" },
   { fg: "ink-subtle", bg: "surface" },
   { fg: "accent", bg: "bg" },
   { fg: "accent", bg: "surface" },

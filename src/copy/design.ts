@@ -94,7 +94,7 @@ export const design = {
     primary: "Ride",
     secondary: "Restore profile",
     ghost: "Skip",
-    danger: "Delete my data",
+    danger: "Delete data",
     disabled: "Check in",
     iconButtons: "Icon buttons",
     locate: "Show my location",
