@@ -193,6 +193,14 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - **Last train:** each person's leave-by uses the last stop (section 3.3, F10.3). A crawl is dropped when anyone with a train home has to leave before the crawl reaches its last stop.
 - **Options:** up to 3 crawls, each starting at a different station, fairest first. For each station the builder tries its 5 nearest open first spots, and it stops after 10 stations with a matching first spot, so a request that fits nothing answers quickly. With no crawl, the blocker is "time" (no station within 75 minutes for everyone), "no-trains" (section 3.2), "last-train" (every crawl found ends too late) or "spots".
 
+### 3.16 Dinner before (F10.6)
+
+- A 2-stop crawl for a puzzle event: dinner (food, with the plan's budget, grade and age filters), then the event.
+- Candidates are matching spots within 10 minutes of the venue by walk or T (legs as in section 3.15, the T leg ending with the walk from the event's station to the venue).
+- Each candidate is scored by the fair score (section 3.2) of the group to the station near it, computed for a dinner that starts the stay plus 10 minutes before the event. The fairest wins, then the shorter leg to the venue, then name and ID.
+- Dinner is at the event's start minus the stay minus the leg. A spot closed then is skipped; unknown hours are flagged.
+- Leave-by times run from the event's station (section 3.3). A dinner is dropped when anyone with a train home has to leave before the event starts. With none left, the blocker is "time", "no-trains", "last-train" or "spots", as for crawls.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.
