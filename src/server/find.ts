@@ -3,7 +3,7 @@ import { google } from "@ai-sdk/google";
 import { generateText, Output } from "ai";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { matchPlaces, nameKey, parseGrounded, type FindFilters } from "@/lib/find";
+import { groundedQuotes, matchPlaces, type FindFilters } from "@/lib/find";
 import { data } from "@/server/data";
 import type { Db } from "@/server/db/client";
 import { aiCache } from "@/server/db/schema";
@@ -61,12 +61,16 @@ export async function identifyDish(image: Uint8Array, mediaType: string) {
 
 const groundedSchema = z.array(z.object({ name: z.string(), quote: z.string() }));
 
-// The places Maps grounding actually returned; any other name in the text is dropped.
+// The places Maps grounding returned, with Google's text about each.
 const groundingSchema = z.object({
   groundingMetadata: z
     .object({
       groundingChunks: z
-        .array(z.object({ maps: z.object({ title: z.string() }).optional() }))
+        .array(
+          z.object({
+            maps: z.object({ title: z.string(), text: z.string().optional() }).optional(),
+          }),
+        )
         .optional(),
     })
     .optional(),
@@ -94,25 +98,25 @@ export async function allowSearch(db: Db, profileId: string, now = new Date()): 
   return (await bump(`limit:find:all:${hour}`)) <= allHourly;
 }
 
-/** Places that serve `what` near Boston, each with a review quote, from Maps grounding (F14.2). */
+/**
+ * Places that serve `what` near Boston from Maps grounding, each with a line of Google's own
+ * review summary (F14.2). The model's reply is only the trigger; its wording is never shown.
+ */
 export async function groundedPlaces(db: Db, what: string) {
-  const prompt = `List up to 8 restaurants or cafes in Boston, Cambridge, Somerville or Brookline for: ${what}. One per line, exactly: Name | a short quote from a Google Maps review that mentions it. Only places with such a review. No other text.`;
+  const prompt = `List up to 8 restaurants or cafes in Boston, Cambridge, Somerville or Brookline for: ${what}. Use Google Maps.`;
   return cached(db, groundingModel(), prompt, groundedSchema, async () => {
-    const { text, providerMetadata } = await generateText({
+    const { providerMetadata } = await generateText({
       model: google(groundingModel()),
       tools: { google_maps: google.tools.googleMaps({}) },
       providerOptions: { google: { retrievalConfig: { latLng: boston } } },
       prompt,
     });
-    const chunks = groundingSchema.safeParse(providerMetadata?.google);
-    const titles = new Set(
-      (chunks.success ? (chunks.data.groundingMetadata?.groundingChunks ?? []) : []).flatMap(
-        // Titles come as "Dynasty - Google Maps".
-        (chunk) =>
-          chunk.maps ? [nameKey(chunk.maps.title.replace(/\s+-\s+Google Maps$/, ""))] : [],
-      ),
+    const parsed = groundingSchema.safeParse(providerMetadata?.google);
+    const chunks = parsed.success ? (parsed.data.groundingMetadata?.groundingChunks ?? []) : [];
+    return groundedQuotes(
+      chunks.flatMap((chunk) => (chunk.maps ? [chunk.maps] : [])),
+      what,
     );
-    return parseGrounded(text).filter((entry) => titles.has(nameKey(entry.name)));
   });
 }
 
