@@ -21,6 +21,10 @@ const tokens = parseTokens(readFileSync(path.join(process.cwd(), "src/styles/tok
 
 const px = (rem: string) => parseFloat(rem) * 16;
 
+// Translucent tokens are shown over their own theme's background, not over this page's card.
+const swatch = (set: Record<string, string>, name: string) =>
+  `linear-gradient(${set[name]}, ${set[name]}), ${set.bg}`;
+
 const layers = Object.entries(tokens.day)
   .filter(([name]) => name.startsWith("layer-"))
   .map(([name, value]) => ({ name: name.replace("layer-", ""), value: Number(value) }))
@@ -162,15 +166,13 @@ export default function DesignPage() {
                     aria-hidden="true"
                     className="grid h-14 grid-cols-2 overflow-hidden rounded-sm border border-rule"
                   >
-                    <span style={{ background: tokens.day[name] }} />
-                    <span style={{ background: tokens.night[name] }} />
+                    <span style={{ background: swatch(tokens.day, name) }} />
+                    <span style={{ background: swatch(tokens.night, name) }} />
                   </span>
                   <span className="text-sm font-bold">{name}</span>
                   <span className="flex flex-col text-xs text-ink-muted tabular-nums">
-                    <span className="whitespace-nowrap">{design.swatchDay(tokens.day[name])}</span>
-                    <span className="whitespace-nowrap">
-                      {design.swatchNight(tokens.night[name])}
-                    </span>
+                    <span className="wrap-anywhere">{design.swatchDay(tokens.day[name])}</span>
+                    <span className="wrap-anywhere">{design.swatchNight(tokens.night[name])}</span>
                   </span>
                 </li>
               ))}
@@ -295,7 +297,10 @@ export default function DesignPage() {
             </li>
           ))}
         </ul>
-        <p className="flex gap-6 text-3xl font-extrabold tabular-nums" data-testid="tabular-sample">
+        <p
+          className="flex flex-wrap gap-x-6 text-3xl font-extrabold tabular-nums"
+          data-testid="tabular-sample"
+        >
           <span data-digits="ones">{design.digits.ones}</span>
           <span data-digits="zeros">{design.digits.zeros}</span>
           <span>{design.numberSample}</span>
@@ -309,7 +314,7 @@ export default function DesignPage() {
               <span className="w-18 shrink-0 text-xs text-ink-muted tabular-nums">
                 {design.spacingStep(step, Number(step) * 4)}
               </span>
-              <span aria-hidden="true" className={`${className} h-4 rounded-sm bg-accent`} />
+              <span aria-hidden="true" className={`${className} h-4 bg-accent`} />
             </li>
           ))}
         </ul>

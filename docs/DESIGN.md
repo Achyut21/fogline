@@ -91,7 +91,7 @@ Values live in `src/styles/tokens.css` as CSS variables: day in `:root`, night i
 
 Contrast rules (each one is a unit test):
 - Every text pair in `src/styles/pairs.ts` meets WCAG 2.2 AA (4.5:1) in both themes. Add a pair there before using a new text and background combination.
-- Input borders and focus rings reach 3:1 against what sits next to them (`controlPairs` in `src/styles/pairs.ts`, WCAG 1.4.11). `--field-border` drops to about 3:1 on `--surface-sunken`, so inputs sit on `--surface`.
+- Input borders and focus rings reach 3:1 against what sits next to them (`controlPairs` in `src/styles/pairs.ts`, WCAG 1.4.11). `--field-border` falls under 3:1 on `--surface-sunken` and, at night, on `--surface-raised`, so inputs sit on `--surface`.
 - White on the Orange Line fails AA, so orange badges use `--line-ink-orange`. White on red (4.87:1), green (4.81:1) and blue (9.50:1) passes.
 - Every T line reaches 3:1 against land, water, park, road and fog in both themes (WCAG 1.4.11), or against its casing where a ground is too close. A cased line's adjacent color is its casing. Orange gets an ink casing by day, blue a light casing by night, and the others dark casings by night, as on the canvas. The line colors don't change. `/design` draws every line on every ground, and above the fog (F2.3).
 
@@ -105,6 +105,7 @@ Contrast rules (each one is a unit test):
 | Hero number (map card, countdown) | `text-3xl font-extrabold tracking-tight tabular-nums` | 40/800, -0.02em |
 | Recap and first-reveal hero | `text-4xl` or `text-5xl font-extrabold tracking-tight tabular-nums` | not drawn yet |
 | Title (screen and sheet) | `text-2xl font-extrabold tracking-tight` | 24–30/800, -0.02em |
+| Section heading (inside a sheet or page) | `text-xl font-extrabold tracking-tight` | 22/800 |
 | Stat | `text-xl font-extrabold tabular-nums` | 17–20/800 |
 | Wordmark | `text-xl font-extrabold tracking-snug` | 22/800, -0.01em |
 | Primary button | `text-lg font-bold` | 18/700 |
@@ -116,7 +117,7 @@ Contrast rules (each one is a unit test):
 | Caption (stat and nav labels, units, line letters) | `text-xs`, weight 500 to 800 | 11–12 |
 | Profile code | `text-2xl font-extrabold tracking-wide` | 24/800, 0.18em |
 
-- Canvas sizes map to the scale like this: 10–12 px → `xs`, 13–14 → `sm`, 15–17 → `base`, 18 → `lg`, 20–22 → `xl`, 24–30 → `2xl`, 40 → `3xl`. New artboards use the scale sizes.
+- Canvas sizes map to the scale like this: 10–12 px → `xs`, 13–14 → `sm`, 15–17 → `base`, 18 → `lg`, 20–22 → `xl`, 24–30 → `2xl`, 40 → `3xl`. The role table wins over this mapping: the canvas's 17 px recap stats are Stats (`text-xl`), because numbers are the biggest type (principle 3). New artboards use the scale sizes.
 - Tracking: `tracking-tight` (-0.02em) for titles and hero numbers, `tracking-snug` (-0.01em) for the wordmark, `tracking-wide` (0.18em) for profile codes. Tailwind's other tracking classes are reset.
 - A time and its AM or PM are joined by a no-break space, so "12:14 AM" never splits (COPY.md).
 - Scale (rem, so it follows the user's font size), with line heights:
@@ -255,6 +256,7 @@ Measure both under Chrome's 4× CPU throttle with mobile emulation, then record 
 
 - Start from an OpenFreeMap style and restyle it: muted land and water, low label density, no POI icons (we draw our own), plus a night variant.
 - Draw T lines from GTFS shapes as our own layers, so color, width and order are ours. Draw stations as circles that grow at higher zoom.
+- Line casings stay at least 2 CSS px wide on each side at every zoom where the line draws. A line's 3:1 contrast against roads and parks comes through its casing (section 4, D-054), so a casing that interpolates below a pixel drops it to about 2.5:1.
 - The attribution control stays visible: OpenFreeMap, OpenStreetMap contributors.
 
 ## 11. Imagery and icons

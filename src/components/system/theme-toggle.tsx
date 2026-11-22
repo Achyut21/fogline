@@ -32,7 +32,7 @@ export function ThemeToggle() {
           type="button"
           aria-pressed={hydrated && theme === option.value}
           onClick={() => setTheme(option.value)}
-          className="min-h-11 rounded-sm px-3 text-sm font-semibold text-ink-muted aria-pressed:bg-surface aria-pressed:font-bold aria-pressed:text-ink aria-pressed:shadow-sm"
+          className="min-h-11 rounded-sm px-3 text-base font-semibold text-ink-muted aria-pressed:bg-surface aria-pressed:font-bold aria-pressed:text-ink aria-pressed:shadow-sm"
         >
           {option.label}
         </button>
