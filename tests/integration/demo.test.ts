@@ -51,11 +51,11 @@ describe.skipIf(testUrl === "")("demo copies", () => {
       .from(badgesAwarded)
       .where(eq(badgesAwarded.planId, plan.id));
     expect(badges.map((b) => `${names.get(b.profileId)} ${b.badge}`).sort()).toEqual([
+      "Maya first-in",
+      "Maya long-haul",
+      "Maya planner",
       "Priya on-the-dot",
       "Sam fashionably-late",
-      "You first-in",
-      "You long-haul",
-      "You planner",
     ]);
   });
 
