@@ -9,3 +9,4 @@ export { system } from "./system";
 export { demo } from "./demo";
 export { badges } from "./badges";
 export { howItWorks } from "./how-it-works";
+export { recap } from "./recap";
