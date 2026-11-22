@@ -1,9 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { recap as copy, system } from "@/copy";
 import { recapForPlan } from "@/server/actions/recap";
 import { recapCard } from "@/server/recap-card";
+import { shareFonts } from "@/server/share-fonts";
 import { shareColors as c } from "@/styles/share-colors";
 
 // F9.3: the night recap as a 1080×1350 share image, with the same facts as the recap page. Only
@@ -14,15 +13,6 @@ import { shareColors as c } from "@/styles/share-colors";
 // height (another stat row, bigger chips) clips the badges again.
 
 const size = { width: 1080, height: 1350 };
-const weights = [400, 700, 800] as const;
-const fonts = await Promise.all(
-  weights.map(async (weight) => ({
-    name: "Hanken Grotesk",
-    weight,
-    style: "normal" as const,
-    data: await readFile(join(process.cwd(), `assets/fonts/hanken-grotesk-${weight}.ttf`)),
-  })),
-);
 const oneLine = {
   display: "block",
   overflow: "hidden",
@@ -162,6 +152,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ planId: st
         </div>
       )}
     </div>,
-    { ...size, fonts, headers: { "cache-control": "private, no-store" } },
+    { ...size, fonts: shareFonts, headers: { "cache-control": "private, no-store" } },
   );
 }

@@ -25,6 +25,7 @@ const exempt = [
   "src/styles/share-colors.ts",
   "src/lib/motion.ts",
   "src/app/api/og/recap/[planId]/route.tsx",
+  "src/app/api/og/plan/[planId]/route.tsx",
 ];
 
 function sourceFiles(dir: string): string[] {

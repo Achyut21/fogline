@@ -181,6 +181,7 @@ export async function planByInvite(token: unknown) {
     }),
     startsAt: plan.startsAt.toISOString(),
     status: plan.status,
+    isDemo: plan.isDemo,
     adultsOnly: adultsOnly(stops),
     spot:
       place && !hidden ? { id: place.id, name: place.name, lat: place.lat, lon: place.lon } : null,

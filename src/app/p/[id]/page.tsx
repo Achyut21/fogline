@@ -8,7 +8,24 @@ import { plans } from "@/copy";
 import { planByInvite } from "@/server/actions/plans";
 import { currentProfile } from "@/server/profile";
 
-export const metadata: Metadata = { title: plans.plan.pageTitle, robots: { index: false } };
+const tokenShape = /^[A-HJ-NP-Z2-9]{12}$/;
+
+// The invite link's preview (F4.8): the image route checks the token itself.
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps<"/p/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const { t } = await searchParams;
+  const base: Metadata = { title: plans.plan.pageTitle, robots: { index: false } };
+  if (typeof t !== "string" || !tokenShape.test(t)) return base;
+  const image = { url: `/api/og/plan/${id}?t=${t}`, width: 1200, height: 630 };
+  return {
+    ...base,
+    openGraph: { images: [image] },
+    twitter: { card: "summary_large_image", images: [image] },
+  };
+}
 
 // A plan by its invite link (F4.8): `/p/[planId]?t=[invite_token]`. The token is what grants
 // access; the ID must match it so a link can't be pointed at another plan.
