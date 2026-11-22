@@ -1,0 +1,223 @@
+{
+  "header": {
+    "timestamp": 1795324164,
+    "gtfs_realtime_version": "2.0",
+    "incrementality": "FULL_DATASET"
+  },
+  "entity": [
+    {
+      "id": "R-548CB8D3",
+      "vehicle": {
+        "current_status": "STOPPED_AT",
+        "current_stop_sequence": 70,
+        "multi_carriage_details": [
+          {
+            "label": "1857",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 1
+          },
+          {
+            "label": "1856",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 2
+          },
+          {
+            "label": "1870",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 3
+          },
+          {
+            "label": "1871",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 4
+          },
+          {
+            "label": "1862",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 5
+          },
+          {
+            "label": "1863",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 6
+          }
+        ],
+        "position": {
+          "bearing": 130,
+          "latitude": 42.35648,
+          "longitude": -71.06265
+        },
+        "stop_id": "70075",
+        "timestamp": 1795324125,
+        "trip": {
+          "start_time": "23:51:00",
+          "direction_id": 0,
+          "trip_id": "ADDED-1585097033",
+          "route_id": "Red",
+          "start_date": "20261121",
+          "schedule_relationship": "ADDED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "R-548CB8D3",
+          "label": "1857"
+        }
+      }
+    },
+    {
+      "id": "y3349",
+      "vehicle": {
+        "current_status": "IN_TRANSIT_TO",
+        "current_stop_sequence": 31,
+        "occupancy_percentage": 0,
+        "occupancy_status": "MANY_SEATS_AVAILABLE",
+        "position": {
+          "bearing": 173,
+          "latitude": 42.374474,
+          "longitude": -71.039142
+        },
+        "stop_id": "5736",
+        "timestamp": 1795324160,
+        "trip": {
+          "start_time": "23:46:00",
+          "direction_id": 1,
+          "trip_id": "78532791",
+          "route_id": "116",
+          "start_date": "20261121",
+          "schedule_relationship": "SCHEDULED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "y3349",
+          "label": "3349"
+        }
+      }
+    },
+    {
+      "id": "y1935",
+      "vehicle": {
+        "current_status": "IN_TRANSIT_TO",
+        "occupancy_percentage": 0,
+        "occupancy_status": "MANY_SEATS_AVAILABLE",
+        "position": {
+          "bearing": 0,
+          "latitude": 42.34052,
+          "longitude": -71.05703
+        },
+        "timestamp": 1795324149,
+        "trip": {
+          "trip_id": "BL-12466921",
+          "route_id": "Shuttle-Generic-Red",
+          "schedule_relationship": "ADDED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "y1935",
+          "label": "1935"
+        }
+      }
+    },
+    {
+      "id": "y1251",
+      "vehicle": {
+        "current_status": "IN_TRANSIT_TO",
+        "current_stop_sequence": 37,
+        "occupancy_percentage": 0,
+        "occupancy_status": "MANY_SEATS_AVAILABLE",
+        "position": {
+          "bearing": 321,
+          "latitude": 42.335831,
+          "longitude": -71.090507
+        },
+        "stop_id": "17861",
+        "timestamp": 1795324158,
+        "trip": {
+          "start_time": "23:43:00",
+          "direction_id": 1,
+          "trip_id": "78203194",
+          "route_id": "28",
+          "start_date": "20261121",
+          "schedule_relationship": "SCHEDULED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "y1251",
+          "label": "1251"
+        }
+      }
+    },
+    {
+      "id": "G-10083",
+      "vehicle": {
+        "current_status": "INCOMING_AT",
+        "current_stop_sequence": 160,
+        "multi_carriage_details": [
+          {
+            "label": "3837",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "orientation": "AB",
+            "carriage_sequence": 1
+          },
+          {
+            "label": "3670",
+            "occupancy_status": "NO_DATA_AVAILABLE",
+            "carriage_sequence": 2
+          }
+        ],
+        "position": {
+          "bearing": 135,
+          "latitude": 42.34978,
+          "longitude": -71.10497,
+          "speed": 5.6
+        },
+        "stop_id": "70146",
+        "timestamp": 1795324162,
+        "trip": {
+          "start_time": "23:46:00",
+          "direction_id": 1,
+          "trip_id": "77655904",
+          "route_id": "Green-B",
+          "start_date": "20261121",
+          "schedule_relationship": "SCHEDULED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "G-10083",
+          "label": "3837-3670"
+        }
+      }
+    },
+    {
+      "id": "2036",
+      "vehicle": {
+        "current_status": "STOPPED_AT",
+        "current_stop_sequence": 60,
+        "position": {
+          "latitude": 42.28308868408203,
+          "longitude": -71.39237976074219
+        },
+        "stop_id": "WML-0199-02",
+        "timestamp": 1795324131,
+        "trip": {
+          "start_time": "23:25:00",
+          "direction_id": 1,
+          "trip_id": "JFKAdded-889235-5520",
+          "route_id": "CR-Worcester",
+          "start_date": "20261121",
+          "schedule_relationship": "SCHEDULED",
+          "last_trip": false,
+          "revenue": true
+        },
+        "vehicle": {
+          "id": "2036",
+          "label": "2036"
+        }
+      }
+    }
+  ]
+}
