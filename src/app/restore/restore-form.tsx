@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { onboarding } from "@/copy";
@@ -12,6 +12,7 @@ const r = onboarding.restore;
 
 export function RestoreForm() {
   const [state, action, pending] = useActionState(restoreProfile, { error: null });
+  const [code, setCode] = useState("");
   return (
     <form
       action={action}
@@ -30,8 +31,11 @@ export function RestoreForm() {
         <p className="text-ink-muted">{r.body}</p>
         <label className="flex flex-col gap-2">
           <span className="text-sm font-bold">{r.label}</span>
+          {/* Controlled, so a code that wasn't found stays in the field to fix. */}
           <Input
             name="code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}

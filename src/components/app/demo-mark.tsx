@@ -17,14 +17,10 @@ const subscribe = (onChange: () => void) => {
 };
 const isDemo = () => document.cookie.split("; ").includes("fogline_demo=1");
 
-export function DemoMark() {
-  const demo = useSyncExternalStore(subscribe, isDemo, () => false);
-  if (!demo) return null;
-  return (
-    <div className="pointer-events-none fixed top-0 right-0 z-(--layer-chips) pt-safe pr-4">
-      <div className="pt-2">
-        <DemoChip />
-      </div>
-    </div>
-  );
+export const useDemo = () => useSyncExternalStore(subscribe, isDemo, () => false);
+
+// Rendered in space each screen already reserves (the tab bar, PageHeader, the ride header), so
+// it never covers content.
+export function DemoMark({ className }: { className?: string }) {
+  return useDemo() ? <DemoChip className={className} /> : null;
 }

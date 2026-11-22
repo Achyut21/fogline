@@ -18,6 +18,19 @@ export type Line = (typeof lines)[number];
 
 export const isLine = (route: string): route is Line => lines.some((line) => line === route);
 
+// The line's own color as a fill, for lines and dots drawn in it.
+export const lineFill: Record<Line, string> = {
+  Red: "bg-line-red",
+  Orange: "bg-line-orange",
+  Blue: "bg-line-blue",
+  Green: "bg-line-green",
+  "Green-B": "bg-line-green",
+  "Green-C": "bg-line-green",
+  "Green-D": "bg-line-green",
+  "Green-E": "bg-line-green",
+  Mattapan: "bg-line-red",
+};
+
 const green = "bg-line-green text-line-ink";
 
 // White fails AA on orange, so orange takes --line-ink-orange (DESIGN section 4). Mattapan is red.

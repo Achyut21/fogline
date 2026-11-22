@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isLine } from "@/components/display/line-badge";
+import { FogFallback } from "@/components/map/fog-fallback";
 import { onboarding } from "@/copy";
+import type { CellState } from "@/lib/geo/cells";
 import { haversineM } from "@/lib/geo/distance";
+import { mapLines, mapStations } from "@/server/network";
 import { currentProfile } from "@/server/profile";
 import { schools } from "@/server/schools";
 import { stations } from "@/server/stations";
@@ -27,7 +30,16 @@ const allStations = [...stations]
   .sort((a, b) => a.name.localeCompare(b.name))
   .map((s) => ({ id: s.id, name: s.name }));
 
+// The whole city starts under fog; no cell is uncovered before onboarding.
+const noCells = new Map<string, CellState>();
+
 export default async function WelcomePage() {
   if (await currentProfile()) redirect("/");
-  return <Onboarding schools={choices} allStations={allStations} />;
+  return (
+    <Onboarding
+      schools={choices}
+      allStations={allStations}
+      hero={<FogFallback states={noCells} lines={mapLines} stations={mapStations} />}
+    />
+  );
 }

@@ -224,6 +224,12 @@ test.describe("service worker", () => {
     const url = "/api/mbta/predictions?station=place-kencl";
     const warmup = await page.evaluate((u) => fetch(u).then((r) => r.status), url);
     expect(warmup, "the MBTA feed must answer for this check").toBe(200);
+    // NetworkFirst stores the response after answering, so wait for it before going offline.
+    await expect
+      .poll(() =>
+        page.evaluate((u) => caches.match(new URL(u, location.href).href).then(Boolean), url),
+      )
+      .toBe(true);
     await context.setOffline(true);
     const offline = await page.evaluate(
       (u) =>

@@ -120,14 +120,20 @@ Status: Planned
 
 ## F9. Night recap
 
-Status: Planned
+Status: Built (F9.1 podium, numbers and badges; F9.2's 2D version; F9.3 share image). Routes converging and the cleared fog (rest of F9.1) and the 3D podium (F9.2) not built. Checked on a local build against the test database (2026-11-22, A); not yet on a real phone.
 - **Why:** end the night with a story and a shareable card.
-- **Entry:** automatically when a plan ends, or the plan detail's Recap.
-- **Steps:** podium → numbers → badges → routes converging → Share card.
-- **Edge cases:** 2D fallback; a single attendee; a non-participant opening the link (blocked).
-- **How to demo:** the demo night.
-- **Tests:**
-- **Screenshots:**
+- **Entry:** "See the night's recap" on an ended plan, or `/p/[id]/recap?t=<invite token>`.
+- **Steps:**
+  1. The plan's title, then its day and spot.
+  2. **Who got there first:** the podium rises last to first: 1st in the middle and tallest, 2nd on the left, Last on the right. Then each person's name and arrival time appear.
+  3. **The night in numbers:** new cells uncovered as the big number, then miles on the T, miles walked (labeled "about") and stops, all counting up.
+  4. **Badges** earned that night, with who earned each.
+  5. **Share the recap** (participants only): the share sheet with the image, or a download where the browser can't share files.
+  - The whole sequence takes about 3 s. A tap or key press anywhere shows the final state at once. With reduced motion the final state shows with no animation.
+- **Edge cases:** no check-ins ("Nobody checked in at the spot."); 2 people (no Last); a non-participant holding the link sees the recap without Share; a 21+ spot is hidden from anyone not known to be 21+; demo and real recaps never mix; a plan that hasn't ended shows "No recap yet".
+- **How to demo:** `/demo` → Plans → Friday dinner → See the night's recap.
+- **Tests:** `tests/component/podium.test.tsx` (`[F9.1]`), `tests/component/reveal.test.tsx` (`[F9.2]`), `tests/integration/recap.test.ts`, `tests/integration/recap-image.test.ts`, `tests/unit/recap-card.test.ts`, the end of `tests/e2e/plans.spec.ts` (`[F9.1]`).
+- **Screenshots:** reduced motion at 390×844, final state: `docs/walkthrough/F9/recap-light.jpg`, `docs/walkthrough/F9/recap-dark.jpg`.
 
 ## F10. Crawls and weekly plans
 

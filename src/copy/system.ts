@@ -1,5 +1,6 @@
 export const system = {
-  offlineBanner: "You're offline. Your map and saved plans still work.",
+  offlineBanner:
+    "You're offline. Screens you opened recently still show; the rest needs a connection.",
   stale: (minutes: number) =>
     minutes < 1 ? "Updated just now" : `Updated ${Math.floor(minutes)} min ago`,
   demo: "Demo",
@@ -11,6 +12,7 @@ export const system = {
     title: "You're offline",
     body: "This page isn't saved for offline use. Reconnect, then try again.",
     retry: "Try again",
+    map: "Go to the map",
   },
   error: {
     title: "This page didn't load",

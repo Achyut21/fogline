@@ -31,7 +31,7 @@ function Stop({ letter, result }: { letter: string; result: LetterResult | null 
         result === "correct" && "bg-accent text-accent-ink",
         result === "present" && "border-4 border-accent bg-surface text-ink",
         result === "absent" &&
-          "border-2 border-dashed border-rule bg-surface-sunken text-ink-muted",
+          "border-2 border-dashed border-field-border bg-surface-sunken text-ink-muted",
         result === null && "border-2 border-rule bg-surface text-ink",
       )}
     >
@@ -193,7 +193,8 @@ export function DailyPuzzle({ initial }: { initial: DailyState }) {
                 "size-4 rounded-full",
                 result === "correct" && "bg-accent",
                 result === "present" && "border-4 border-accent",
-                result === "absent" && "border-2 border-dashed border-rule bg-surface-sunken",
+                result === "absent" &&
+                  "border-2 border-dashed border-field-border bg-surface-sunken",
               )}
             />
             {daily.legend[result]}
