@@ -272,6 +272,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 03:50 ET · Builder A · Phase 4 screens, plan builder and plan page (`a/plan-builder`):
+  - `/plans` (upcoming and past), `/plans/new` (friends with stations, start time, kinds of spot → up to 3 fair options with minutes bars, leave-by and no-train warnings, spots → createPlan), `/p/[id]?t=` (spot, people, leave-by for members, Join, invite link, live mode 30 min before the start with countdown, check-in with location and its failure lines, arrival order, End for the organizer).
+  - **Note for B (your file):** `planByInvite` in `src/server/actions/plans.ts` now also returns `inviteToken` (members only), `viewer` (member, organizer), `arrivals` (first valid check-in per person) and per-person `you` and `placeholder`. `src/server/plans.ts` adds `myPlans`.
+  - Tests: `tests/component/plan-builder.test.tsx` (`[F4.6]` `[F4.9]` `[F4.1]` `[F5.3]` `[F5.7]`), e2e `tests/e2e/plans.spec.ts` (Phase 4 gate run: build, create, join in a second context, check in with mocked location, end) 3/3 on desktop-chrome, iphone, pixel.
+  - Not built: F4.7 agent text, F5.4 20/5-minute alerts, F5.6 alerts text, F5.8 .ics, Open Graph images, F6.1 directions to the station.
+
 - 2026-11-22 03:20 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
   - Rebased onto `main` (`7ef3feb`); replay reads shapes through `data.shapes()`. Component test `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`) and the Phase 3 gate e2e `tests/e2e/ride.spec.ts` (seeded Green-D trip, onboarding, sheet → Ride from here → 20× past three stops → summary → stations uncovered; plus End with reduced motion). e2e 15/15 with onboarding and the sheet on desktop-chrome, iphone, pixel; 350 unit/component/integration passed; lint and typecheck clean.
   - Seen at 390×844 in night theme on a local build against the test DB; fixed "1 lines" in the summary.

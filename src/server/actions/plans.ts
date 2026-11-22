@@ -1,11 +1,11 @@
 "use server";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
-import { planParticipants, planStops, plans, profiles } from "@/server/db/schema";
+import { checkins, planParticipants, planStops, plans, profiles } from "@/server/db/schema";
 import { currentProfile } from "@/server/profile";
 
 // Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
@@ -119,6 +119,13 @@ export async function planByInvite(token: unknown) {
     .leftJoin(profiles, eq(profiles.id, planParticipants.profileId))
     .where(eq(planParticipants.planId, plan.id));
   const member = viewer !== null && people.some((p) => p.profileId === viewer.id);
+  // Arrival order (F6.3): each participant's first valid check-in, earliest first.
+  const arrived = await db
+    .select({ profileId: checkins.profileId, ts: sql<Date>`min(${checkins.ts})` })
+    .from(checkins)
+    .where(and(eq(checkins.planId, plan.id), eq(checkins.valid, true)))
+    .groupBy(checkins.profileId)
+    .orderBy(sql`min(${checkins.ts})`);
   const hidden = adultsOnly(stops) && viewer?.ageBand !== "21plus";
   const stations = new Map(data.stations().map((s) => [s.id, s]));
   const stop = stops.at(0);
@@ -127,6 +134,12 @@ export async function planByInvite(token: unknown) {
   return {
     id: plan.id,
     title: plan.title,
+    inviteToken: member ? plan.inviteToken : null,
+    viewer: { member, organizer: viewer !== null && plan.createdBy === viewer.id },
+    arrivals: arrived.flatMap((a) => {
+      const p = people.find((x) => x.profileId === a.profileId);
+      return p?.displayName ? [{ name: p.displayName, at: new Date(a.ts).toISOString() }] : [];
+    }),
     startsAt: plan.startsAt.toISOString(),
     status: plan.status,
     adultsOnly: adultsOnly(stops),
@@ -147,7 +160,17 @@ export async function planByInvite(token: unknown) {
               { station: home.id, at: home },
             )
           : null;
-      return [{ id: p.id, name, rsvp: p.rsvp, station: home?.id ?? null, leaveBy }];
+      return [
+        {
+          id: p.id,
+          name,
+          you: viewer !== null && p.profileId === viewer.id,
+          placeholder: p.profileId === null,
+          rsvp: p.rsvp,
+          station: home?.id ?? null,
+          leaveBy,
+        },
+      ];
     }),
   };
 }
