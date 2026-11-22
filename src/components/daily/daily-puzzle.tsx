@@ -110,13 +110,13 @@ export function DailyPuzzle({ initial }: { initial: DailyState }) {
 
   const press = useCallback(
     (key: string) => {
-      if (over) return;
+      if (over || pending) return;
       if (key === "enter") send();
       else if (key === "delete") setTyped((t) => t.slice(0, -1));
       else if (/^[a-z]$/.test(key)) setTyped((t) => (t.length < 5 ? t + key : t));
       setError(null);
     },
-    [over, send],
+    [over, pending, send],
   );
 
   useEffect(() => {
