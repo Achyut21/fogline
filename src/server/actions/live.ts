@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { checkInValidity, type CheckinResult } from "@/lib/checkin";
 import { revealAround } from "@/lib/geo/cells";
+import { awardNightBadges } from "@/server/badges";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { checkins, planStops, plans, revealedCells } from "@/server/db/schema";
@@ -76,5 +77,6 @@ export async function endPlan(input: unknown) {
     .set({ status: "ended", endedAt: new Date() })
     .where(and(eq(plans.id, planId), eq(plans.createdBy, me), sql`${plans.status} <> 'ended'`))
     .returning({ id: plans.id });
-  return ended.length > 0 ? { kind: "ended" as const } : { kind: "not-allowed" as const };
+  if (ended.length === 0) return { kind: "not-allowed" as const };
+  return { kind: "ended" as const, badges: await awardNightBadges(planId) };
 }
