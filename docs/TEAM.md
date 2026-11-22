@@ -45,6 +45,7 @@ To change a file the other builder owns, first write a note under your Board ent
     3. Right away: `gh workflow run deployment.yml -f url=https://fogline-mu.vercel.app -f sha=<merge sha> -f environment=production`.
     A production deployment's own URL is protected too, and the service-worker and installability tests fail there.
   - PROGRESS and WALKTHROUGH updated.
+  - Until B can deploy on Vercel, B's PRs skip the Vercel preview items. A merges them with `gh pr merge --admin --squash` once CI `check` and code-critic pass, then lands an A-authored docs PR so production deploys, and runs the production check on that deployment (D-052).
 
   Then squash-merge.
 - Database migrations go in their own PR, merged before the code that depends on them. Say so in the handoff.

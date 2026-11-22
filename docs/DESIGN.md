@@ -4,6 +4,32 @@
 
 Approved Claude Design canvas: _(link added at the Phase 1 gate)_
 
+Working canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR (private until A shares it from the page's Share menu).
+
+## Direction (chosen 2026-11-21)
+
+**Choice.** C, "the familiar option": the category standard for map apps, played straight and finished to the level of the apps below. A picked it on 2026-11-21 from three moods on the canvas. B's human confirms it before the Phase 1 gate (D-050).
+
+**How it was chosen.** impeccable `shape` with A: tool first, play in moments, and never cute (`docs/PRODUCT.md`). impeccable's concept roll (seed `eeb14234`) assigned a harbor-chart world and dealt a departure-board challenger. The canvas showed both next to the familiar option, each as map home, ride stop card and recap, day and night, on real renders (MBTA GTFS shapes, OpenFreeMap tiles, H3 fog cells).
+
+**Craft bar.** Apple Maps, Transit and Strava. Every screen is judged against their finish:
+- Apple Maps: a live map with floating cards and sheets that snap.
+- Transit: departure times and line color carry the screen, usable with one thumb.
+- Strava: stats and recaps that make the numbers the reward.
+
+**The world, as drawn on the canvas** (values are starting points until item 5 sets the tokens):
+- **Map:** a muted gray basemap with white roads, a dark variant for night, official line colors with casings, stations as small white dots. Fog is a near-opaque white veil by day and a near-black veil by night over H3 cells. Seen cells are thinner fog, visited cells are clear.
+- **Surfaces:** floating cards (about 20 px radius) and sheets (24 px top corners) with soft shadows over the map. Pills for chips and line letters. Cards only where they float over the map or hold a tile. No cards inside cards.
+- **Color:** cool neutrals and one accent, a teal (about `#0B7A75` by day, `#3BC9BE` by night) for the primary action, the active tab and progress. Line colors only on lines and line badges.
+- **Type:** one grotesque family with tabular figures (Hanken Grotesk on the canvas; impeccable `typeset` confirms or replaces it in item 5). Numbers are the largest type on each screen: the uncovered percent, minutes, leave-by times, recap stats.
+- **Motion:** sheets and cards move like Apple Maps (springs, interruptible). The play lives in the fog reveal, count-ups, the badge award and the recap.
+
+**What still holds from the brief:** the map is the hero, fog is the reward, numbers are the celebration, one primary action per screen, a night theme as good as the day theme, content before 3D. Still avoided: glassmorphism, purple-blue gradients, mascots, a dashboard of same-size cards.
+
+**What changes in the brief:** section 1 asked to avoid "a layout that looks like a template". The humans chose the familiar layout on purpose. Fogline's identity has to come from the fog, the numbers and the copy, not from new chrome.
+
+**Honest risk:** this direction sits closest to existing transit apps. Until the fog lifts or a recap appears, a judge may read it as another maps app. The first-run fog reveal, the ride reveals and the recap carry the identity, so they get the best motion and the most review.
+
 ## 1. Brief (input for impeccable `shape`)
 
 - **Product:** a mobile PWA that turns Boston into a map you uncover by riding the T and going out with friends, with a planner that's fair by T time and gets everyone home on the last train.
@@ -28,7 +54,7 @@ Two themes from the same token set:
 - **Day:** light, fog in warm off-white with grain, a muted basemap.
 - **Night:** deep blue-black, fog in cool gray, a dark basemap, line colors glow slightly.
 
-Default: follow local sunset and sunrise (computed with `suncalc` for Boston), with a manual override in Settings. Phase 1 confirms this or records another decision. Two things to settle: the `theme-color` meta follows the OS dark setting unless it's updated at runtime, and some users need dark mode at all hours.
+Default: follow the OS setting (`prefers-color-scheme`). Settings offers System, Day and Night. An iPhone set to Automatic already switches at sunset, people who need dark mode all day keep it, and the `theme-color` media tags stay correct without runtime work. Only a manual override updates `theme-color` at runtime (D-051). This replaces the earlier `suncalc` default.
 
 ## 4. Tokens (starting values, finalized in Phase 1)
 
