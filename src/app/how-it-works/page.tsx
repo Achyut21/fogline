@@ -52,7 +52,11 @@ export default async function HowItWorksPage() {
             <h2 id="live-heading" className="text-xl font-extrabold tracking-tight">
               {copy.liveHeading}
             </h2>
-            {live && <StaleChip minutes={minutesOld} stale={minutesOld >= staleAfterMinutes} />}
+            {live && (
+              <span className="shrink-0 whitespace-nowrap">
+                <StaleChip minutes={minutesOld} stale={minutesOld >= staleAfterMinutes} />
+              </span>
+            )}
           </div>
           {live === null ? (
             <ErrorState title={copy.liveError.title} body={copy.liveError.body} />
@@ -67,7 +71,7 @@ export default async function HowItWorksPage() {
               <dl className="flex flex-col gap-3 rounded-lg bg-surface p-4 shadow-sm">
                 <div className="flex justify-between gap-3">
                   <dt className="text-sm text-ink-muted">{copy.compression}</dt>
-                  <dd className="text-sm font-bold tabular-nums">
+                  <dd className="shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">
                     {live.numbers.compressionRatio === null
                       ? copy.compressionNone
                       : copy.ratio(live.numbers.compressionRatio)}
@@ -75,7 +79,7 @@ export default async function HowItWorksPage() {
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-sm text-ink-muted">{copy.lastRun}</dt>
-                  <dd className="text-sm font-bold tabular-nums">
+                  <dd className="shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">
                     {live.numbers.lastRecorderRun === null
                       ? copy.lastRunNone
                       : clockDate(live.numbers.lastRecorderRun)}
@@ -86,7 +90,7 @@ export default async function HowItWorksPage() {
                     {copy.solver}
                     <span className="block">{copy.solverNote}</span>
                   </dt>
-                  <dd className="text-sm font-bold tabular-nums">
+                  <dd className="shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">
                     {live.numbers.solverMs === null
                       ? copy.solverNone
                       : copy.milliseconds(live.numbers.solverMs)}

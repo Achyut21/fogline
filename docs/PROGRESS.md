@@ -266,6 +266,28 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 03:20 ET · Builder B · Phase 6, B's parts started early under D-067, on `b/recap` (stacked on #33):
+  - **Recap data (F9.1, F9.4):** `src/server/recap.ts` and `src/server/actions/recap.ts` (`recapForPlan`, `recapByInvite`). The recap holds:
+    - the arrival order, badges (Ghost included) and the night's numbers;
+    - the routes and the fog cleared, for people who checked in only.
+    - Access: members see everything; a token holder sees no routes, since routes start at home stations (F4.8); a bar is hidden from anyone not known to be 21+ (F4.9); demo and real never mix (F16.2).
+    - code-critic: FAIL, then all 3 blocking items fixed.
+  - **Badge copy (F8.5):** `src/copy/badges.ts`, words as COPY.md has them.
+    - First Light is shortened to fit 60 characters for "South Boston Waterfront".
+    - Closest Call under a minute reads "under 1 min to spare".
+    - copy-critic: PASS. The demo person is now Maya, the PRD persona.
+  - **How it works (F15.1, F15.2):** `src/app/how-it-works/`, checked at 390×844 in both themes.
+    - Live counts, compression, the last train recorded, the solver time and every data source with COPY.md's exact legal lines.
+    - Loading skeleton, a stale age chip, and the last numbers or an error when the database fails (the sources still show). Online-only: it reads live data.
+    - design-critic FAIL and copy-critic FAIL; the blocking items are fixed (states, legal lines).
+  - Ghost no longer shows on Me (DATA 3.10).
+  - Tests: recap, badge copy and How it works, 346 passing. The one failure is A's Windows-only token test.
+  - **For A:**
+    - Link How it works from Me (WALKTHROUGH F15 says "linked from Me and the footer").
+    - BottomNav scrolls away on long pages and has no current tab here; your shell's call.
+    - Build the recap page from `recapForPlan` or `recapByInvite`.
+    - `tests/unit/design-tokens.test.ts` exempt paths fail on Windows (backslashes).
+  - Next: the recap share image `/api/og/recap/[planId]` (F9.3).
 - 2026-11-22 02:05 ET · Builder A · Phase 3 item 3, F2.5 station sheet ([#34](https://github.com/Achyut21/fogline/pull/34), `a/station-sheet`):
   - Built: `/api/mbta/predictions` (TripUpdates parsed to subway revenue trips, one fetch per 5 s for every station, last good copy with its age on failure, failures remembered for 5 s), a network-first service-worker rule for `/api/mbta/*`, TanStack Query scoped to the map, and the StationSheet (lines, minutes by T from home, trains by line direction, stale chip, stop card once uncovered, 3 nearest spots with the F1.5 rule, all states). Opens from the map and the list. `next.config.ts` traces `data/*.json` for B's runtime reads. DATA 3.13, D-068, WALKTHROUGH F2.
   - code-critic: FAIL, 3 BLOCKING (terminal track IDs like `Alewife-01` hid the train on the platform; the per-direction cap was shared across lines, hiding the Red Line at Park Street; departed trains read "Now" on old data), all fixed. Re-check PASS; its two SHOULD FIX (a body cut off mid-read gave a 500; a hanging feed was retried by most requests) fixed with tests that fail on the old code.
