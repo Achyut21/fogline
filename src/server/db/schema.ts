@@ -4,14 +4,17 @@ import {
   boolean,
   check,
   date,
+  doublePrecision,
   index,
   jsonb,
   pgTable,
   primaryKey,
+  real,
   smallint,
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
@@ -25,6 +28,7 @@ export const minGrades = ["A", "B"] as const;
 export const rsvps = ["pending", "yes", "no"] as const;
 export const cellStates = ["seen", "visited"] as const;
 export const cellSources = ["home", "ride", "checkin", "puzzle"] as const;
+export const rideEventKinds = ["board", "pass", "alight", "on_train"] as const;
 
 /** One list feeds both the column's type and its check constraint. */
 function oneOf(name: string, column: AnyPgColumn, values: readonly string[]) {
@@ -34,6 +38,7 @@ function oneOf(name: string, column: AnyPgColumn, values: readonly string[]) {
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const isDemo = () => boolean("is_demo").notNull().default(false);
+const ts = () => timestamp("ts", { withTimezone: true }).notNull();
 
 export const profiles = pgTable(
   "profiles",
@@ -193,3 +198,90 @@ export const aiCache = pgTable("ai_cache", {
   output: jsonb("output").notNull(),
   createdAt: createdAt(),
 });
+
+// Hypertables. Drizzle owns their columns, and drizzle/0003_hypertables.sql turns them into
+// hypertables with policies. Their foreign keys cascade like the regular tables, so deleting a
+// profile also deletes its rows here, compressed chunks included (D-019, D-053).
+
+export const vehiclePositions = pgTable(
+  "vehicle_positions",
+  {
+    ts: ts(),
+    vehicleId: text("vehicle_id").notNull(),
+    tripId: text("trip_id"),
+    routeId: text("route_id").notNull(),
+    directionId: smallint("direction_id"),
+    stopId: text("stop_id"),
+    currentStatus: text("current_status"),
+    lat: doublePrecision("lat").notNull(),
+    lon: doublePrecision("lon").notNull(),
+    bearing: real("bearing"),
+    occupancy: jsonb("occupancy"),
+  },
+  (t) => [
+    index("vehicle_positions_trip_ts").on(t.tripId, t.ts.desc()),
+    uniqueIndex("vehicle_positions_vehicle_ts").on(t.vehicleId, t.ts),
+  ],
+);
+
+export const checkins = pgTable(
+  "checkins",
+  {
+    ts: ts(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "cascade" }),
+    placeId: text("place_id").notNull(),
+    lat: doublePrecision("lat").notNull(),
+    lon: doublePrecision("lon").notNull(),
+    accuracyM: real("accuracy_m").notNull(),
+    valid: boolean("valid").notNull(),
+    isDemo: isDemo(),
+  },
+  (t) => [
+    index("checkins_plan_ts").on(t.planId, t.ts.desc()),
+    index("checkins_profile_ts").on(t.profileId, t.ts.desc()),
+  ],
+);
+
+export const rideEvents = pgTable(
+  "ride_events",
+  {
+    ts: ts(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id").references(() => plans.id, { onDelete: "set null" }),
+    tripId: text("trip_id"),
+    routeId: text("route_id").notNull(),
+    stopId: text("stop_id"),
+    event: text("event", { enum: rideEventKinds }).notNull(),
+    isReplay: boolean("is_replay").notNull().default(false),
+    isDemo: isDemo(),
+  },
+  (t) => [
+    oneOf("ride_events_event", t.event, rideEventKinds),
+    index("ride_events_profile_ts").on(t.profileId, t.ts.desc()),
+    index("ride_events_plan_ts").on(t.planId, t.ts.desc()),
+  ],
+);
+
+export const noiseReadings = pgTable(
+  "noise_readings",
+  {
+    ts: ts(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    routeId: text("route_id").notNull(),
+    fromStopId: text("from_stop_id").notNull(),
+    toStopId: text("to_stop_id").notNull(),
+    dbAvg: real("db_avg").notNull(),
+    dbPeak: real("db_peak").notNull(),
+    isDemo: isDemo(),
+  },
+  (t) => [index("noise_readings_profile_ts").on(t.profileId, t.ts.desc())],
+);

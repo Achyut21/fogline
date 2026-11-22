@@ -217,12 +217,30 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 21:50 ET · Builder B · Phase 2 item 2b, hypertables, on `b/schema-hypertables` (migrations `0002_hypertable_columns` and `0003_hypertables`, its own PR, stacked on 2a):
+  - `vehicle_positions`, `checkins`, `ride_events` and `noise_readings` as hypertables with foreign keys, columnstore and retention policies, and three continuous aggregates with refresh policies (D-053).
+  - Tests: 11 integration tests.
+    - The four hypertables are listed (the gate's check).
+    - Each compression and retention interval, segmentby and orderby. Each aggregate's refresh window.
+    - `[F16.2]` check-ins per New York day without demo rows, including the night the clocks fell back.
+    - A manual refresh materializes the days. Distinct vehicles per 5 minutes, and duplicate samples rejected.
+    - `[F13.2]` noise per segment and hour without demo readings. `[F3.8]` the four event kinds.
+    - Rows for a missing profile are refused. A profile delete cascades through compressed chunks of all three tables. A plan delete drops its check-ins and keeps ride events.
+  - code-critic: PASS with 6 SHOULD FIX, all fixed before 0002 and 0003 were applied anywhere:
+    - refresh windows of days, since a 1-hour window would lose data after a stall;
+    - unsegmented `checkins` (0.97 compression ratio before);
+    - foreign keys on the hypertables;
+    - noise and event tests that can fail;
+    - a refresh test;
+    - the replay retention consequence.
+    Its nits are fixed too: `is_demo` on noise readings, a unique `(vehicle_id, ts)`, date-bounded reads, a segmentby check, a fall-back test, and delete-versus-aggregate notes.
+  - Second pass: PASS. Its nits are fixed: a check-in at 00:30 EDT on the fall-back day, the recorder's `ts` rule, the trigger count note, a plan delete through compressed chunks, the migration comment and the delete list in ARCHITECTURE.
+  - Next: B applies `0002` and `0003` to `fogline-db` after the PR merges, then checks `timescaledb_information.hypertables`.
 - 2026-11-21 20:18 ET · Builder A · Merged B's #12, #13 and #14 (D-052); canvas round 2 started:
   - #12 (Phase 2 plan) and #13 (time, geo, H3 helpers) merged after A's merge commits cleared PROGRESS and DECISIONS conflicts; A's head commit let Vercel build their previews. #14 (core tables) admin-merged after its CI passed.
   - None of the three B-authored squash commits deployed to production ("Deployment failed"). `--author-email` didn't change the author. This PR is the A-authored commit that brings production up to date (D-052).
   - Canvas round 2, Onboarding page: welcome, school, home station, age, first fog reveal, restore (wrong-code error in night). One local render pass; the day burn-off ring was invisible and is now accent-tinted.
   - Next: canvas Map and Ride pages.
-
 - 2026-11-21 20:15 ET · Builder B · Phase 2 item 2a, core tables, on `b/schema-tables` (migration `0001_core_tables`, its own PR):
   - Nine regular tables from ARCHITECTURE section 6: profiles, plans, plan_participants, plan_stops, revealed_cells, badges_awarded, daily_puzzles, puzzle_results, ai_cache. Rules in D-049.
   - Tests: 7 integration tests on a scratch TimescaleDB. `[F8.6]` explorer and night badges once each. Every allowed value accepted and one outside value rejected per check. Plan end and puzzle-solved pairs stay in step. Seat rules. A profile delete keeps shared plans with an empty seat.

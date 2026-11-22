@@ -314,3 +314,29 @@ Consequences:
 - Stacked PRs: retarget the child to `main` before deleting the parent's branch. Deleting it closed #13, which had to be reopened.
 - Merge conflicts still block an admin merge. B rebases B's own branches. A resolved #12 and #13 with merge commits on B's branches (no force-push).
 - B applies B's own migrations to `fogline-db` after they merge, from B's terminal.
+
+**D-053 · 2026-11-21 · Hypertables, aggregates and policies (Phase 2 item 2b).**
+Decision:
+- Drizzle defines the four hypertables' columns (migration `0002_hypertable_columns`), and custom SQL (`0003_hypertables`) converts them with `create_hypertable(..., by_range('ts', ...))`. Chunks are 1 day for `vehicle_positions` and 7 days for the others.
+- The hypertables have foreign keys. `profile_id` cascades from `profiles` on `checkins`, `ride_events` and `noise_readings`. `checkins.plan_id` cascades from `plans`, and `ride_events.plan_id` is set to null.
+- `vehicle_positions` is unique on `(vehicle_id, ts)`, so a recorder run that Vercel Cron delivers twice adds nothing. This works only when the recorder stores the feed's per-vehicle `timestamp` as `ts`, not its own fetch time, and inserts with `on conflict do nothing`.
+- `noise_readings` gets `is_demo`, like `checkins` and `ride_events`.
+- Compression uses the columnstore with `add_columnstore_policy`. `vehicle_positions` compresses after 1 day, segmented by `route_id`. `ride_events` compresses after 7 days by `profile_id`, `noise_readings` after 7 days by `route_id`, and `checkins` after 7 days unsegmented. All are ordered by `ts DESC`. `vehicle_positions` is dropped after 30 days.
+- Continuous aggregates, created `WITH NO DATA` with real-time aggregation on:
+  - `vehicle_activity_5m`: distinct vehicles and samples per route per 5 minutes. It refreshes every 5 minutes over the last 2 days.
+  - `checkins_daily`: check-ins and valid check-ins per New York day, demo rows excluded. Hourly over the last 7 days.
+  - `segment_noise_hourly`: average, peak and count per segment per hour, demo rows excluded. Hourly over the last 7 days.
+- `ride_events` has a check for `board`, `pass`, `alight` and `on_train`, and an index on `(plan_id, ts)` for live-plan status.
+Why:
+- Drizzle applies every pending migration in one transaction, where creating an aggregate `WITH DATA` fails.
+- Real-time aggregation adds rows newer than the last refresh, which F15.2 needs. It doesn't add older rows that a refresh skipped. With a window of hours, a stalled scheduler would have left a permanent hole; a refresh only recomputes changed ranges, so a window of days costs little.
+- code-critic measured `checkins` segmented by `plan_id` at a 0.97 compression ratio, larger than uncompressed, against 4.0 unsegmented. Version 2.32 builds bloom filters on `plan_id` and `profile_id` from the existing indexes, so lookups stay fast.
+- Without foreign keys, a deleted person's still-signed cookie (D-020) could write rows for a profile that no longer exists, and nothing would ever delete them. With them, deleting a profile (F1.7, demo cleanup) cascades, compressed chunks included, on TimescaleDB 2.32.
+- New York days match how the app shows dates. Demo rows stay out of real stats (F16.2, D-045).
+Consequences:
+- The integration test pauses the scratch database's jobs, reads the aggregates in real time, and runs one manual refresh.
+- Deletes older than a refresh window (delete my data) don't reach the aggregates. Those hold only anonymous counts and averages.
+- `recordNoise` refuses replays (F3.5). Its readings would describe a recorded trip, not a ride.
+- Retention drops `vehicle_positions` after 30 days, so the demo's recorded replay (F3.5, F16.1) must be exported to `data/` or a seed outside retention when it's recorded (Phase 3 recorder, Phase 5 demo).
+- TimescaleDB copies each foreign key onto every chunk, so each chunk adds triggers on `profiles` and `plans`: about 300 and 200 after a year of 7-day chunks. They fire only when a profile or plan is deleted. 7-day chunks are kept so compression after 7 days stays meaningful.
+- The Phase 2 gate checks `timescaledb_information.hypertables` on `fogline-db` after B applies `0002` and `0003`.
