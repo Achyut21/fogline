@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/record-vehicles",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-demo",
+      "schedule": "0 * * * *"
     }
   ]
 }

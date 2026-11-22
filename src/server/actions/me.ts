@@ -1,14 +1,10 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
-import { z } from "zod";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { CellState } from "@/lib/geo/cells";
-import { bostonShare, regionSchema, regionShares } from "@/lib/geo/regions";
+import { bostonShare, regionShares } from "@/lib/geo/regions";
 import { live, stationIndex, stationsVisited } from "@/lib/rides";
 import { linesRidden, milesOnT, nightsOut, stopsCount } from "@/lib/stats";
-import { shapeLineSchema } from "@/lib/gtfs/types";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { badgesAwarded, checkins, plans, revealedCells, rideEvents } from "@/server/db/schema";
@@ -17,18 +13,13 @@ import { sessionProfileId } from "@/server/session";
 // The Me screen's numbers for the prototype (F8.3, D-067): lifetime stats from the profile's
 // rows, its badges, and how much of Boston it has uncovered.
 
-const read = (name: string): unknown =>
-  JSON.parse(readFileSync(path.join(process.cwd(), "data", name), "utf8"));
-let regions: z.infer<typeof regionSchema>[] | null = null;
-let shapes: z.infer<typeof shapeLineSchema>[] | null = null;
-
 export async function myStats() {
   const id = await sessionProfileId();
   if (!id) return null;
-  regions ??= z.array(regionSchema).parse(read("neighborhoods-h3.json"));
-  shapes ??= z.array(shapeLineSchema).parse(read("shapes.json"));
+  const regions = data.regions();
+  const shapes = data.shapes();
   const db = getDb();
-  const [cells, rides, mine, badges, ended] = await Promise.all([
+  const [cells, rides, mine, badges] = await Promise.all([
     db.select().from(revealedCells).where(eq(revealedCells.profileId, id)),
     db.select().from(rideEvents).where(eq(rideEvents.profileId, id)),
     db.select().from(checkins).where(eq(checkins.profileId, id)),
@@ -41,8 +32,15 @@ export async function myStats() {
       .from(badgesAwarded)
       .where(eq(badgesAwarded.profileId, id))
       .orderBy(desc(badgesAwarded.awardedAt)),
-    db.select({ id: plans.id }).from(plans).where(eq(plans.status, "ended")),
   ]);
+  const myPlans = [...new Set(mine.map((c) => c.planId))];
+  const ended =
+    myPlans.length === 0
+      ? []
+      : await db
+          .select({ id: plans.id })
+          .from(plans)
+          .where(and(eq(plans.status, "ended"), inArray(plans.id, myPlans)));
   const states = new Map<string, CellState>(cells.map((c) => [c.h3, c.state]));
   const events = live(rides);
   const stations = data.stations();

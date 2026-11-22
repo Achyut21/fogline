@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     log.error("record-vehicles: feed answered", new Error(String(response.status)));
     return NextResponse.json({ error: "feed unavailable" }, { status: 502, headers });
   }
-  const rows = vehicleRows(await response.json());
+  const { rows, skipped } = vehicleRows(await response.json());
   const inserted =
     rows.length === 0
       ? []
@@ -32,6 +32,10 @@ export async function GET(request: NextRequest) {
           .values(rows)
           .onConflictDoNothing()
           .returning({ ts: vehiclePositions.ts });
-  log.info("record-vehicles stored positions", { seen: rows.length, stored: inserted.length });
+  log.info("record-vehicles stored positions", {
+    seen: rows.length,
+    stored: inserted.length,
+    skipped,
+  });
   return NextResponse.json({ seen: rows.length, stored: inserted.length }, { headers });
 }

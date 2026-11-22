@@ -116,7 +116,8 @@ This is the shared status board for both builders. Update it after every finishe
 
 ### Builder B
 - **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-067) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
-- **Next:** when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
+- **Now (00:45):** demo seed and How it works numbers are built on `b/demo-seed`, under review. Waiting on B's human for migrations 0002 and 0003.
+- **Next:** fix review findings and open the `b/demo-seed` PR; when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
 - **Earlier plan (Phase 2):** approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
   1. **Time, geo and H3 helpers** (`b/time-geo`; F2.1, F2.4, F3.3, F4.5, F5.1, F6.3, F7.3)
      - `src/lib/time.ts`: New York clock time to and from GTFS service-day seconds (noon minus 12 h, times past 24:00:00), the service date of a moment, day type and hour bucket.
@@ -279,6 +280,37 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Logged from code-critic for later: the map ignores fog changes after load unless `revealAt` changes; the first-reveal card comes back on every visit; 110 KB of line shapes ride in every home response; MapLibre's controls inside the map region need an axe pass on `/`; the list collapses seen and visited; the SVG fallback ignores the home center; List → Map remounts the renderer and its probe WebGL context; `/` has no offline banner, no catch on the MapLibre chunk and no `loading.tsx`; `mapData` has no direct test; theme flips don't restyle the map.
   - **For B (blocking the recorder):** production logs show `/api/cron/record-vehicles` failing every minute with `relation "vehicle_positions" does not exist`. Migrations 0002 and 0003 aren't on `fogline-db` yet. Apply them: `MIGRATE_DATABASE_URL=<pooled fogline-db URL> pnpm db:migrate`, then check `timescaledb_information.hypertables`.
 
+- 2026-11-22 00:45 ET · Builder B · Prototype track (D-067) on `b/demo-seed`, from `main` after A merged #31:
+  - `src/server/demo.ts`: `seedDemo(db)`, B's half of demo mode (F16.1, F16.2).
+    - Every `/demo` visit gets its own flagged copy: the visitor, plus Priya at Harvard and Sam at Tufts.
+    - The copy holds last Friday's dinner, planned by the real fair solver, with check-ins and the cleared fog.
+    - Badges come from the real rules: First In, Fashionably Late, On the Dot, Planner.
+  - `cleanupDemo` with `/api/cron/cleanup-demo` (hourly, `CRON_SECRET`): deletes copies older than 24 hours and never touches real profiles.
+  - `src/server/how-it-works.ts`: `cachedHowItWorks(db)` for F15.1 and F15.2, cached 60 s.
+    - Row counts for the four hypertables, without demo rows.
+    - The compression ratio, the last recorder run, and the fair solver's time.
+  - `awardNightBadges` takes a database handle.
+  - Tests: 5 integration tests against the test database (two copies isolated, badges present, cleanup only of expired demo rows, counts without demo rows, the 60 s cache).
+  - Reviews (one pass each, D-067):
+    - #31's server code: PASS.
+    - Demo seed: PASS.
+    - How it works: FAIL. The solver timer counted data loading, so the first load showed ~256 ms for a ~20 ms solve.
+  - Fixed:
+    - A demo visitor's plans and check-ins carry `is_demo`, so they stay out of real stats (F16.2).
+    - `endPlan` awards badges again on retry.
+    - `myStats` reads only the profile's own plans, and every data file goes through `src/server/data.ts`.
+    - The recorder skips a bad train instead of losing the minute.
+    - The solver is timed warm, as the median of 3 runs on next Friday's plan, and reports null if the run finds no options.
+    - Demo names live in `src/copy/demo.ts`.
+    - Tests now check who gets each badge (the visitor also earns Long Haul from BU), that real plans and check-ins survive cleanup, demo rows in every hypertable, and a real columnstore ratio.
+  - Second review of the fix commit (asked for by B's human): FAIL. `joinPlan` let demo and real plans mix: a real student in a demo plan would lose their check-ins at cleanup, and a demo profile in a real plan would count in real stats.
+    - Fixed: `joinPlan` refuses across the demo/real line.
+    - Also fixed: a second End tap keeps the first end time, and `myStats` skips the query without check-ins.
+    - New tests: `[F16.2]` both directions, `[F6.4] [F8.6]` creator-only end and no duplicate badges, `[F8.3]` nights out, and next-Friday timing across clock changes (runs without a database).
+  - Deferred (prototype): the puzzle is stateless until `puzzle_results` is stored, so the six-guess limit is client-side for now.
+  - **For A:** `solverMs` is null when the timed plan finds no options. The How it works page needs a string for that case.
+  - **For A:** `tests/unit/design-tokens.test.ts` fails on Windows only. `path.relative` returns backslashes, so the `exempt` prefixes never match. Using `path.posix` or normalizing separators would fix it.
+  - **For A:** `/demo` calls `seedDemo(getDb())` and then `startSession(profileId)`. Also needed from A: the Demo chip, the How it works page reading `cachedHowItWorks(getDb())`, and the data-source credits in `src/copy`.
 - 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:
   - **#29 onboarding:** squash `28babbf`. Preview check (run 44989873205) and production check (run 44990097301) passed. Merging it ships D-065 (restore without a rate limit); A's sign-off is still open.
   - **#31 core loop, with #30's station cards:** admin squash `f61e868` (D-052). The Phase 2 commits under #30 were already on `main` through #16, so A merged `main` into `b/core-loop` keeping `main`'s side (`1ce35a5`). #30 is closed as included.

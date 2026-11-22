@@ -3,7 +3,7 @@ import { nightAwards } from "@/lib/badges";
 import { travelTime } from "@/lib/solver/travel";
 import { dayTypeOf, hourBucketOf, toServiceTime } from "@/lib/time";
 import { data } from "@/server/data";
-import { getDb } from "@/server/db/client";
+import { getDb, type Db } from "@/server/db/client";
 import {
   badgesAwarded,
   checkins,
@@ -17,8 +17,7 @@ import {
  * Computes an ended plan's night badges and stores them once each (F8.1, F8.6). Closest Call
  * needs last-train data and the later cron run (D-063), so the prototype awards the rest.
  */
-export async function awardNightBadges(planId: string): Promise<number> {
-  const db = getDb();
+export async function awardNightBadges(planId: string, db: Db = getDb()): Promise<number> {
   const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
   if (!plan) return 0;
   const stops = await db

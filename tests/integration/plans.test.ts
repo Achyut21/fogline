@@ -1,12 +1,13 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { checkIn } from "@/server/actions/live";
+import { checkIn, endPlan } from "@/server/actions/live";
+import { myStats } from "@/server/actions/me";
 import { findMeetup } from "@/server/actions/core-loop";
 import { createPlan, joinPlan, planByInvite } from "@/server/actions/plans";
 import { data } from "@/server/data";
 import { createDb, type Db } from "@/server/db/client";
-import { checkins, profiles } from "@/server/db/schema";
+import { badgesAwarded, checkins, plans, profiles } from "@/server/db/schema";
 import { insertProfile } from "@/server/profile";
 import { stationById } from "@/server/stations";
 import { createScratchDatabase } from "./scratch-database";
@@ -138,5 +139,73 @@ describe.skipIf(testUrl === "")("plan Server Actions", () => {
       under21: false,
     });
     expect(result.kind).not.toBe("options");
+  });
+
+  async function demoProfile(name: string) {
+    const row = await profile(name, "21plus");
+    await db.update(profiles).set({ isDemo: true }).where(eq(profiles.id, row.id));
+    return { ...row, isDemo: true };
+  }
+
+  it("[F16.2] flags a demo creator's plan and check-in, and keeps demo and real plans apart", async () => {
+    if (!cafe) throw new Error("no all-ages spot");
+    const judge = await demoProfile("Judge");
+    session.viewer = judge;
+    const made = await createPlan({
+      title: "Demo",
+      startsAt: new Date().toISOString(),
+      friends: [],
+      stop: { placeId: cafe.id, stationId: cafe.stations[0].id },
+    });
+    if (made.kind !== "created") throw new Error(`expected created, got ${made.kind}`);
+    const [demoPlan] = await db.select().from(plans).where(eq(plans.id, made.id));
+    expect(demoPlan.isDemo).toBe(true);
+    await checkIn({ planId: made.id, lat: cafe.lat, lon: cafe.lon, accuracyM: 10 });
+    const rows = await db.select().from(checkins).where(eq(checkins.planId, made.id));
+    expect(rows.map((r) => r.isDemo)).toEqual([true]);
+
+    session.viewer = people.stranger;
+    expect(await joinPlan(made.inviteToken)).toEqual({ kind: "not-found" });
+    const real = await planAt(cafe);
+    session.viewer = judge;
+    expect(await joinPlan(real.inviteToken)).toEqual({ kind: "not-found" });
+  });
+
+  it("[F6.4] [F8.6] lets only the creator end a plan, and ending again adds no badges", async () => {
+    if (!cafe) throw new Error("no all-ages spot");
+    const { id } = await planAt(cafe);
+    session.viewer = people.adult;
+    await checkIn({ planId: id, lat: cafe.lat, lon: cafe.lon, accuracyM: 10 });
+    session.viewer = people.stranger;
+    expect(await endPlan({ planId: id })).toEqual({ kind: "not-allowed" });
+    session.viewer = people.adult;
+    expect((await endPlan({ planId: id })).kind).toBe("ended");
+    const [ended] = await db.select().from(plans).where(eq(plans.id, id));
+    const first = await db.select().from(badgesAwarded).where(eq(badgesAwarded.planId, id));
+    expect(first.length).toBeGreaterThan(0);
+    expect(await endPlan({ planId: id })).toEqual({ kind: "ended", badges: 0 });
+    const [again] = await db.select().from(plans).where(eq(plans.id, id));
+    expect(again.endedAt).toEqual(ended.endedAt);
+    expect(await db.select().from(badgesAwarded).where(eq(badgesAwarded.planId, id))).toHaveLength(
+      first.length,
+    );
+  });
+
+  it("[F8.3] counts nights out only from ended plans the profile checked in at", async () => {
+    if (!cafe) throw new Error("no all-ages spot");
+    const fresh = await profile("Noor", "21plus");
+    session.viewer = fresh;
+    expect((await myStats())?.nightsOut).toBe(0);
+    const mine = await createPlan({
+      title: "Mine",
+      startsAt: new Date().toISOString(),
+      friends: [],
+      stop: { placeId: cafe.id, stationId: cafe.stations[0].id },
+    });
+    if (mine.kind !== "created") throw new Error(`expected created, got ${mine.kind}`);
+    await checkIn({ planId: mine.id, lat: cafe.lat, lon: cafe.lon, accuracyM: 10 });
+    expect((await myStats())?.nightsOut).toBe(0);
+    await endPlan({ planId: mine.id });
+    expect((await myStats())?.nightsOut).toBe(1);
   });
 });

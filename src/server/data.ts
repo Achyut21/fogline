@@ -3,7 +3,8 @@ import path from "node:path";
 import { z } from "zod";
 import { cardSchema } from "@/lib/cards";
 import { eventSchema, wordsFileSchema } from "@/lib/events";
-import { graphSchema, stationSchema, timetableSchema } from "@/lib/gtfs/types";
+import { regionSchema } from "@/lib/geo/regions";
+import { graphSchema, shapeLineSchema, stationSchema, timetableSchema } from "@/lib/gtfs/types";
 import { placeSchema } from "@/lib/places/types";
 
 // The committed data files (ARCHITECTURE section 7), read once per server instance. Server-only:
@@ -26,5 +27,7 @@ export const data = {
   places: load("places.json", z.array(placeSchema)),
   events: load("events.json", z.array(eventSchema)),
   words: load("words.json", wordsFileSchema),
+  shapes: load("shapes.json", z.array(shapeLineSchema)),
+  regions: load("neighborhoods-h3.json", z.array(regionSchema)),
   cards: load("station-cards.json", z.array(cardSchema)),
 };
