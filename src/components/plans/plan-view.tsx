@@ -62,6 +62,7 @@ export function PlanView({
   const [pending, start] = useTransition();
   const [checkInLine, setCheckInLine] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [primer, setPrimer] = useState(false);
   const clock = useSyncExternalStore(signedIn ? tick : noop, now, () => null);
 
   const startsAt = new Date(plan.startsAt);
@@ -107,6 +108,15 @@ export function PlanView({
     }
     await navigator.clipboard.writeText(url);
     toast(p.copied);
+  }
+
+  // The primer explains the location request before the browser asks (F1.4), until it's granted.
+  async function startCheckIn() {
+    const state = navigator.permissions
+      ? (await navigator.permissions.query({ name: "geolocation" })).state
+      : "prompt";
+    if (state === "granted") void checkInHere();
+    else setPrimer(true);
   }
 
   async function checkInHere() {
@@ -222,9 +232,30 @@ export function PlanView({
               </span>
               <Countdown to={countdownTo} className="text-4xl font-extrabold tracking-tight" />
             </div>
-            <Button size="lg" disabled={checking} onClick={checkInHere}>
-              {checking ? p.checkingIn : p.checkIn}
-            </Button>
+            {primer ? (
+              <div
+                role="dialog"
+                aria-labelledby="primer"
+                className="flex flex-col gap-2 rounded-md bg-surface-sunken p-4"
+              >
+                <h3 id="primer" className="font-extrabold">
+                  {p.primer.title}
+                </h3>
+                <p className="text-sm">{p.primer.body}</p>
+                <Button
+                  onClick={() => {
+                    setPrimer(false);
+                    void checkInHere();
+                  }}
+                >
+                  {p.primer.continue}
+                </Button>
+              </div>
+            ) : (
+              <Button size="lg" disabled={checking} onClick={startCheckIn}>
+                {checking ? p.checkingIn : p.checkIn}
+              </Button>
+            )}
             {checkInLine && (
               <p role="status" className="text-sm font-semibold">
                 {checkInLine}

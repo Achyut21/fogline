@@ -56,6 +56,11 @@ export const plans = {
     leaveIn: "Leave in",
     startsIn: "Starts in",
     checkIn: "Check in",
+    primer: {
+      title: "Fogline needs your location to check you in",
+      body: "It's read once, now, to confirm you're within 150 m of the spot. Fogline saves this check-in's position and time, nothing else, and never tracks you.",
+      continue: "Continue",
+    },
     checkingIn: "Checking your location",
     checkedIn: "You're checked in. The fog around this spot is gone.",
     checkInResult: {
