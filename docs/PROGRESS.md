@@ -217,6 +217,15 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 21:34 ET · Builder B · Phase 2 item 7, neighborhoods, on `b/neighborhoods` (stacked on `b/places-grades`):
+  - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-058).
+  - `src/lib/geo/regions.ts`: region lookup, each region's uncovered share, and Boston's share as the union of its neighborhoods (F2.4).
+  - A second run produced a byte-identical file.
+  - Tests: 7 unit tests.
+    - `[F2.4]` polygon fill, holes and multipolygons, the first region keeping a shared cell.
+    - Region shares, Boston's union, Beyond.
+    - The committed file: 26 neighborhoods and 3 cities, each cell once, Park Street inside a region.
+  - Next: code-critic, then item 8 (events, words and puzzle).
 - 2026-11-21 21:31 ET · Builder B · Phase 2 item 6, places and grades, on `b/places-grades` (stacked on `b/fair-solver`):
   - `pnpm data:places` writes `data/places.json`: 2,327 named spots within 600 m walking of a station, from 5,154 OSM elements (data of 2026-11-22T02:19Z).
     - By category: food 1,341, coffee 320, park 290, bar 162, culture 154, dessert 43, club 17.

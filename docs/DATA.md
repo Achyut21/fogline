@@ -15,7 +15,7 @@
 | OpenStreetMap via Overpass: `https://overpass-api.de/api/interpreter` | no key, rate-limited | verify usage limits | places near stations (food, bars, activities) | ODbL; credit "© OpenStreetMap contributors" |
 | Wikipedia API (geosearch, extracts, page images) and Wikimedia Commons (`imageinfo` + `extmetadata`) | no key | verify | stop-card facts and photos | text CC BY-SA; images per file license; show author and license |
 | OpenFreeMap tiles and styles (`https://tiles.openfreemap.org/styles/liberty`) | no key | verify | basemap | credit OpenFreeMap and OpenStreetMap contributors |
-| Cambridge and Somerville open data portals | no key | verify | neighborhood boundaries outside Boston (fallback: treat each city as one region) | per portal |
+| US Census TIGERweb (`tigerweb.geo.census.gov`, county subdivisions) | no key | checked | Cambridge, Somerville and Brookline boundaries, each one region | public domain (US government); credit "US Census Bureau" |
 | Gemini API (Google AI Studio) | key | key created | text, vision, Maps grounding (free on 2.5 Flash as of 2026-11-20; verify) | Google terms |
 
 Show every credit on `/how-it-works` and in the map's attribution control. Add "Not affiliated with the MBTA."
@@ -42,7 +42,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
    - Add one nearby spot, preferring grade A and varying the category.
 
    Write `station-cards.json` with source URLs, then list the cards for the demo lines in `PROGRESS.md` for a human check.
-5. **`data:neighborhoods`.** Fill boundaries with H3 resolution-9 cells into `neighborhoods-h3.json` (Boston neighborhoods, plus Cambridge, Somerville and Brookline as regions; cells outside these go into a region called "Beyond").
+5. **`data:neighborhoods`.** Fill boundaries with H3 resolution-9 cells (cell centers inside the boundary) into `neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods from Analyze Boston, then Cambridge, Somerville and Brookline as one region each from TIGERweb. A cell belongs to the first region listed that contains it, so no cell counts twice. Cells outside every region are "Beyond", which has no percentage (D-058).
 6. **`data:events`.** A curated, human-checked list of real events for the coming two weeks: title, venue, coordinates, start time, URL, source and a 5-letter puzzle word. All-ages venues only, because everyone shares one daily answer (F7.1) and under-21 profiles never see bars (F1.5). Store facts and links only. Don't copy event descriptions.
 7. **`data:words`.** Answers come from the event words. Valid guesses come from an openly licensed English word list (verify the license). Don't copy another game's word list.
 

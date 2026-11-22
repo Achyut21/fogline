@@ -401,3 +401,13 @@ Consequences:
 - The budget filter excludes nothing today: every known price is "$" (1) and the smallest budget is 1, so F4.6 can't name budget as the blocker until a price source exists (Open questions). The UI must label "$" for cafes as an estimate.
 - In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
 
+**D-058 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**
+Decision:
+- `pnpm data:neighborhoods` builds `data/neighborhoods-h3.json` from Boston's BPDA neighborhood boundaries (Analyze Boston, 26 neighborhoods including the Harbor Islands) and the US Census TIGERweb boundaries of Cambridge, Somerville and Brookline, one region each.
+- Each region holds the resolution-9 cells whose centers fall inside it. A cell inside two boundaries goes to the first region listed (Boston's neighborhoods by name, then Cambridge, Somerville, Brookline).
+- `src/lib/geo/regions.ts` gives each region's uncovered share, Boston's share as the union of its neighborhoods, and "Beyond" for any other cell, with no share.
+Why: DATA named Cambridge and Somerville portals that were never checked, and Brookline had no source. TIGERweb answers for all three in one query and is public domain. Assigning shared cells once keeps each percentage honest.
+Consequences:
+- 29 regions and 1,593 cells, 1,158 of them in Boston (about 122 km², close to Boston's land area). The smallest neighborhoods, Bay Village and the Leather District, have one cell each, so their percentage jumps from 0 to 100%.
+- A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
+
