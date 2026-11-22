@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotionConfig } from "motion/react";
 import { useEffect, useState } from "react";
 import { display } from "@/copy";
 import { duration, ease } from "@/lib/motion";
@@ -24,7 +24,7 @@ function toneOf(minutes: number): keyof typeof tones {
 }
 
 export function Countdown({ to, className }: { to: Date; className?: string }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {

@@ -14,7 +14,7 @@ import { display } from "@/copy";
 const reduced = vi.hoisted(() => ({ current: false }));
 vi.mock("motion/react", async (importOriginal) => ({
   ...(await importOriginal<typeof import("motion/react")>()),
-  useReducedMotion: () => reduced.current,
+  useReducedMotionConfig: () => reduced.current,
 }));
 
 const minute = 60_000;

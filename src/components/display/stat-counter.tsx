@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotionConfig } from "motion/react";
 import { useLayoutEffect } from "react";
 import { duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ export function StatCounter({
   suffix?: string;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const count = useMotionValue(0);
   const text = useMotionValue(formatStat(0, decimals, suffix));
   const final = formatStat(value, decimals, suffix);
