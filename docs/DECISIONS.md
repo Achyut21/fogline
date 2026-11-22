@@ -635,3 +635,12 @@ Decision:
 - The reminder's description names the first train home, its line, station and time ("Last Green Line E from Kenmore is 12:22 AM"), since a trip home can start with a walk to another station.
 Why: F6.4, F5.8 and F5.6 were the open Phase 4 server items.
 Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. 
+
+**D-075 · 2026-11-22 · Phase 9 split: PWA polish and UI/UX (A), hardening and release as Phase 10 (B).**
+Decision:
+- A's human asked that Phase 9 hold only PWA polish and a pass over the whole app's UI and UX, with the rest pushed to a new Phase 10 that B runs.
+- Phase 9 (A): `PWA.md`'s polish list and checklist, `design-critic` on every route, screens for server work that has no UI yet (Me stats and badges, recap, weekly plans, Remind me and route alerts, leave-by alerts, plain-English violations), the Phase 3 UI left over (location primer, Settings with delete my data), navigation and screen states, map polish.
+- Phase 10 (B): performance, accessibility, security with the rate limits (D-065), copy, WALKTHROUGH, visual baselines (from Phase 1, D-060) and the ship kit. B can start it now; its gate runs last, on the final app.
+Why: the hackathon deadline. Both builders work at once instead of one phase waiting on the other.
+Consequences: PHASES sections 9 and 10 rewritten, the PROGRESS phase table updated. Earlier decisions that point at "Phase 9" items (D-043, D-044 protected previews, the update toast) stay with Phase 9; performance (D-058's Android check), rate limits (D-065) and visual baselines now belong to Phase 10.
+
