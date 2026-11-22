@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ThemeToggle } from "@/components/system/theme-toggle";
 import { design } from "@/copy";
 import { contrast } from "@/lib/contrast";
-import { duration } from "@/lib/motion";
+import { duration, ease, spring, stagger } from "@/lib/motion";
 import { parseTokens } from "@/lib/tokens";
 import { textPairs } from "@/styles/pairs";
 
@@ -16,6 +16,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-static";
 
 const tokens = parseTokens(readFileSync(path.join(process.cwd(), "src/styles/tokens.css"), "utf8"));
+
+const layers = Object.entries(tokens.day)
+  .filter(([name]) => name.startsWith("layer-"))
+  .map(([name, value]) => [name.replace("layer-", ""), value] as const);
 
 const colorGroups = [
   {
@@ -61,7 +65,7 @@ const spacingSteps = [
 ];
 
 const radii = [
-  { name: "chip", className: "rounded-sm" },
+  { name: "small", className: "rounded-sm" },
   { name: "tile", className: "rounded-md" },
   { name: "card", className: "rounded-lg" },
   { name: "sheet", className: "rounded-xl" },
@@ -149,7 +153,7 @@ export default function DesignPage() {
                 <tr key={`${fg}-${bg}`} className="border-t border-rule">
                   <th scope="row" className="p-3 font-normal">
                     <span
-                      className="rounded-sm px-2 py-1 font-semibold"
+                      className="inline-block rounded-sm px-2 py-1 font-semibold"
                       style={{ color: `var(--${fg})`, background: `var(--${bg})` }}
                     >
                       {design.pair(fg, bg)}
@@ -236,6 +240,39 @@ export default function DesignPage() {
             </li>
           ))}
         </ul>
+        <dl className="flex flex-col gap-2 rounded-md bg-surface p-4 text-sm shadow-sm">
+          {Object.entries(ease).map(([name, curve]) => (
+            <div key={name} className="flex flex-wrap justify-between gap-x-4">
+              <dt className="font-semibold">{design.ease(name)}</dt>
+              <dd className="text-ink-muted tabular-nums">{design.curve(curve)}</dd>
+            </div>
+          ))}
+          {Object.entries(spring).map(([name, { stiffness, damping }]) => (
+            <div key={name} className="flex flex-wrap justify-between gap-x-4">
+              <dt className="font-semibold">{design.spring(name)}</dt>
+              <dd className="text-ink-muted tabular-nums">
+                {design.springValues(stiffness, damping)}
+              </dd>
+            </div>
+          ))}
+          <div className="flex flex-wrap justify-between gap-x-4">
+            <dt className="font-semibold">{design.stagger}</dt>
+            <dd className="text-ink-muted tabular-nums">
+              {design.staggerValues(Math.round(stagger.list * 1000), stagger.maxItems)}
+            </dd>
+          </div>
+        </dl>
+      </Section>
+
+      <Section id="layers" title={design.sections.layers}>
+        <ol className="flex flex-col gap-2 text-sm">
+          {layers.map(([name, value]) => (
+            <li key={name} className="flex justify-between rounded-md bg-surface p-3 shadow-sm">
+              <span className="font-semibold">{name}</span>
+              <span className="text-ink-muted tabular-nums">{value}</span>
+            </li>
+          ))}
+        </ol>
       </Section>
     </main>
   );

@@ -73,7 +73,7 @@
   --text-5xl--line-height: 1;
 
   --radius-*: initial;
-  --radius-sm: var(--radius-chip);
+  --radius-sm: var(--radius-small);
   --radius-md: var(--radius-tile);
   --radius-lg: var(--radius-card);
   --radius-xl: var(--radius-sheet);

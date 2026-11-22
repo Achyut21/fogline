@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useSyncExternalStore } from "react";
 import { design } from "@/copy";
 
 const options = [
@@ -9,8 +10,16 @@ const options = [
   { value: "dark", label: design.theme.night },
 ] as const;
 
+const subscribe = () => () => {};
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  // The server can't know the stored theme, so nothing shows as pressed until hydration ends.
+  const hydrated = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
   return (
     <div
       role="group"
@@ -21,7 +30,7 @@ export function ThemeToggle() {
         <button
           key={option.value}
           type="button"
-          aria-pressed={theme === option.value}
+          aria-pressed={hydrated && theme === option.value}
           onClick={() => setTheme(option.value)}
           className="min-h-11 rounded-sm px-3 text-sm font-semibold text-ink-muted aria-pressed:bg-surface aria-pressed:text-ink aria-pressed:shadow-sm"
         >

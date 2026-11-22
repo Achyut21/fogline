@@ -16,6 +16,7 @@ export const design = {
     radius: "Radius",
     elevation: "Elevation",
     motion: "Motion",
+    layers: "Layers, bottom to top",
   },
   colorGroups: {
     surfaces: "Surfaces",
@@ -37,6 +38,13 @@ export const design = {
   pair: (fg: string, bg: string) => `${fg} on ${bg}`,
   ratio: (value: number) => `${value.toFixed(2)}:1`,
   milliseconds: (value: number) => `${value} ms`,
+  ease: (name: string) => `Ease ${name}`,
+  curve: (points: readonly number[]) => `cubic-bezier(${points.join(", ")})`,
+  spring: (name: string) => `Spring ${name}`,
+  springValues: (stiffness: number, damping: number) =>
+    `Stiffness ${stiffness}, damping ${damping}`,
+  stagger: "List stagger",
+  staggerValues: (ms: number, items: number) => `${ms} ms apart, first ${items} items`,
   typeSample: "Leave by 12:14 AM",
   numberSample: "1,204",
 } as const;
