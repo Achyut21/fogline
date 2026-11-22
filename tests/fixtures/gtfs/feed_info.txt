@@ -1,0 +1,2 @@
+feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
+MBTA,http://www.mbta.com,EN,20261116,20261206,"Fixture, 2026-11-15, version A"

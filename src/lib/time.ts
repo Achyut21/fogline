@@ -52,6 +52,18 @@ export function serviceDateOf(at: Date): string {
   return isoDate(local.getFullYear(), local.getMonth() + 1, local.getDate());
 }
 
+/** The New York calendar date of a moment, changing at midnight (the daily puzzle, F7.1). */
+export function calendarDateOf(at: Date): string {
+  const local = new TZDate(at.getTime(), zone);
+  return isoDate(local.getFullYear(), local.getMonth() + 1, local.getDate());
+}
+
+/** A date `days` later (or earlier, when negative). */
+export function addDays(date: string, days: number): string {
+  const [year, month, day] = dateParts(date);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 export function toServiceTime(at: Date): { serviceDate: string; seconds: number } {
   const serviceDate = serviceDateOf(at);
   const seconds = Math.floor((at.getTime() - serviceDayOrigin(serviceDate).getTime()) / 1000);

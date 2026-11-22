@@ -315,6 +315,34 @@ Consequences:
 - Merge conflicts still block an admin merge. B rebases B's own branches. A resolved #12 and #13 with merge commits on B's branches (no force-push).
 - B applies B's own migrations to `fogline-db` after they merge, from B's terminal.
 
+**D-053 · 2026-11-21 · Hypertables, aggregates and policies (Phase 2 item 2b).**
+Decision:
+- Drizzle defines the four hypertables' columns (migration `0002_hypertable_columns`), and custom SQL (`0003_hypertables`) converts them with `create_hypertable(..., by_range('ts', ...))`. Chunks are 1 day for `vehicle_positions` and 7 days for the others.
+- The hypertables have foreign keys. `profile_id` cascades from `profiles` on `checkins`, `ride_events` and `noise_readings`. `checkins.plan_id` cascades from `plans`, and `ride_events.plan_id` is set to null.
+- `vehicle_positions` is unique on `(vehicle_id, ts)`, so a recorder run that Vercel Cron delivers twice adds nothing. This works only when the recorder stores the feed's per-vehicle `timestamp` as `ts`, not its own fetch time, and inserts with `on conflict do nothing`.
+- `noise_readings` gets `is_demo`, like `checkins` and `ride_events`.
+- Compression uses the columnstore with `add_columnstore_policy`. `vehicle_positions` compresses after 1 day, segmented by `route_id`. `ride_events` compresses after 7 days by `profile_id`, `noise_readings` after 7 days by `route_id`, and `checkins` after 7 days unsegmented. All are ordered by `ts DESC`. `vehicle_positions` is dropped after 30 days.
+- Continuous aggregates, created `WITH NO DATA` with real-time aggregation on:
+  - `vehicle_activity_5m`: distinct vehicles and samples per route per 5 minutes. It refreshes every 5 minutes over the last 2 days.
+  - `checkins_daily`: check-ins and valid check-ins per New York day, demo rows excluded. Hourly over the last 7 days.
+  - `segment_noise_hourly`: average, peak and count per segment per hour, demo rows excluded. Hourly over the last 7 days.
+- `ride_events` has a check for `board`, `pass`, `alight` and `on_train`, and an index on `(plan_id, ts)` for live-plan status.
+Why:
+- Drizzle applies every pending migration in one transaction, where creating an aggregate `WITH DATA` fails.
+- Real-time aggregation adds rows newer than the last refresh, which F15.2 needs. It doesn't add older rows that a refresh skipped. With a window of hours, a stalled scheduler would have left a permanent hole; a refresh only recomputes changed ranges, so a window of days costs little.
+- code-critic measured `checkins` segmented by `plan_id` at a 0.97 compression ratio, larger than uncompressed, against 4.0 unsegmented. Version 2.32 builds bloom filters on `plan_id` and `profile_id` from the existing indexes, so lookups stay fast.
+- Without foreign keys, a deleted person's still-signed cookie (D-020) could write rows for a profile that no longer exists, and nothing would ever delete them. With them, deleting a profile (F1.7, demo cleanup) cascades, compressed chunks included, on TimescaleDB 2.32.
+- New York days match how the app shows dates. Demo rows stay out of real stats (F16.2, D-045).
+Consequences:
+- The integration test pauses the scratch database's jobs, reads the aggregates in real time, and runs one manual refresh.
+- Deletes older than a refresh window (delete my data) don't reach the aggregates. Those hold only anonymous counts and averages.
+- `recordNoise` refuses replays (F3.5). Its readings would describe a recorded trip, not a ride.
+- Retention drops `vehicle_positions` after 30 days, so the demo's recorded replay (F3.5, F16.1) must be exported to `data/` or a seed outside retention when it's recorded (Phase 3 recorder, Phase 5 demo).
+- TimescaleDB copies each foreign key onto every chunk, so each chunk adds triggers on `profiles` and `plans`: about 300 and 200 after a year of 7-day chunks. They fire only when a profile or plan is deleted. 7-day chunks are kept so compression after 7 days stays meaningful.
+- The Phase 2 gate checks `timescaledb_information.hypertables` on `fogline-db` after B applies `0002` and `0003`.
+
+
+
 **D-054 · 2026-11-21 · Final design tokens, type roles, token check and app icon (Phase 1 item 5, flag 4).**
 Decision:
 - The tokens in DESIGN section 4 are final. They live in `src/styles/tokens.css`, except springs and the list stagger, which only Motion and R3F use (`src/lib/motion.ts`). `src/app/globals.css` maps them into Tailwind and resets Tailwind's default palette, type sizes, tracking, radii, shadows (inset, drop and text shadows too) and easings, so a stock class like `bg-red-500` or `rounded-2xl` doesn't exist.
@@ -340,7 +368,45 @@ Consequences:
 - Item 6 restyles `src/components/ui/`, then removes that exemption. Input uses `--field` and `--field-border`, SegmentedControl bolds the selected label (and becomes a radiogroup), and the app shell adds safe-area padding.
 - The canvas still shows `#B25E00`, `#1E7F4F` and off-scale sizes. New artboards use the token values.
 - `--layer-*` tokens are used as `z-(--layer-sheet)`. The stock shadcn Drawer still uses `z-50` until item 6.
-- Numbering: B's open PR #16 already uses D-053 for the hypertables, so this entry is D-054.
+- Numbering: B's PR #16 uses D-053 for the hypertables, so this entry is D-054. B's #17, #18 and #19 used D-054 to D-056 and were renumbered to D-055 to D-057 when they merged.
+
+**D-055 · 2026-11-21 · Travel time over direct rides, and data scripts run with tsx (Phase 2 item 3).**
+Decision:
+- `graph.json` holds one entry per pair of stations that a single train serves in order, with the median ride, the expected wait and the routes for each day type and hour bucket. The search runs over stations: a ride costs its wait plus its ride, a ride after another ride adds the station's transfer time, and walks between stations come from `transfers.txt`. This replaces DATA 3.1's (station, route, direction) nodes and supersedes D-047's description of `graph.json`.
+- The expected wait is the sum of squared gaps over twice their sum, not half the median gap. A train's gap is the time since the previous departure, capped at an hour.
+- Each day type uses the feed date whose set of running subway services is the most common for that day type (Mon 2026-11-16, Sat 2026-11-28 and Sun 2026-11-29 for the current feed).
+- `timetable.json` keeps every subway trip with its service, and the services running on each date the feed covers, so the last-train search follows Fridays, diversions and holidays exactly.
+- A station's transfer time is the median over its subway platform pairs in `transfers.txt`, and a walk between two stations is the median over their subway platform pairs on different lines. A ride counts departures from every platform at the station.
+- The data files' shapes are Zod schemas in `src/lib/gtfs/types.ts`, the types come from them, and readers parse the JSON against them. The hour bucket is checked: 5 to 23 or late.
+- `pnpm check:trips` replays the raw timetable for the known trips and fails beyond 3 minutes.
+- `pnpm data:*` scripts run with `tsx`, which resolves the `@/` alias, so scripts and the app share `src/lib`. The zip is read with `fflate` and the CSV files are streamed with `csv-parse`.
+Why: the MBTA feed has branches that share track: Green B, C and D from Kenmore, and two Red Line branch patterns under one route. A per-route wait made a Kenmore rider wait for one branch when any westbound train would do. Median gaps understated waits where trains are scheduled close together (Kenmore at 6 PM: 0.5 min by median, 3.0 min by the random-arrival formula). Service differs by date: Friday late trips, weekend diversions and Thanksgiving. Node's type stripping doesn't resolve `@/`.
+Consequences: seven known trips land within 2.8 minutes of a replay of the raw timetable (PROGRESS, 2026-11-21). The first code-critic pass found commuter-rail and bus transfers inflating North Station and JFK/UMass by about 2.5 minutes. Counting departures from every platform is optimistic where branches use separate platforms (JFK/UMass northbound: 3.1 min against about 6 at 9 PM). After a transfer the model assumes a random wait, while the schedule often times connections, so trips with a transfer come out pessimistic: Savin Hill → North Quincy is 6.0 min modeled for the JFK/UMass walk and wait against 3.5 in the replay. A new feed could push such a trip past 3 minutes, and `pnpm check:trips` would catch it. The late bucket uses the representative Monday, so Friday's later trains don't change it. `graph.json` is about 2.9 MB and `timetable.json` 3.4 MB. Both are server-only, and each regeneration adds them to git history. The travel time still uses one bucket for the whole trip, even when a long trip crosses into the next hour.
+
+**D-056 · 2026-11-21 · Last-train search (Phase 2 item 4).**
+Decision:
+- `src/lib/lasttrain/search.ts` runs a backward round-based search with at most three rides over the service date's trips in `timetable.json`. It uses the station transfer times and walks from D-055, which `timetable.json` now carries too. Each round keeps a board time and an arrive-by-train time per station, and walks into home count.
+- The result says which case applies: a train, no train needed (home is the same station or a walk away), no timetable for that date, or none. A date outside the feed is "no timetable", never "no train home".
+- `src/lib/lasttrain/leave-by.ts` takes the plan's last stop (F5.5): `leave_by = departure − walk − 5 min` (F5.2). It flags a plan that starts after the leave-by (F5.3), and gives the walking minutes home when there's no train (F5.7).
+- An unknown station is an error, not "no train". A broken trace throws instead of returning partial legs.
+- A train result gives `departs` (the last moment to leave the plan's station, possibly the start of a walk) and `firstTrain` (the first train's departure).
+- `pnpm check:last-trains [date]` compares three known last trains with the MBTA V3 schedules API.
+Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded". code-critic's first pass found that one time per station plus a walked flag mixed "board here" with "walk on from here": the trace could return an impossible connection (Kenmore → Assembly listed a 2-minute change at Park Street, below its 154 s transfer time), and walks into home were skipped, making some leave-by times up to 58 minutes too early.
+Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is deferred until the end of the project (PROGRESS, Open questions).
+
+Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded".
+Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is an open question.
+
+**D-057 · 2026-11-21 · Fair options, spot filters and the blocking filter (Phase 2 item 5).**
+Decision:
+- `rankStations` ranks every station everyone can reach within 75 minutes by `S(d)`, then `sum(t_i)`, then station ID. It runs one travel search per participant over every station.
+- `fairOptions` walks down that ranking and keeps the first 3 stations with at least one matching spot within 600 m walking, instead of taking the top 3 stations and then looking for spots.
+- Spot filters: an unknown price passes the budget. A spot with a grade must meet the minimum; a spot with no inspection match fails it only in food, coffee and dessert. Bars, clubs and other 21+ spots are dropped once anyone joined is under 21, and the place schema requires bars and clubs to be 21+.
+- `fairOptions` checks that every participant's station has a train to board in the hour before the plan's start (`trainsRunning`, D-048), answering "no trains" otherwise. A date past the feed is checked against its day type's representative date, as travel times are. An unknown station is an error.
+- When nothing fits, the result names what to relax: one of budget, minimum grade or category (the first whose relaxing gives options), else the fewest that work together (all three relaxed, then dropped from the end while options remain), else time, no trains or spots. The age rule is never relaxed.
+- `src/lib/places/types.ts` holds the place schema that `data:places` (item 6) writes.
+Why: a top-ranked station with no matching spot isn't an option the UI can show. OpenStreetMap rarely tags prices, so failing unknown prices would empty most results. Parks and museums have no food inspections. F4.6 needs a single constraint to offer relaxing.
+Consequences: DATA 3.2 and 3.4 updated. Vibe isn't a filter yet: F4.5 doesn't require it and no place data carries vibe tags (Open questions). Walking down the ranking has no fairness floor beyond 75 minutes, so a strict filter can return an option much less fair than the top station without F4.6 firing; that is within the spec. code-critic's first pass found the missing service check (a 3:30 AM plan got options), unknown stations reported as "time", and a bar marked all-ages passing for under-21 groups. Its second pass found the check looked at the hour after the start, so 3:45–4:59 AM plans still got options. Its third pass found that any train anywhere counted (a 2:30 AM plan for Harvard and Tufts got options from trains finishing their runs elsewhere) and that the named filters could fail together. A real-data check on the walkthrough's demo plan (BU, Harvard and Tufts, Friday 7 PM) puts Government Center first at 26, 19 and 25 minutes.
 
 **D-058 · 2026-11-21 · The fog is a MapLibre custom layer (approach A). Phase 1 item 4.**
 Decision:
@@ -396,3 +462,82 @@ Decision (A, 2026-11-21): A has about 10 hours left in the hackathon and asked t
 - The gate keeps the token check, the fog frame-rate and fallback checks, one design-critic and copy-critic pass on `/design`, and both humans' approval of `/design` and the canvas as cut. B's human still confirms direction C.
 Why: the hackathon ends in about 10 hours, and the remaining canvas pages and storyboards were the largest part of the 6–8 hours left in Phase 1.
 Consequences: features in Phases 3–8 are designed in code against `/design` and DESIGN.md, without a canvas artboard to compare against. design-critic reviews them against DESIGN.md, the Direction and the canvas pages that exist.
+
+**D-061 · 2026-11-21 · Places, grades and their calibration (Phase 2 item 6).**
+Decision:
+- `pnpm data:places` queries Overpass in a 3 × 3 grid of tiles over a box around every station, caching each tile under `.cache/overpass/`. It tries `overpass-api.de`, then the `maps.mail.ru` mirror, with up to 5 tries when Overpass answers busy (429 or 504). Spots are deduped by name within 50 m, and the kept copy is 21+ if either copy was.
+- Under-21 (F1.5): OSM tags some bars as restaurants. A spot is also 21+ when OSM gives `min_age` 21, when its name has a bar word, when OSM tags it as a brewery or hookah, or when it's on a reviewed list ("21st Amendment", "Hurricane's at the Garden", "Lolita", "Club Café"), DATA 2.2. In the current data that hides 72 restaurants and cafes from under-21 profiles, among them Beantown Pub, Dive Bar, Tip Tap Room, Democracy Brewing, both Lolitas, Habibi's Lounge and Tap 151. The rule errs toward hiding: a few are coffee shops or restaurants that aren't bars ("Nine Bar Espresso", "Linden Lounge", "PURO ceviche bar"). "Club" isn't a bar word: it would hide Juliet Social Club and Northeast Eating Club.
+- Price: OpenStreetMap carries almost no price tags (none in the current data). Fast food, food courts, ice cream and cafes are "$" by what they are; every other spot's price is unknown and passes the budget filter (D-057).
+- Grades come from each active establishment's latest routine inspection, the latest one with no other inspection of that license in the 30 days before it, closures included. Violations cited as failed count, once per distinct inspector comment. Points (2, 5, 10) and cutoffs (A up to 13, B up to 27, C above) stay as DATA 3.6 started them. The selection runs as SQL on the Analyze Boston datastore, and an integration test runs that same SQL on Postgres.
+- Matching (DATA 3.7) compares words, not whole names: every distinctive word of the shorter name equal to a word of the other, or a typo away for words of 8 letters or more (Jaro-Winkler 0.9), names equal without spaces, or names that differ only by generic words. The city's counter numbers ("No. 822") are dropped first. Address matches must be within 2 km, and a tie between two licenses is no match. Only food, coffee, dessert, bar and club spots are matched.
+Why:
+- The plain latest inspection is usually a re-inspection days after a failed one, which marks the same violations "Pass": 4,043 of 4,092 establishments (98.8%) graded A that way. Leaving closures out did the same after a closure: DaCoopas, closed with 8 failed violations, graded A from its pass 8 days later.
+- Comparing whole names matched different businesses on a shared first word or prefix: "Monica's Mercato and Salumeria" took Monica's Trattoria's C, "Starbucks" took Star Market's grade, "Boston Döner" took a Dunkin's. Generic compass words made Stetson East and West identical. A wrong grade is worse than "No inspection match" (F11.4).
+**Calibration (PHASES Phase 2 gate), Analyze Boston inspections read 2026-11-21:**
+- Citywide, the 4,092 active establishments grade A 2,991 (73.1%), B 705 (17.2%) and C 396 (9.7%), with no point changes.
+- Of 2,327 spots near stations (OSM data of 2026-11-22T02:19Z), 1,883 are in inspected categories. 809 matched: A 516, B 167, C 126.
+- Against the first version, 29 matches were dropped, 6 gained and 4 moved to another license. The dropped ones include every false match found in review and about 20 real businesses whose two names share too little ("Pixlcat Coffee & Butter Mochi" and "Pixlcat Coffee - Upper Level", "Ashur" and "Anshur Restauruant"); those now show "No inspection match".
+- The unmatched spots are mostly in Cambridge, Somerville and Brookline, which Boston doesn't inspect.
+Consequences:
+- DATA 2.2, 2.3, 3.6 and 3.7 updated.
+- The budget filter excludes nothing today: every known price is "$" (1) and the smallest budget is 1, so F4.6 can't name budget as the blocker until a price source exists (Open questions). The UI must label "$" for cafes as an estimate.
+- In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
+
+**D-062 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**
+Decision:
+- `pnpm data:neighborhoods` builds `data/neighborhoods-h3.json` from Boston's BPDA neighborhood boundaries (Analyze Boston, 26 neighborhoods including the Harbor Islands) and the US Census TIGERweb boundaries of Cambridge, Somerville and Brookline, one region each.
+- Each region holds the resolution-9 cells whose centers fall inside it. A cell inside two boundaries goes to the first region listed (Boston's neighborhoods by name, then Cambridge, Somerville, Brookline).
+- `src/lib/geo/regions.ts` gives each region's uncovered share, Boston's share as the union of its neighborhoods, and "Beyond" for any other cell, with no share.
+Why: DATA named Cambridge and Somerville portals that were never checked, and Brookline had no source. TIGERweb answers for all three in one query and is public domain. Assigning shared cells once keeps each percentage honest.
+Consequences:
+- 29 regions and 1,593 cells, 1,158 of them in Boston (about 122 km², close to Boston's land area). The smallest neighborhoods, Bay Village and the Leather District, are smaller than one cell and have one cell each, so their percentage jumps from 0 to 100%.
+- First Light (F8.2) counts only regions of 3 cells or more, where reaching 50% takes at least 2 cells. Otherwise a home station at South Station or a ride past Arlington would earn it for a neighborhood the person never entered. Only Bay Village and the Leather District are left out. Rides alone can still clear small neighborhoods such as Chinatown; that is the game working, since riding clears fog.
+- A region's ID is its name as a slug, and `badges_awarded.scope` stores it for First Light. If BPDA renames a neighborhood, keep its old ID.
+- `data:neighborhoods` refuses to write a file in which a region has no cell.
+- A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
+
+**D-063 · 2026-11-21 · Check-ins, badges, stats and squads (Phase 2 item 10).**
+Decision:
+- Check-in validity (DATA 3.9) checks time, then accuracy, then distance, and returns the first failure with its number rounded up. A fuzzy position is reported as fuzzy, not as far away, and a refused 150.3 m never reads "150 m".
+- A night badge that compares people needs at least 2 people in its own comparison, not only 2 people checked in anywhere on the plan. First In compares arrivals at the first stop, Long Haul people with a travel time, Closest Call people who caught their last train. Exact ties share.
+- Ties: First In goes to everyone within 30 s of the earliest arrival. Fashionably Late goes to everyone within 30 s of the latest who is also 10 minutes late, except people who got First In. Night Owl means a check-in from 12:00 AM to before 5:00 AM New York time.
+- The ride home is the first live "I'm on the train" tap or board event after both the person's last valid check-in and the last stop's scheduled time, so neither the ride to the plan nor a ride between crawl stops counts. It counts as catching the last train when it comes before the first train of the last-train trip leaves, or up to 10 minutes after on that same trip (or with a tap that names no trip), with 0 to spare. Closest Call is the smallest of those margins, awarded only once every last train has left plus 10 minutes: night badges are computed at the plan's end and again then, adding awards only.
+- Ghost needs at least one person checked in, so a plan called off before anyone arrived gives nobody Ghost.
+- A ride's own summary counts its events, replay or not (F3.5). Night and lifetime totals and badges count live ride events only. First Light and percent uncovered follow `revealed_cells`, which replays write under F3.5, so they count replay reveals until Phase 3 decides (Open questions).
+- Every Green Branch counts a branch at a station that branch alone serves, from a board, pass or alight event.
+- Miles walked counts a walking leg between two checked-in crawl stops instead of both station walks. DATA 3.11 had added the leg on top of `2 × walk_m` for each stop, counting the same street twice. Nights are summed in meters and converted once. Miles on the T sums each ride's miles already rounded to 0.1 mi.
+- First Light compares when each person's share of a region reached 50%, from `revealed_cells.first_at`; mates within 30 s share it. Cells revealed by the home station don't count: picking Longwood Medical Area as home would otherwise reach 50% of Longwood at onboarding. A profile with no squad is its own first, and regions under 3 cells don't count (D-062). Awards are only ever added (F8.6), so mates who each earned it before meeting both keep it.
+- Squad membership is pairwise and not transitive.
+- All of this is pure functions in `src/lib/` (`checkin.ts`, `rides.ts`, `badges.ts`, `stats.ts`, `squad.ts`). Phase 6 reads the rows and writes `badges_awarded`.
+Why:
+- "First In" among one person, or "Closest Call" with one margin, says nothing.
+- The last train often runs late at night, and people tap once seated; a rule of strictly before the timetable would deny the badge to the people it is for.
+- A ride from stop 1 to stop 2 of a crawl isn't the ride home.
+- A replay is watching a recorded trip, not riding it, so its miles and lines would be false lifetime numbers; its own summary is the trip's.
+- A board up to 10 minutes late on a different trip isn't the last train: it can miss the connection home.
+- Most rides home happen after the organizer ends the plan, so Closest Call computed at the end would see none.
+- Every Green Branch is about the branches; any B, C, D or E train between Kenmore and Government Center would otherwise earn it.
+- Taking a badge back after showing it is worse than two people holding a "first".
+Consequences:
+- DATA 3.9 to 3.11 updated, and DATA 3.12 (squad) added.
+- `ride_events.stop_id` may hold a station ID or a platform stop ID; both map to the station through `stations.json`.
+- The crawl builder (F10, Phase 7) must store whether each leg between stops is walked, since `plan_stops` doesn't say. Until then, miles walked is exact only for one-stop plans.
+- A squad streak (F12.3) needs its own definition of the squad, since mates are pairwise. Decide in Phase 7.
+- F8.1 now says the `end-plans` cron recomputes a night's badges once every last train has left plus 10 minutes (Phase 6 builds it).
+- Phase 6 shows each badge's number (minutes late, minutes to spare) from the same inputs it passed to `nightAwards`. A late last train has 0 to spare, so the copy needs a wording for it (copy-critic).
+
+**D-064 · 2026-11-21 · Daily puzzle rules, words and events (Phase 2 item 8).**
+Decision:
+- The puzzle date is the New York calendar date, changing at midnight (`calendarDateOf`), not the 3 AM service date the trains use.
+- Feedback marks correct letters first; a repeated letter is present only as often as the answer has it left over.
+- A guess must be 5 letters a to z (any case, trimmed) and in `words.json`. No guess is taken after a solve or the sixth guess.
+- Solving reveals the event and clears fog; failing reveals the event only (F7.3, F7.7).
+- A streak counts consecutive solved dates ending today, or ending yesterday while today's puzzle is still open. A failed or missed day resets it.
+- Valid guesses: dwyl/english-words `words_alpha.txt`, The Unlicense, pinned commit, 15,921 five-letter words. It includes rare words, which only makes more guesses valid.
+- Events: a hand-written list in `scripts/events/curated.json` with `allAges: true` and a `checked` flag the human sets per event. `data:events` publishes nothing until every entry is checked and valid. An event serves the puzzle date it's on or up to 3 days before it, so a multi-day run can fill a date.
+- `events.json` is server-only because it holds the answers.
+- `data:events` also refuses a gap between published dates (a date without a puzzle would break every streak) and an answer used twice. Guesses past six are ignored.
+- An event can start earlier on its puzzle date than someone solves it (three of the first 14 start before noon). The reveal shows its time, so a late solver sees it has passed. Accepted to keep the list to real, all-ages events.
+Why: everyone shares one answer per date (F7.1), so the date must not depend on the server's zone. A human check is the only way to know a real event's date, venue and age policy are right (DATA 2.6).
+Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data note updated. Rerun `data:events` weekly with a new checked list (DATA 5).
+

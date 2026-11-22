@@ -15,6 +15,20 @@
       "when": 1795307813712,
       "tag": "0001_core_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795309129357,
+      "tag": "0002_hypertable_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795309130951,
+      "tag": "0003_hypertables",
+      "breakpoints": true
     }
   ]
 }

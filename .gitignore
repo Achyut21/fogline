@@ -48,3 +48,6 @@ playwright/.auth/
 
 # agent worktrees
 .claude/worktrees/
+
+# data pipeline downloads (data:places)
+.cache/

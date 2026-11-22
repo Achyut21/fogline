@@ -1,0 +1,23 @@
+stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station
+place-harsq,Harvard,42.373362,-71.118956,1,
+place-pktrm,Park Street,42.356395,-71.062424,1,
+place-dwnxg,Downtown Crossing,42.355518,-71.060225,1,
+place-boyls,Boylston,42.35302,-71.06459,1,
+place-kencl,Kenmore,42.348949,-71.095169,1,
+place-bucen,Boston University Central,42.350082,-71.106865,1,
+place-smary,Saint Mary's Street,42.346169,-71.107009,1,
+place-asmnl,Ashmont,42.28452,-71.063777,1,
+place-matt,Mattapan,42.267762,-71.092486,1,
+70067,Harvard,42.373362,-71.118956,0,place-harsq
+70075,Park Street,42.356395,-71.062424,0,place-pktrm
+70196,Park Street,42.356395,-71.062424,0,place-pktrm
+70197,Park Street,42.356395,-71.062424,0,place-pktrm
+70077,Downtown Crossing,42.355518,-71.060225,0,place-dwnxg
+70159,Boylston,42.35302,-71.06459,0,place-boyls
+70150,Kenmore,42.348949,-71.095169,0,place-kencl
+70146,Boston University Central,42.350082,-71.106865,0,place-bucen
+70211,Saint Mary's Street,42.346169,-71.107009,0,place-smary
+70261,Ashmont,42.28452,-71.063777,0,place-asmnl
+70276,Mattapan,42.267762,-71.092486,0,place-matt
+64,Harvard Bus Tunnel,42.3734,-71.1189,0,
+pks-bus,Park Street Bus Bay,42.3566,-71.0625,0,place-pktrm

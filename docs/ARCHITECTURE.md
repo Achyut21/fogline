@@ -75,11 +75,15 @@ src/
   copy/        # every user-facing string, grouped by feature
   lib/
     time.ts        # America/New_York helpers, GTFS service dates
-    gtfs/          # loading the compact timetable and graph
-    solver/        # fair meetup scoring, crawl building
+    gtfs/          # data file schemas (types.ts), whether trains run (service.ts)
+    solver/        # travel times, fair meetup scoring, crawl building
+    places/        # place schema for data/places.json
     lasttrain/     # backward timetable search
-    geo/           # haversine, shape distance, walking estimate, H3 helpers
-    grades.ts  badges.ts  stats.ts  puzzle.ts  flags.ts  motion.ts  log.ts
+    geo/           # haversine, ride miles, walking estimate, H3 helpers
+    checkin.ts     # check-in validity
+    rides.ts       # rides, lines and stations from ride events
+    events.ts      # events.json and words.json schemas
+    grades.ts  badges.ts  stats.ts  squad.ts  puzzle.ts  flags.ts  motion.ts  log.ts
   server/
     db/            # drizzle schema, client, queries
     actions/       # Server Actions (Zod-validated)
@@ -119,7 +123,7 @@ public/
 
 ## 6. Database (Tiger Cloud)
 
-Drizzle owns the regular tables. Allowed values are `text` columns with check constraints rather than Postgres enums, because Drizzle applies every pending migration in one transaction and a new enum value can't be used in the transaction that adds it. Deleting a profile cascades to its cells, badges and puzzle results. Custom SQL migrations (`drizzle-kit generate --custom`) create hypertables, continuous aggregates, compression and retention.
+Drizzle owns the regular tables and the hypertables' columns. Allowed values are `text` columns with check constraints rather than Postgres enums, because Drizzle applies every pending migration in one transaction and a new enum value can't be used in the transaction that adds it. Deleting a profile cascades to its cells, badges, puzzle results, check-ins, rides and noise readings. Custom SQL migrations (`drizzle-kit generate --custom`) create hypertables, continuous aggregates, compression and retention.
 
 **Regular tables**
 - `profiles`: id (uuid), display_name, school, home_station_id, age_band (`under21` | `21plus`), profile_code (unique), theme_pref (`system` | `light` | `dark`), is_demo, created_at.
@@ -134,12 +138,12 @@ Drizzle owns the regular tables. Allowed values are `text` columns with check co
 - Rate limits (sections 9 and 14) get a token-bucket table when the first limited route lands: profile-code restore in Phase 3.
 
 **Hypertables (time column first)**
-- `vehicle_positions`: ts, vehicle_id, trip_id, route_id, direction_id, stop_id, current_status, lat, lon, bearing, occupancy (jsonb, per-car when present).
+- `vehicle_positions`: ts, vehicle_id, trip_id, route_id, direction_id, stop_id, current_status, lat, lon, bearing, occupancy (jsonb, per-car when present). Unique on (vehicle_id, ts).
 - `checkins`: ts, profile_id, plan_id, place_id, lat, lon, accuracy_m, valid, is_demo.
 - `ride_events`: ts, profile_id, plan_id (nullable), trip_id, route_id, stop_id, event (`board` | `pass` | `alight` | `on_train`), is_replay, is_demo. `on_train` is the "I'm on the train" tap in live mode.
 
 Places and events aren't tables. They live in `data/places.json` and `data/events.json`, and rows refer to them by their text IDs (D-046). Unique indexes on a hypertable must include `ts`, so nothing in the schema stops a second check-in: the check-in action skips it, and queries use each person's earliest valid check-in per stop. Row counts and continuous aggregates leave out `is_demo` rows (F16.2).
-- `noise_readings` (F13): ts, profile_id, route_id, from_stop_id, to_stop_id, db_avg, db_peak.
+- `noise_readings` (F13): ts, profile_id, route_id, from_stop_id, to_stop_id, db_avg, db_peak, is_demo.
 
 **Continuous aggregates**
 - `segment_noise_hourly`: avg and peak per segment per hour (F13).
@@ -148,15 +152,17 @@ Places and events aren't tables. They live in `data/places.json` and `data/event
 
 **Policies:** compress `vehicle_positions` after 1 day and keep it 30 days. Compress the other hypertables after 7 days.
 
+Migration `0003_hypertables` sets these up (D-053). Chunks are 1 day for `vehicle_positions` and 7 days for the others. Columnstore segments by `route_id` (`vehicle_positions`, `noise_readings`) and `profile_id` (`ride_events`); `checkins` isn't segmented, because a plan has too few check-ins per chunk to compress well. Everything is ordered by `ts DESC`. The hypertables' foreign keys cascade from `profiles` and `plans` like the regular tables (a deleted plan only clears `ride_events.plan_id`), so deleting a profile reaches compressed chunks too. `vehicle_positions` is unique on `(vehicle_id, ts)`, so a duplicated recorder run adds nothing. The continuous aggregates refresh over windows of days and use real-time aggregation: reads add raw rows newer than the last refresh. `checkins_daily` buckets by New York day, and `checkins_daily` and `segment_noise_hourly` leave out demo rows.
+
 **Connections:** use Tiger's pooled connection string in `DATABASE_URL`. Keep the driver's connection count low (serverless).
 
 ## 7. Static data
 
 Built by `scripts/` (see `docs/DATA.md`), committed under `data/`, imported by server code, and precached by the service worker where the client needs them:
-- `stations.json`, `graph.json` (ride and transfer edges and headways by day type and hour), `timetable.json` (compact departures for last-train search), `shapes.json`;
+- `stations.json`, `graph.json` (direct rides with median ride times, expected waits and routes by day type and hour, plus transfer and walk times), `timetable.json` (compact departures for last-train search), `shapes.json`;
 - `places.json`, `station-cards.json`, `neighborhoods-h3.json`, `events.json`, `words.json`.
 
-Keep each client-facing file small. Split by line or load lazily where needed.
+Keep each client-facing file small. Split by line or load lazily where needed. `graph.json` (about 2.9 MB), `timetable.json` (about 3.4 MB), `places.json` (about 1 MB) and `events.json` (it holds the puzzle answers) are server-only: the solvers run on the server.
 
 ## 8. Server Actions and routes
 
