@@ -4,7 +4,7 @@ import { Hanken_Grotesk } from "next/font/google";
 import { DemoMark } from "@/components/app/demo-mark";
 import { MotionProvider } from "@/components/system/motion-provider";
 import { ThemeProvider } from "@/components/system/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { LazyToaster } from "@/components/ui/lazy-toaster";
 import { app } from "@/copy";
 import { themeColor } from "@/styles/theme-color";
 import "./globals.css";
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ThemeProvider>
             <MotionProvider>{children}</MotionProvider>
             <DemoMark />
-            <Toaster />
+            <LazyToaster />
           </ThemeProvider>
         </SerwistProvider>
       </body>

@@ -305,6 +305,34 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 09:10 ET · Builder B · Phase 10 on `b/phase10` (PR to follow):
+  - **Security:** code changes and the review's findings are in D-078:
+    - timing-safe cron secret; squad maps show a mate's cells only from nights you shared;
+    - capped solver inputs; demo replays marked demo; security headers;
+    - the unused puzzle actions removed. No rate limiter (D-077).
+  - **Accessibility:** `tests/e2e/a11y.spec.ts` runs axe on every route signed in with a demo copy; it passes. Fixed: empty puzzle tiles now have a name, and map attribution links are underlined.
+  - **Copy:** a full pass over `src/copy/`:
+    - calm mode's loudness sentence grammar fixed;
+    - specific errors for onboarding and Find;
+    - the "change this later in Settings" claim removed;
+    - buttons cut to 1–2 words;
+    - thousands separators and singulars;
+    - the percent format with one decimal under 10% written into COPY.md.
+  - **Ship kit:** `README.md` and `docs/SHIP.md` describe only what's on screen today; regenerate after Phase 9.
+  - **Performance:** `tests/e2e/perf.spec.ts` runs with Lighthouse's mobile throttling.
+    - The map home passes (app shell under 200 KB gzip, LCP under 2.5 s).
+    - The welcome page's app shell is about 213 KB gzip, over budget. The check is marked `test.fail()` until fixed.
+    - The toaster now loads after first paint, saving about 16 KB on every page.
+  - **For A (Phase 9):**
+    - Welcome page JS: the framework runtime (about 117 KB) plus Radix, Motion and lucide chunks of about 13–17 KB each. Loading Motion with `LazyMotion`/`m` or the onboarding steps lazily would fit it.
+    - Strings outside `src/copy/`: "Other" in `src/server/schools.ts`, the friend legend in `plan-builder.tsx:228`, and " · " separators in `plans/page.tsx`, `daily-puzzle.tsx` and `plan-builder.tsx`.
+    - From the security review (no limiter, D-077):
+      - one client can use up the global `/demo` cap;
+      - Find trusts the photo's MIME type;
+      - `stationSensory` isn't cached;
+      - invite links can't be revoked.
+  - Not done in Phase 10 by request of B's human: WALKTHROUGH for every feature, the 10-minute tour, `/design` visual baselines.
+
 - 2026-11-22 08:05 ET · Builder B · Phase 10 under way on `b/phase10`:
   - Security: `CRON_SECRET` is compared in constant time through `src/server/cron.ts` in all four cron routes. No rate limiter (D-077, B's human). The whole-app security review is running.
   - Ship kit: `README.md` (what it is, how to run it, architecture, data credits) and `docs/SHIP.md` (Devpost text and a 1-minute video script from the judge path). Numbers in the video script are checked against the app before recording.
