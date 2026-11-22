@@ -131,8 +131,13 @@ describe.skipIf(testUrl === "")("ride replay", () => {
     await recordReplayStop({ tripId: "trip-long", from: "place-kencl", index: 2 });
     await db.update(profiles).set({ isDemo: false }).where(eq(profiles.id, viewer.id));
     const events = await db.select().from(rideEvents);
-    expect(events.at(-1)?.isDemo).toBe(true);
-    expect(events.slice(0, -1).every((e) => !e.isDemo)).toBe(true);
+    const demoStop = events.filter((e) => e.isDemo);
+    expect(demoStop).toHaveLength(1);
+    expect(demoStop[0].stopId).not.toBe("place-kencl");
+    expect(events.filter((e) => !e.isDemo).map((e) => e.stopId)).toEqual([
+      "place-kencl",
+      "place-fenwy",
+    ]);
   });
 
   it("[F3.8] refuses a stop the recorded trip never reached", async () => {
