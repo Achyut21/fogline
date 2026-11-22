@@ -75,8 +75,11 @@ test.describe("ride replay", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Kenmore" })).toBeVisible();
     await expect(page.getByText(ride.replay.label, { exact: true })).toBeVisible();
     await page.getByRole("radio", { name: ride.replay.speedOption(20) }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Fenway" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "Longwood" })).toBeVisible();
+    // The recorded trip passes a stop about every 80 s, about 4 s at 20x: wait for the whole
+    // 4-minute recording (12 s) rather than the default 5 s.
+    const replay = { timeout: 15_000 };
+    await expect(page.getByRole("heading", { level: 1, name: "Fenway" })).toBeVisible(replay);
+    await expect(page.getByRole("heading", { level: 1, name: "Longwood" })).toBeVisible(replay);
 
     await expect(page.getByRole("heading", { name: ride.summary.title })).toBeVisible({
       timeout: 30_000,

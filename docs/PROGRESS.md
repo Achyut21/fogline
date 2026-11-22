@@ -294,6 +294,19 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 06:45 ET · Builder A · Phase 9 item 5, design pass (`a/design-pass`), continued from the 06:20 handoff:
+  - Recap page compiles with the miles and stops tiles. Recap choreography now follows DESIGN section 8 (`ff19207`): the podium rises last to first, then names, then the numbers count up, then badges, then Share, by about 3 s; a tap or key press anywhere shows the final state at once; with reduced motion the final state shows with no animation (F9.2). New `Reveal` and `RevealStage` (`src/components/display/reveal.tsx`); StatCounter starts with its stage. The podium list is in place order for screen readers.
+  - The offline page's test now expects the "Go to the map" link added in the WIP commit.
+  - Tests: `tests/component/reveal.test.tsx` (`[F9.2]`), `tests/component/podium.test.tsx` (`[F9.1]`); typecheck and lint clean; 468 pass; full e2e 110 passed, 16 skipped. The first e2e run had two failures that didn't recur on the rerun: calm on desktop-chrome ("too short to measure" after a fixed 3 s wait on a cold server) and the offline train-times test on pixel. Both look load-sensitive; logged for B's Phase 10 hardening.
+  - Seen at 390×844 on a local build against the test DB: staged reveal plays; tapped at 300 ms, Share and the count were final 80 ms later; reduced motion in light and dark shows the final state at 150 ms.
+  - design-critic rerun on the local build: FAIL with one BLOCKING item. The floating Demo chip covered the puzzle's Enter key, the map credit, the builder's grade control, squad rows and ride stops. Fixed: the chip is a row inside the tab bar, in `PageHeader` and in the ride replay header (D-080). All earlier fixes confirmed, recap timeline included.
+  - A's human saw the tab bar floating above the bottom edge in the installed app on an iPhone and on Android. Fixed: the bar is fixed to the bottom edge with an in-flow spacer, and the map screen is `fixed inset-0` (D-080, WebKit 254868). Not yet checked on a real device.
+  - E2e fixes: the offline train-times test waits for the service worker's cache write before going offline (it raced it); ride replay's stop checks wait for the replay's real length (about 4 s per stop at 20× against a 5 s default). Calm on desktop-chrome failed twice as the first test against a fresh server ("too short to measure") and passed on the other runs; cause not found. Logged for B (Phase 10).
+  - New tests: `tests/e2e/me.spec.ts` "pins the tab bar to the bottom edge of the screen" (map, and How it works scrolled to the end); `[F16.3]` in `tests/e2e/demo.spec.ts` now checks the chip covers neither the Enter key nor a tab. 468 unit pass; full e2e 113 passed, 16 skipped.
+  - design-critic SHOULD FIX, new (not done, for the next pass): /welcome hero isn't the canvas's full-bleed fog map with a floating card; /plans lists Past above This week; /me's name outranks its numbers; RideProgress stats are `text-lg`, not the Stat role; /find shows the browser's "Choose File" strings; the How it works heading wraps around its chip. NIT: no h1 on the map, puzzle keys under 44 px (record an exception), /offline buttons not aligned.
+  - Also merged B's #47 (`1ebede9`) and #50 (`62253e1`, after bringing `main` in; CI green). Removed the `b-merge` scratch worktree. #54 (B's Phase 10) is in code-critic.
+  - Next: merge `main` in, PR, code-critic, then `/phase-gate 9`.
+
 - 2026-11-22 06:20 ET · Builder A · Handoff (session limit; the next session runs under A's personal Claude account):
   - **Order for the next session, from A's human:**
     1. **Finish Phase 9:** the design pass on `a/design-pass` (exact steps under "In progress" below), then `/phase-gate 9`.
