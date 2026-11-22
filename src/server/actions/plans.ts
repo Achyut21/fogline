@@ -30,6 +30,11 @@ function knownStation(id: string): boolean {
   return data.stations().some((s) => s.id === id);
 }
 
+const stopInput = z.object({
+  placeId: z.string().min(1),
+  stationId: z.string().refine(knownStation),
+});
+
 const planInput = z.object({
   title: z.string().trim().min(1).max(80),
   startsAt: z.iso.datetime({ offset: true }),
@@ -41,26 +46,41 @@ const planInput = z.object({
       }),
     )
     .max(7),
-  stop: z.object({ placeId: z.string().min(1), stationId: z.string().refine(knownStation) }),
+  stop: stopInput.optional(),
+  /** A crawl's 2–4 stops in order (F10.1), each with its own time. */
+  stops: z
+    .array(stopInput.extend({ scheduledAt: z.iso.datetime({ offset: true }) }))
+    .min(1)
+    .max(4)
+    .optional(),
 });
 
 export async function createPlan(input: unknown) {
   const plan = planInput.parse(input);
   const creator = await currentProfile();
   if (!creator) return { kind: "no-profile" as const };
-  const place = placeById(plan.stop.placeId);
-  if (!place?.stations.some((s) => s.id === plan.stop.stationId))
-    return { kind: "unknown-spot" as const };
-  if (place.ageRule === "21plus" && creator.ageBand !== "21plus")
-    return { kind: "adults-only" as const };
-  const inviteToken = randomCode(12);
   const startsAt = new Date(plan.startsAt);
+  const chosen = plan.stops ?? (plan.stop ? [{ ...plan.stop, scheduledAt: plan.startsAt }] : []);
+  if (chosen.length === 0) return { kind: "unknown-spot" as const };
+  // A crawl's stops run in order within one night from the plan's start.
+  const times = chosen.map((stop) => new Date(stop.scheduledAt).getTime());
+  const night = startsAt.getTime() + 12 * 60 * 60_000;
+  if (times.some((t, i) => t < startsAt.getTime() || t > night || (i > 0 && t < times[i - 1])))
+    return { kind: "unknown-spot" as const };
+  for (const stop of chosen) {
+    const place = placeById(stop.placeId);
+    if (!place?.stations.some((s) => s.id === stop.stationId))
+      return { kind: "unknown-spot" as const };
+    if (place.ageRule === "21plus" && creator.ageBand !== "21plus")
+      return { kind: "adults-only" as const };
+  }
+  const inviteToken = randomCode(12);
   const id = await getDb().transaction(async (tx) => {
     const [row] = await tx
       .insert(plans)
       .values({
         createdBy: creator.id,
-        kind: "meetup",
+        kind: chosen.length > 1 ? "crawl" : "meetup",
         title: plan.title,
         startsAt,
         status: "planned",
@@ -76,13 +96,15 @@ export async function createPlan(input: unknown) {
         originStationId: f.station,
       })),
     ]);
-    await tx.insert(planStops).values({
-      planId: row.id,
-      seq: 0,
-      placeId: plan.stop.placeId,
-      stationId: plan.stop.stationId,
-      scheduledAt: startsAt,
-    });
+    await tx.insert(planStops).values(
+      chosen.map((stop, seq) => ({
+        planId: row.id,
+        seq,
+        placeId: stop.placeId,
+        stationId: stop.stationId,
+        scheduledAt: new Date(stop.scheduledAt),
+      })),
+    );
     return row.id;
   });
   return { kind: "created" as const, id, inviteToken };
@@ -130,10 +152,17 @@ export async function planByInvite(token: unknown) {
   const stations = new Map(data.stations().map((s) => [s.id, s]));
   const stop = stops.at(0);
   const place = stop ? placeById(stop.placeId) : undefined;
-  const walkM = place?.stations.find((s) => s.id === stop?.stationId)?.walkM ?? 0;
+  // Leave-by uses the last stop (F5.5), so a crawl's riders leave from where the night ends.
+  const route = stops.flatMap((st) => {
+    const at = placeById(st.placeId);
+    if (!at) return [];
+    const walkM = at.stations.find((x) => x.id === st.stationId)?.walkM ?? 0;
+    return [{ station: st.stationId, at, walkM, name: at.name, scheduledAt: st.scheduledAt }];
+  });
   return {
     id: plan.id,
-    title: plan.title,
+    // A 21+ plan's title may name its venue, so it's hidden with the venue (F4.9).
+    title: hidden ? null : plan.title,
     inviteToken: member ? plan.inviteToken : null,
     viewer: { member, organizer: viewer !== null && plan.createdBy === viewer.id },
     arrivals: (member ? arrived : []).flatMap((a) => {
@@ -148,17 +177,25 @@ export async function planByInvite(token: unknown) {
     spot:
       place && !hidden ? { id: place.id, name: place.name, lat: place.lat, lon: place.lon } : null,
     station: stop && !hidden ? (stations.get(stop.stationId) ?? null) : null,
+    stops: hidden
+      ? []
+      : route.map((r) => ({
+          id: r.at.id,
+          name: r.name,
+          station: stations.get(r.station)?.name ?? r.station,
+          scheduledAt: r.scheduledAt.toISOString(),
+        })),
     people: people.flatMap((p) => {
       const name = p.displayName ?? p.placeholderName;
       if (!name) return [];
       const stationId = member ? (p.homeStationId ?? p.originStationId) : null;
       const home = stationId ? stations.get(stationId) : undefined;
       const leaveBy =
-        home && stop && place
+        home && route.length > 0
           ? leaveByFor(
               data.timetable(),
-              plan.startsAt,
-              [{ station: stop.stationId, at: place, walkM }],
+              route.at(-1)?.scheduledAt ?? plan.startsAt,
+              route.map(({ station, at, walkM }) => ({ station, at, walkM })),
               { station: home.id, at: home },
             )
           : null;

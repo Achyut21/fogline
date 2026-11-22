@@ -29,10 +29,15 @@ export function FogFallback({
   states,
   lines,
   stations,
+  highlight = [],
+  label,
 }: {
   states: ReadonlyMap<string, CellState>;
   lines: readonly Line[];
   stations: readonly Station[];
+  /** Cells tinted in the accent color, such as one squad member's (F12.2). */
+  highlight?: readonly string[];
+  label?: string;
 }) {
   const cells = [...states.keys()];
   const seen = cells.filter((cell) => states.get(cell) === "seen");
@@ -41,7 +46,7 @@ export function FogFallback({
     <div className="relative h-full w-full">
       <svg
         role="img"
-        aria-label={fog.mapLabel(cells.length)}
+        aria-label={label ?? fog.mapLabel(cells.length)}
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid slice"
         className="h-full w-full bg-(--map-land)"
@@ -54,6 +59,9 @@ export function FogFallback({
           opacity={0.92}
         />
         <path d={seen.map(cellPath).join("")} fill="var(--fog)" opacity={0.45} />
+        {highlight.length > 0 && (
+          <path d={highlight.map(cellPath).join("")} fill="var(--accent)" opacity={0.5} />
+        )}
         {lines.map((line, i) => {
           const d = `M${line.coordinates.map(([lon, lat]) => point(lon, lat)).join("L")}`;
           return (

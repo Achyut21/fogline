@@ -31,3 +31,33 @@ export function trainsRunning(
   }
   return waiting.size === 0;
 }
+
+/**
+ * Each station's first and last boardable departure on a service date, in service-day seconds,
+ * so a solver can tell whether a ride can start there at a given moment.
+ */
+export function boardingSpans(
+  timetable: Timetable,
+  serviceDate: string,
+): Map<string, { first: number; last: number }> {
+  const running = timetable.dates[serviceDate];
+  if (!running) throw new Error(`The timetable doesn't cover ${serviceDate}`);
+  const services = new Set(running);
+  const spans = new Map<string, { first: number; last: number }>();
+  for (const trip of timetable.trips) {
+    if (!services.has(trip.service)) continue;
+    const pattern = timetable.patterns[trip.pattern];
+    trip.offsets.forEach((offset, i) => {
+      if (i === pattern.length - 1 || trip.noBoard?.includes(i)) return;
+      const departs = trip.start + offset;
+      const station = timetable.stations[pattern[i]];
+      const span = spans.get(station);
+      if (!span) spans.set(station, { first: departs, last: departs });
+      else {
+        span.first = Math.min(span.first, departs);
+        span.last = Math.max(span.last, departs);
+      }
+    });
+  }
+  return spans;
+}

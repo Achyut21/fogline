@@ -237,7 +237,7 @@ export function DailyPuzzle({ initial }: { initial: DailyState }) {
           </a>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href={`/plans/new?at=${encodeURIComponent(event.startsAt)}`}>
+              <Link href={`/plans/new?at=${encodeURIComponent(event.startsAt)}&event=${event.id}`}>
                 {daily.event.planIt}
               </Link>
             </Button>
