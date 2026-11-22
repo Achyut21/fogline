@@ -264,12 +264,16 @@ export function PlanView({
             {plan.people.map((person) => (
               <li key={person.id} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-bold">{person.name}</span>
+                  <span className={person.former ? "text-ink-muted" : "font-bold"}>
+                    {person.name ?? p.formerMember}
+                  </span>
                   {person.placeholder && (
                     <span className="text-xs text-ink-muted">{p.placeholder}</span>
                   )}
                 </div>
-                {person.leaveBy && <LeaveByLine name={person.name} leaveBy={person.leaveBy} />}
+                {person.leaveBy && person.name && (
+                  <LeaveByLine name={person.name} leaveBy={person.leaveBy} />
+                )}
               </li>
             ))}
           </ul>

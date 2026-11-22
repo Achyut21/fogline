@@ -44,6 +44,7 @@ export const plans = {
     stops: (n: number) => `${n} stops`,
     people: "Who's going",
     placeholder: "Not on Fogline yet",
+    formerMember: "Former member",
     leaveByHidden: "Join to see when everyone has to leave.",
     join: "Join this plan",
     joining: "Joining",
