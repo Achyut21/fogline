@@ -68,7 +68,7 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     expect(await weeklyPlansFor(db, new Date("2026-12-01T12:00:00-05:00"))).toEqual([]);
   });
 
-  it("[F10.5] copies a weekly plan into the viewer's own crawl with its own invite link", async () => {
+  it("[F10.5] copies a weekly plan into the viewer's own crawl once, with its own invite link", async () => {
     const [maya] = await db
       .insert(profiles)
       .values({
@@ -83,7 +83,16 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     const first = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     const second = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     if (!first || !second) throw new Error("expected copies");
-    expect(first.inviteToken).not.toBe(second.inviteToken);
+    // A second tap gives back the same copy, even when both taps arrive at once.
+    expect(second).toEqual(first);
+    const [a, b] = await Promise.all([
+      copyWeeklyPlan(db, weekly.id, maya, monday6am),
+      copyWeeklyPlan(db, weekly.id, maya, monday6am),
+    ]);
+    expect(a).toEqual(first);
+    expect(b).toEqual(first);
+    const copies = await db.select().from(plans).where(eq(plans.createdBy, maya.id));
+    expect(copies.filter((c) => c.title === weekly.title)).toHaveLength(1);
     expect(first.inviteToken).toMatch(/^[A-HJ-NP-Z2-9]{12}$/);
 
     const [plan] = await db.select().from(plans).where(eq(plans.id, first.id));

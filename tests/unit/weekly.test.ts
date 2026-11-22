@@ -60,12 +60,16 @@ describe("weekly plans", () => {
     expect(sunday.some((d) => d.template === "dinner-dessert")).toBe(false);
   });
 
-  it("[F10.4] runs the Monday cron in exactly one of its two UTC runs, in EST and EDT", () => {
-    // Nov 23 2026 is in EST; Mar 15 2027 is in EDT.
+  it("[F10.4] runs the Monday cron from 6 to 11 AM in Boston, in EST and EDT, so it can retry", () => {
+    // Nov 23 2026 is in EST (10:00Z is 5 AM); Mar 15 2027 is in EDT (10:00Z is 6 AM).
     expect(weeklyCronDue(new Date("2026-11-23T10:00:00Z"))).toBe(false);
-    expect(weeklyCronDue(new Date("2026-11-23T11:00:00Z"))).toBe(true);
-    expect(weeklyCronDue(new Date("2027-03-15T10:00:00Z"))).toBe(true);
-    expect(weeklyCronDue(new Date("2027-03-15T11:00:00Z"))).toBe(false);
+    for (const hour of [11, 12, 13, 14, 15, 16]) {
+      expect(weeklyCronDue(new Date(`2026-11-23T${hour}:00:00Z`)), `EST ${hour}Z`).toBe(true);
+    }
+    for (const hour of [10, 11, 12, 13, 14, 15]) {
+      expect(weeklyCronDue(new Date(`2027-03-15T${hour}:00:00Z`)), `EDT ${hour}Z`).toBe(true);
+    }
+    expect(weeklyCronDue(new Date("2027-03-15T16:00:00Z"))).toBe(false);
     expect(weeklyCronDue(new Date("2026-11-24T11:00:00Z"))).toBe(false);
   });
 
