@@ -340,6 +340,19 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Copy pass over all of `src/copy/` is running.
   - #50 (weekly fixes) re-review PASS; waiting on A with #47.
 
+- 2026-11-22 07:50 ET · Builder B · Weekly plan fixes from A's notes ([#50](https://github.com/Achyut21/fogline/pull/50), `b/weekly-fixes`, D-076):
+  - "Invite friends" on a weekly plan makes one copy per person and returns it again on a repeat tap. An advisory lock stops simultaneous taps; the 8-at-once test fails without the lock and passes with it.
+  - The weekly cron runs Mondays 6–11 AM New York time (`0 10-16 * * 1`), so a failed 6 AM run is retried; a run that finds the week made stops.
+  - Docs: DATA 3.17, ARCHITECTURE section 11, D-076 (replaces D-025's single run).
+  - code-critic: FAIL (stale docs, a race test that didn't exercise the lock), fixed; re-check running.
+  - Also open: #47 (invite preview, retargeted to `main`). Phase 10 started on `b/phase10` (plan on the board; the timing-safe cron secret is done).
+
+- 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
+  - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
+  - The image is the same for every link holder, so a 21+ plan always hides its title and venue.
+  - `src/app/p/[id]/page.tsx` now has `generateMetadata` that adds the `og:image` (a small change to A's file). Share fonts moved to `src/server/share-fonts.ts` for both images.
+  - Tests: `[F4.8]` `[F4.9]` `[F16.3]` in `tests/unit/plan-preview.test.ts`, and `[F4.8]` in `tests/integration/plan-image.test.ts`.
+  - #36 and #44 are merged. #45 is retargeted to `main` with main merged in.
 - 2026-11-22 05:53 ET · Builder A · Phase 9 item 4, PWA polish (`a/pwa-polish`, stacked on `a/plan-extras`):
   - "Update ready" toast with Refresh when a new service worker waits (Serwist `waiting` and `messageSkipWaiting`; `skipWaiting` stays off, so nothing reloads by itself); `navigator.storage.persist()` on load.
   - Install (F1.6): Android's `beforeinstallprompt` kept from page load, iOS Safari's Add to Home Screen steps (with "copy your profile code first"), shown only after a finished puzzle, an ended ride or a created plan, with Not now remembered for 7 days.

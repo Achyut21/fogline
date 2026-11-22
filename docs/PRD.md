@@ -234,7 +234,7 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 
 **Acceptance criteria**
 - **F12.1** Two profiles become squad members once both have a valid check-in on the same ended plan.
-- **F12.2** The squad map shows the union of members' uncovered cells, with an option to color them by who uncovered them.
+- **F12.2** The squad map shows your own uncovered cells plus the cells a squad mate cleared by checking in on nights you went out together, never their home or rides (DATA 3.12, D-078).
 - **F12.3** A squad streak counts consecutive weeks with at least one completed plan.
 - **F12.4** (Extra) A school leaderboard shows the percent of Boston uncovered by each school's profiles.
 

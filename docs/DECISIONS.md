@@ -644,6 +644,13 @@ Decision:
 Why: the hackathon deadline. Both builders work at once instead of one phase waiting on the other.
 Consequences: PHASES sections 9 and 10 rewritten, the PROGRESS phase table updated. Earlier decisions that point at "Phase 9" items (D-043, D-044 protected previews, the update toast) stay with Phase 9; performance (D-058's Android check), rate limits (D-065) and visual baselines now belong to Phase 10.
 
+**D-076 · 2026-11-22 · Weekly cron retries; one weekly-plan copy per person (F10.4, F10.5). Replaces D-025's single run.**
+Decision:
+- The weekly-plans cron runs hourly from 10:00 to 16:00 UTC on Mondays and works from 6 to 11 AM in New York. The 6 AM run makes the plans; the rest are retries that stop when the week's plans exist. F10.4's "6:00 AM Eastern" stays the target.
+- "Invite friends" on a weekly plan makes one copy per person. Asking again, from a double tap or another tab, returns that copy until it ends. A transaction-scoped advisory lock keyed on the person and the weekly plan stops two taps at once from both making one.
+Why: A's review of #44 found that one failed 6 AM run left the week empty, and that a double tap made two plans.
+Consequences: ARCHITECTURE section 11 and DATA 3.17 updated. A copy is recognized by creator, title and start time, so no migration is needed.
+
 **D-077 · 2026-11-22 · No rate limiter for the prototype (Phase 10, B's human).**
 Decision: B's human chose to skip the rate limiter. Phase 10 adds no `rate_limits` table and no per-IP limits. Profile-code restore stays without one, as D-065 already allows. `/demo` seeding keeps A's global cap.
 Why: the hackathon deadline. A limiter needs a migration and tuning that the prototype doesn't need to be demoed.

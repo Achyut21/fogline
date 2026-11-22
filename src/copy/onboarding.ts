@@ -29,7 +29,7 @@ export const onboarding = {
     label: "Age",
     under21: "Under 21",
     over21: "21 or older",
-    help: "Nobody checks an ID.",
+    help: "Change this in Me, Settings. Nobody checks an ID.",
     submit: "Show map",
   },
   invalid: "Your profile didn't save. Check your school and home station, then try again.",

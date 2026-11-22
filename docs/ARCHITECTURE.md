@@ -182,7 +182,7 @@ Keep each client-facing file small. Split by line or load lazily where needed. `
 - AI never produces the facts shown as numbers or verdicts: times, distances, grades, fairness scores, leave-by times, badges. Those come from code.
 - **Mastra planner agent:** its tools are `solveFairMeetup`, `buildCrawl`, `lastTrains`, `searchPlaces` and `gradeFor`. It picks among valid options and writes the blurb. An eval guard extracts every number from the agent's text and rejects the output if any number doesn't match a tool result.
 - Every AI output is cached (`ai_cache`, or built into `data/` files). Demo mode uses only cached output.
-- AI routes are rate-limited per profile and per IP (a token bucket in the database is enough).
+- Rate limits on AI routes are deferred (D-077); Find food's own hourly cap still applies.
 
 ## 10. PWA
 
@@ -208,7 +208,7 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
   - `record-vehicles` every minute (Phase 3, Pro plan);
   - `end-plans` every 15 minutes (Phase 4);
   - `cleanup-demo` daily (Phase 5);
-  - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
+  - `weekly-plans` hourly from 10:00 to 16:00 UTC on Mondays (Phase 7, D-076). The handler works from 6 to 11 AM in New York, which covers 6 AM in both EST and EDT; the later runs are retries, and a run that finds the week's plans already made stops.
 - Every generated deployment URL, preview or production, is behind Vercel Authentication. Only the production domain `fogline-mu.vercel.app` is public. Automated checks against a protected URL send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
 - After a deployment, the read-only e2e specs run against it in GitHub Actions (TESTING.md, CI). Vercel's `vercel.deployment.success` `repository_dispatch` event is meant to start that run, but it hasn't arrived for this repo yet. Until it does, a builder starts the run with `gh workflow run deployment.yml` (D-043).
 - `main` is protected: changes arrive through PRs, the CI `check` job and the Vercel build must pass, the history stays linear (squash merges), and force-pushes and deletion are blocked. Admins can override in an emergency.
@@ -225,6 +225,6 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
 - Zod on every input. Authorization checks on every action (profile ID from the signed httpOnly cookie, never from the client body).
 - Plan pages, Open Graph images, reminders and recaps need the participant cookie or the plan's invite token.
 - The cron routes require `CRON_SECRET`.
-- Rate limits on AI routes and on profile-code restore attempts.
+- Rate limits on AI routes and on profile-code restore attempts: deferred (D-077).
 - Image domains allowlisted (e.g. `upload.wikimedia.org`).
 - Run the `security-review` skill before the final release.

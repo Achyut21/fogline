@@ -206,7 +206,7 @@ B owns this phase and can start it alongside Phase 9. Its gate runs after Phase 
 **Items**
 1. **Performance:** Lighthouse CI budgets, bundle analysis, 3D quality tiers on a real mid-range Android.
 2. **Accessibility:** a full keyboard and screen-reader pass, axe on every route.
-3. **Security:** run the `security-review` skill and fix its findings. Rate limits verified, including profile-code restore (D-065) and timing-safe cron secrets.
+3. **Security:** run the `security-review` skill and fix its findings. Timing-safe cron secrets. Rate limits, including profile-code restore (D-065), are deferred (D-077).
 4. **Copy:** a `copy-critic` pass on all of `src/copy/`, then a `no-ai-slop` pass.
 5. **WALKTHROUGH.md** complete for every feature, plus the 10-minute full tour.
 6. **Visual baselines** for `/design` at 390×844 and 1440×900 in both themes (deferred from Phase 1, D-060).

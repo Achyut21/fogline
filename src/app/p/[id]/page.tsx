@@ -6,9 +6,22 @@ import { EmptyState } from "@/components/system/empty-state";
 import { Button } from "@/components/ui/button";
 import { plans } from "@/copy";
 import { planByInvite } from "@/server/actions/plans";
+import { getDb } from "@/server/db/client";
+import { previewMetadata, previewPlan } from "@/server/plan-preview";
 import { currentProfile } from "@/server/profile";
 
-export const metadata: Metadata = { title: plans.plan.pageTitle, robots: { index: false } };
+// The invite link's preview (F4.8): the image, plus the same facts as text for apps that show a
+// small thumbnail or none (DATA 3.20).
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps<"/p/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const { t } = await searchParams;
+  const base: Metadata = { title: plans.plan.pageTitle, robots: { index: false } };
+  const plan = await previewPlan(getDb(), id, t);
+  return plan && typeof t === "string" ? { ...base, ...previewMetadata(plan, t) } : base;
+}
 
 // A plan by its invite link (F4.8): `/p/[planId]?t=[invite_token]`. The token is what grants
 // access; the ID must match it so a link can't be pointed at another plan.
