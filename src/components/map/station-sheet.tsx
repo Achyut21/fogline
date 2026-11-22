@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { TrainFront, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { GradeBadge } from "@/components/display/grade-badge";
+import { InspectionDetails } from "@/components/display/inspection-details";
 import { isLine, LineBadge } from "@/components/display/line-badge";
 import { ErrorState } from "@/components/system/error-state";
 import { EmptyState } from "@/components/system/empty-state";
@@ -19,7 +21,7 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { legal, map, ride } from "@/copy";
-import { maxWalkM } from "@/lib/places/types";
+import { gradedCategories, maxWalkM } from "@/lib/places/types";
 import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
 import Link from "next/link";
@@ -142,17 +144,17 @@ function Spots({ spots }: { spots: Station["spots"] }) {
       ) : (
         <ul className="flex flex-col divide-y divide-rule rounded-lg bg-surface-sunken">
           {spots.map((spot) => (
-            <li key={spot.id} className="flex min-h-11 flex-col justify-center px-3 py-2">
+            <li key={spot.id} className="flex min-h-11 flex-col justify-center gap-1 px-3 py-2">
               <span className="font-bold">{spot.name}</span>
               <span className="text-sm text-ink-muted">
-                {s.meta(
-                  [
-                    s.category[spot.category],
-                    s.walk(spot.walkM),
-                    spot.grade ? s.grade(spot.grade) : "",
-                  ].filter(Boolean),
-                )}
+                {s.meta([s.category[spot.category], s.walk(spot.walkM)])}
               </span>
+              {gradedCategories.includes(spot.category) && (
+                <>
+                  <GradeBadge letter={spot.grade} inspected={spot.inspected} />
+                  {spot.grade && <InspectionDetails spotId={spot.id} />}
+                </>
+              )}
             </li>
           ))}
         </ul>
