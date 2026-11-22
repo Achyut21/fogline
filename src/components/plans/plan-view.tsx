@@ -3,7 +3,7 @@
 import { ArrowLeft, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
 import { Countdown } from "@/components/display/countdown";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,12 @@ const r = p.checkInResult;
 export type PlanData = NonNullable<Awaited<ReturnType<typeof planByInvite>>>;
 
 const minute = 60_000;
-// Check-in opens 30 minutes before the start (DATA 3.9); live mode opens with it.
+// Check-in opens 30 minutes before the start (DATA 3.9); live mode opens with it and closes when
+// the plan ends, or 4 hours after the start, when F6.4 ends a plan nobody ended.
 const liveFromMs = 30 * minute;
+const liveUntilMs = 4 * 60 * minute;
+// Arrival order reaches everyone within 10 s (F6.3).
+const refreshMs = 8_000;
 
 const noop = () => () => {};
 const tick = (onChange: () => void) => {
@@ -61,12 +65,25 @@ export function PlanView({
   const startsAt = new Date(plan.startsAt);
   const ended = plan.status === "ended";
   const live =
-    !ended && plan.viewer.member && clock !== null && clock >= startsAt.getTime() - liveFromMs;
+    !ended &&
+    plan.viewer.member &&
+    clock !== null &&
+    clock >= startsAt.getTime() - liveFromMs &&
+    clock < startsAt.getTime() + liveUntilMs;
+
   const me = plan.people.find((x) => x.you);
   const myLeaveBy = me?.leaveBy?.kind === "train" ? me.leaveBy.leaveBy : null;
   const hidden = plan.adultsOnly && plan.spot === null;
   const started = clock !== null && clock >= startsAt.getTime();
   const countdownTo = started && myLeaveBy ? myLeaveBy : startsAt;
+
+  useEffect(() => {
+    if (!live) return;
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") router.refresh();
+    }, refreshMs);
+    return () => clearInterval(id);
+  }, [live, router]);
 
   function join() {
     start(async () => {
@@ -82,9 +99,9 @@ export function PlanView({
       await navigator
         .share({ title: plan.title, text: p.share(plan.title), url })
         .catch((e: unknown) => {
-        // Closing the share sheet rejects with AbortError; that isn't a failure.
-        if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
-      });
+          // Closing the share sheet rejects with AbortError; that isn't a failure.
+          if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
+        });
       return;
     }
     await navigator.clipboard.writeText(url);
@@ -185,14 +202,9 @@ export function PlanView({
             </h2>
             <div className="flex flex-col gap-1">
               <span className="text-sm text-ink-muted">
-                {started && myLeaveBy
-                  ? p.leaveIn
-                  : p.startsIn}
+                {started && myLeaveBy ? p.leaveIn : p.startsIn}
               </span>
-              <Countdown
-                to={countdownTo}
-                className="text-4xl font-extrabold tracking-tight"
-              />
+              <Countdown to={countdownTo} className="text-4xl font-extrabold tracking-tight" />
             </div>
             <Button size="lg" disabled={checking} onClick={checkInHere}>
               {checking ? p.checkingIn : p.checkIn}
@@ -203,13 +215,18 @@ export function PlanView({
               </p>
             )}
             <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-bold text-ink-muted">{p.arrivals}</h3>
+              <h3 id="arrivals" className="text-sm font-bold text-ink-muted">
+                {p.arrivals}
+              </h3>
               {plan.arrivals.length === 0 ? (
                 <p className="text-sm text-ink-muted">{p.noArrivals}</p>
               ) : (
-                <ol className="flex list-decimal flex-col gap-1 pl-5 font-semibold">
+                <ol
+                  aria-labelledby="arrivals"
+                  className="flex list-decimal flex-col gap-1 pl-5 font-semibold"
+                >
                   {plan.arrivals.map((a) => (
-                    <li key={a.name}>{a.name}</li>
+                    <li key={a.id}>{a.name}</li>
                   ))}
                 </ol>
               )}

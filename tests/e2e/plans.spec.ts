@@ -36,7 +36,7 @@ async function newContext(browser: Browser, at?: { latitude: number; longitude: 
 
 test.skip(testUrl === "", "needs DATABASE_URL_TEST to move the plan's start time");
 
-test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.4] plans a fair night, joins it and checks in", async ({
+test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.3] [F6.4] plans a fair night, joins it and checks in", async ({
   page,
   browser,
 }) => {
@@ -71,6 +71,9 @@ test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.4] plans a fair night, joins it and
   const spot = data.places().find((x) => x.id === stop.placeId);
   if (!spot) throw new Error("plan spot missing from places.json");
 
+  await page.reload();
+  await expect(page.getByRole("heading", { name: p.live })).toBeVisible();
+
   const friend = await newContext(browser, { latitude: spot.lat, longitude: spot.lon });
   const sam = await friend.newPage();
   await onboard(sam, "Sam", "Tufts");
@@ -80,12 +83,16 @@ test("[F4.1] [F4.4] [F5.2] [F4.8] [F6.2] [F6.4] plans a fair night, joins it and
   await expect(sam.getByRole("heading", { name: p.live })).toBeVisible();
   await sam.getByRole("button", { name: p.checkIn }).click();
   await expect(sam.getByText(p.checkedIn)).toBeVisible({ timeout: 15_000 });
-  await expect(sam.getByRole("listitem").filter({ hasText: /^Sam$/ })).toBeVisible();
+  await expect(
+    sam.getByRole("list", { name: p.arrivals }).getByText("Sam", { exact: true }),
+  ).toBeVisible();
+  // The organizer's open page picks up Sam's arrival within 10 s, without a reload (F6.3).
+  await expect(
+    page.getByRole("list", { name: p.arrivals }).getByText("Sam", { exact: true }),
+  ).toBeVisible({
+    timeout: 10_000,
+  });
   await friend.close();
-
-  await page.reload();
-  await expect(page.getByRole("heading", { name: p.live })).toBeVisible();
   await page.getByRole("button", { name: p.end }).click();
   await expect(page.getByText(p.ended)).toBeVisible();
 });
-

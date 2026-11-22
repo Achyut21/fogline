@@ -37,7 +37,8 @@ export const plans = {
     back: "Plans",
     when: (at: Date) => `${dayFormat.format(at)} · ${clock(at)}`,
     adultsOnly: "This plan is 21+",
-    adultsOnlyBody: "The spot is a bar or club, so it's hidden for under-21 profiles and you can't join.",
+    adultsOnlyBody:
+      "The spot is a bar or club, so it's hidden for under-21 profiles and you can't join.",
     spot: "Spot",
     people: "Who's going",
     placeholder: "Not on Fogline yet",

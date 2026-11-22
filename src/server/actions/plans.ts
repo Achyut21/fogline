@@ -136,9 +136,11 @@ export async function planByInvite(token: unknown) {
     title: plan.title,
     inviteToken: member ? plan.inviteToken : null,
     viewer: { member, organizer: viewer !== null && plan.createdBy === viewer.id },
-    arrivals: arrived.flatMap((a) => {
+    arrivals: (member ? arrived : []).flatMap((a) => {
       const p = people.find((x) => x.profileId === a.profileId);
-      return p?.displayName ? [{ name: p.displayName, at: new Date(a.ts).toISOString() }] : [];
+      return p?.displayName
+        ? [{ id: p.id, name: p.displayName, at: new Date(a.ts).toISOString() }]
+        : [];
     }),
     startsAt: plan.startsAt.toISOString(),
     status: plan.status,
