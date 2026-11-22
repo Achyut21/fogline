@@ -285,6 +285,13 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 04:01 ET · Builder A · Phase 7 items 2 and 3, crawls and squad (stacked on B's `b/crawls`: [#41](https://github.com/Achyut21/fogline/pull/41) `a/squad`, [#42] `a/crawls`) and #40 merged:
+  - #40 (grades) squash `8fc44b1` after code-critic PASS (two notes fixed: a retry button for a failed inspection load, and the F11.2 test renamed because the plain-English rewrite isn't built).
+  - Squad (`/me/squad`, linked from Me): the SVG squad map of everyone's cells with one member's first uncovers tinted on request (no categorical color token exists, so one accent tint at a time), members with their counts, the weekly streak, an empty state.
+  - Crawls: the builder's One spot / Crawl switch, 2–4 stops with a kind each, crawl options with times, hours flags, walk or T legs, minutes to the first stop and leave-by from the last (`findCrawl`); Dinner before on Plan it from the puzzle (`findDinnerBefore`), saved as a plan at the dinner spot. **For B (your file):** `createPlan` takes `stops` (1–4 with times, kind `crawl` when more than one) and `planByInvite` returns `stops` and computes leave-by from the last stop (F5.5). The event itself isn't a plan stop, since `plan_stops.place_id` names a place.
+  - Tests: `tests/component/squad-view.test.tsx` (`[F12.2]` `[F12.3]`), `tests/e2e/squad.spec.ts`, `tests/e2e/crawls.spec.ts` (`[F10.1]` `[F10.3]` `[F10.6]`); crawls, plans and daily e2e 15/15; 391 unit/component/integration pass.
+  - **B: please open the `b/crawls` PR**; #41 and #42 retarget to `main` after it merges. Weekly plans (F10.4–F10.5) wait for the cron.
+
 - 2026-11-22 04:05 ET · Builder A · Phase 7 item 1, grades (`a/grades`) and #39 merged:
   - #39 (demo) squash `7207882` after code-critic FAIL (no cap on `/demo` seeding) → fixes (200 copies an hour, an existing demo is kept, demo sessions last 24 h, failures shown and logged, a warning for a signed-in real profile; `[F16.2]` cap test) → PASS. copy-critic over all new strings: FAIL (plain space before AM/PM, walk shown before rideshare) → fixed → PASS.
   - Grades: `GradeBadge` (letter and inspection date, "No inspection match" for unmatched food spots), `InspectionDetails` (violations loaded on open through `spotInspection`, so map and plan payloads only carry the letter and date), the unofficial label under each list, and a food-grade filter in the builder with "Allow any grade" when it blocks. **For B:** `SheetSpot` and the meetup spot gained `inspected` (date); F11.2's plain-English rewrite (cached Gemini text per spot) and the city record link are yours; until then the city's wording shows.

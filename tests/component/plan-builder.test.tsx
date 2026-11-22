@@ -19,6 +19,7 @@ function renderBuilder(under21 = true) {
       under21={under21}
       stations={[{ id: "place-davis", name: "Davis", lines: ["Red"] }]}
       times={[at]}
+      event={null}
     />,
   );
 }

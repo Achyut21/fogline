@@ -15,9 +15,12 @@ const b = plans.builder;
 function Leg({ leg }: { leg: CrawlLeg }) {
   const Icon = leg.mode === "walk" ? Footprints : TrainFront;
   return (
-    <p className="flex items-center gap-2 pl-24 text-sm text-ink-muted">
-      <Icon aria-hidden="true" className="size-4" />
-      {b.crawl.leg(leg.mode, leg.minutes)}
+    <p className="flex items-center gap-3 text-sm text-ink-muted">
+      <span aria-hidden="true" className="w-20 shrink-0" />
+      <span className="flex items-center gap-2">
+        <Icon aria-hidden="true" className="size-4" />
+        {b.crawl.leg(leg.mode, leg.minutes)}
+      </span>
     </p>
   );
 }
