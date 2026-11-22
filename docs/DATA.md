@@ -226,6 +226,13 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - **Automatic end:** a cron job every 15 minutes awards the night's badges and then ends an open plan, whose start has passed, 2 hours after the last valid check-in at its last stop, or 4 hours after the last stop's scheduled time when nobody checked in there. `ended_at` is that time, not the cron's, so the check-in window and the recap cover the night. Awarding first means a failed award leaves the plan open for the next run.
 - **Remind me:** a calendar file (`text/calendar`) for the signed-in participant only. One event at their leave-by from the last stop, 5 minutes long, with display alarms 20 and 5 minutes before. Times are in UTC so every calendar shows local time. The description names the first train home: its line, boarding station and time. No file when there's no train to catch (home is a walk away, no train runs, or the date is past the timetable) or the plan has ended.
 
+### 3.20 Invite link preview (F4.8)
+
+- `/api/og/plan/[planId]?t=[token]` draws a 1200×630 image for the plan's invite link: title, day and time, the first stop (with "+N more stops" for a crawl), and how many people are going (every seat that hasn't said no).
+- Link previews are fetched without cookies, so the token in the URL grants access. The plan ID must match it.
+- The image is the same for everyone who holds the link, so caches can share it for 5 minutes. A 21+ plan therefore always shows "A 21+ night out" and "21+ spot" (F4.9). A demo plan carries the Demo label.
+- The plan page's metadata points `og:image` and the large Twitter card at it, when the link carries a well-formed token.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.
