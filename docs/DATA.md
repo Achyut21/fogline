@@ -26,7 +26,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 1. **`data:gtfs`.** Download GTFS. Keep subway routes only: `route_type` 1 (Red, Orange, Blue) and 0 (Green Line B, C, D, E and Mattapan). Build:
    - `stations.json`: parent stations (`location_type = 1`) with coordinates, served routes and child stop IDs.
-   - `graph.json`: travel-time matrices (section 3.1).
+   - `graph.json`: ride and transfer edges and headways per day type and hour bucket (section 3.1).
    - `timetable.json`: a compact timetable for the last-train search (section 3.3), one entry per service type.
    - `shapes.json`: simplified shapes per route and direction, plus each stop's distance along its shape (for miles).
 2. **`data:places`.** Run an Overpass query within 600 m of each station for:
@@ -34,7 +34,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
    - `tourism` in museum, gallery;
    - `leisure=park`.
 
-   Normalize, dedupe, attach the nearest station and the walking distance, and set `age_rule = 21plus` for bar, pub, nightclub and biergarten. Run it once and cache. Don't hit Overpass at runtime.
+   Normalize, dedupe, attach every station within 600 m walking with its walking distance (not only the nearest, D-046), and set `age_rule = 21plus` for bar, pub, nightclub and biergarten. Run it once and cache. Don't hit Overpass at runtime.
 3. **`data:grades`.** Pull inspections, compute a grade per establishment (section 3.6), match to places (section 3.7), and write the grades and violation lists into `places.json`.
 4. **`data:cards`.** For each station:
    - Wikipedia geosearch (600 m radius). Pick one notable non-station article and fetch its intro extract, page image, and the image's author and license.
@@ -55,7 +55,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 - **Hour buckets:** one per hour from 5 to 23, plus "late" (00:00 to end of service).
 - **Headway** per (route, direction, stop, day type, hour) is the median gap between departures. **Expected wait** is half the headway.
 - **Transfer edges** use `min_transfer_time` from `transfers.txt` when present, otherwise 3 minutes, plus the expected wait of the route you transfer to.
-- `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. Precompute all pairs per day type and hour: about 125 stations, so this is small.
+- `t(o, d)` is the shortest path from any route node at `o` (starting with that route's expected wait) to any route node at `d`. It runs on request over the edges in `graph.json` (about 125 stations, so well under a millisecond) and returns the minutes plus the lines and transfer stations on the path, which F4.4 shows (D-047).
 - **Check before relying on it:** five known trips (for example Harvard to Park Street, Kenmore to Government Center, Medford/Tufts to Park Street) must land within 3 minutes of the MBTA schedule. Record the comparison in `PROGRESS.md`.
 
 ### 3.2 Fair meetup score (F4.3)
@@ -70,7 +70,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 - Per the GTFS spec, times count from "noon minus 12 hours" of the service date. That keeps DST-change days correct. Use it when converting to wall-clock time in `America/New_York`.
 - **Search:** a backward round-based search (reverse RAPTOR, at most 2 transfers) from the participant's home station `h`, with the end of the service day as the arrival deadline. It finds the latest departure from the plan's station `d` that still reaches `h`. Return the departure time, the trips and the transfer stations.
 - `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`. `margin = leave_by − now`.
-- A plan whose start time is after midnight belongs to the previous service date.
+- A plan whose start time is after midnight and before 3:00 AM belongs to the previous service date (D-047).
 - **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. Record them in `PROGRESS.md`.
 
 ### 3.4 Miles on the T (F3.4, F8.3)

@@ -125,19 +125,19 @@ Drizzle owns the regular tables. Custom SQL migrations (`drizzle-kit generate --
 - `profiles`: id (uuid), display_name, school, home_station_id, age_band (`under21` | `21plus`), profile_code (unique), theme_pref, is_demo, created_at.
 - `plans`: id, created_by, kind (`meetup` | `crawl`), title, starts_at (timestamptz), status (`draft` | `planned` | `live` | `ended`), budget, vibe, calm, min_grade, invite_token, is_demo, created_at.
 - `plan_participants`: plan_id, profile_id (nullable for placeholders), placeholder_name, origin_station_id, rsvp, joined_at.
-- `plan_stops`: plan_id, seq, place_id, station_id, scheduled_at.
-- `places`: id, osm_id, name, category, lat, lon, station_id, walk_m, age_rule, price_band, hours (raw OSM), inspection_key, grade, grade_date, vibe_tags.
+- `plan_stops`: plan_id, seq, place_id (text ID from `places.json`, or an event ID from `events.json`), station_id, scheduled_at.
 - `revealed_cells`: profile_id, h3 (text), state (`seen` | `visited`), source (`home` | `ride` | `checkin` | `puzzle`), first_at. Primary key (profile_id, h3).
 - `badges_awarded`: profile_id, badge_id, plan_id (nullable), scope (nullable: the neighborhood for First Light), awarded_at, meta (jsonb). Unique `NULLS NOT DISTINCT (profile_id, badge_id, plan_id, scope)` for idempotency. A plain unique constraint treats NULLs as distinct and would let explorer badges duplicate.
-- `events`: id, title, venue, lat, lon, starts_at, url, source, puzzle_word, is_curated.
-- `daily_puzzles`: date (America/New_York), word, event_id.
+- `daily_puzzles`: date (America/New_York), word, event_id (text ID from `events.json`).
 - `puzzle_results`: profile_id, date, guesses (jsonb), solved, solved_at.
 - `ai_cache`: key, model, output (jsonb), created_at.
 
 **Hypertables (time column first)**
 - `vehicle_positions`: ts, vehicle_id, trip_id, route_id, direction_id, stop_id, current_status, lat, lon, bearing, occupancy (jsonb, per-car when present).
-- `checkins`: ts, profile_id, plan_id, place_id, lat, lon, accuracy_m, valid.
-- `ride_events`: ts, profile_id, trip_id, route_id, stop_id, event (`board` | `pass` | `alight`), is_replay.
+- `checkins`: ts, profile_id, plan_id, place_id, lat, lon, accuracy_m, valid, is_demo.
+- `ride_events`: ts, profile_id, plan_id (nullable), trip_id, route_id, stop_id, event (`board` | `pass` | `alight` | `on_train`), is_replay, is_demo. `on_train` is the "I'm on the train" tap in live mode.
+
+Places and events aren't tables. They live in `data/places.json` and `data/events.json`, and rows refer to them by their text IDs (D-046). Unique indexes on a hypertable must include `ts`, so nothing in the schema stops a second check-in: the check-in action skips it, and queries use each person's earliest valid check-in per stop. Row counts and continuous aggregates leave out `is_demo` rows (F16.2).
 - `noise_readings` (F13): ts, profile_id, route_id, from_stop_id, to_stop_id, db_avg, db_peak.
 
 **Continuous aggregates**
@@ -152,7 +152,7 @@ Drizzle owns the regular tables. Custom SQL migrations (`drizzle-kit generate --
 ## 7. Static data
 
 Built by `scripts/` (see `docs/DATA.md`), committed under `data/`, imported by server code, and precached by the service worker where the client needs them:
-- `stations.json`, `graph.json` (travel times by day type and hour), `timetable.json` (compact departures for last-train search), `shapes.json`;
+- `stations.json`, `graph.json` (ride and transfer edges and headways by day type and hour), `timetable.json` (compact departures for last-train search), `shapes.json`;
 - `places.json`, `station-cards.json`, `neighborhoods-h3.json`, `events.json`, `words.json`.
 
 Keep each client-facing file small. Split by line or load lazily where needed.
