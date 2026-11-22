@@ -278,3 +278,15 @@ Consequences: DATA sections 2, 3.1 and 3.3 updated.
 Decision: GTFS service-day times before 05:00:00 use the 5 AM travel-time bucket, and 24:00:00 and later is "late". The day type (weekday, Saturday, Sunday) only picks representative travel times. The trips that run on a given date always come from that date's `calendar.txt` and `calendar_dates.txt` services.
 Why: DATA 3.1 left times before 5 AM without a bucket. The first trains of the day run at 5 AM headways, while "late" holds after-midnight trips. code-critic noted that a weekday-only rule would give Thanksgiving weekday trains, while the MBTA usually runs a Sunday schedule that day.
 Consequences: DATA 3.1 updated. A plan between 3:00 and 4:59 AM gets 5 AM travel times, so the solvers (items 3 to 5) check whether trains run before offering an option.
+
+**D-049 · 2026-11-21 · Core table rules (Phase 2 item 2).**
+Decision:
+- Allowed values are `text` columns with check constraints, built from one `as const` list per column that also types the column. No Postgres enums.
+- `plans.ended_at` is new. A check keeps it set exactly when `status` is `ended`. `puzzle_results` does the same for `solved` and `solved_at`.
+- A seat in `plan_participants` is one of three things, enforced by a check: a joined profile with no name or station on the row (its station is the profile's home station), a placeholder with both, or a former member with neither. `unique (plan_id, profile_id)` keeps NULLs distinct, so several placeholders and former members can share a plan.
+- Deleting a profile sets `plans.created_by` and the seat's `profile_id` to null, and cascades to the profile's cells, badges and puzzle results. `plan_participants` has its own `id`, and `badges_awarded` an identity `id`.
+- Indexes on `plan_participants(profile_id)`, `plans(created_by)` and `badges_awarded(plan_id)`.
+- Each integration test file migrates its own scratch database in `beforeAll`, instead of one Vitest `globalSetup`.
+- `drizzle/meta/` is in `.prettierignore`.
+Why: Drizzle applies every pending migration in one transaction, and Postgres can't use a new enum value inside the transaction that adds it. A type-only enum list next to a hand-written check would drift: drizzle-kit sees no change when only the type changes. Storing a joined person's station on the seat would keep it after they delete their data, against D-019. DATA 3.9's check-in window needs the plan's end time. Scratch databases keep test files from seeing each other's rows. drizzle-kit writes meta files Prettier rejects, and every `db:generate` rewrites them.
+Consequences: ARCHITECTURE section 6 updated. Joined participants' origin comes from `profiles.home_station_id` (F4.1, F5.1). `deleteMyData` (Phase 3) also deletes plans whose only participant was the person, since D-019 keeps plans for other participants and there are none. Weekly plans (F10.4) need their own marker column; a null `created_by` means the organizer deleted their data. A person who changes their home station also changes where past plans place them, so the recap (F9.1) draws past routes from `ride_events` if that matters.
