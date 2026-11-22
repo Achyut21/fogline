@@ -214,6 +214,18 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 - A weekly plan is shown and copied only while every stop is still in the data and all-ages, its title is in the copy, and it's in its own week. A meal-before title names the venue when it's 3 words or fewer with no comma ("Dinner, then Symphony Hall"), and "the event" otherwise. The event's own title isn't sent, since it can give away a coming day's puzzle word. It stores its stops (spot or event ID, station, walk from the station, time, hours known or not, and the leg from the previous stop).
 - "Invite friends" (F10.5) copies a weekly plan into the viewer's own crawl: their plan with the same title, time and stops, their own invite link, and whether each leg is walked (section 3.11). Leave-by times are worked out for the people who join, like any plan.
 
+### 3.18 Alerts on the way home (F5.6)
+
+- Source: `Alerts_enhanced.json` (section 1), fetched at most once a minute; when it fails, the last good copy is used.
+- An alert counts when it's active at the person's last-train departure, has severity 3 or more, and isn't about accessibility (elevators, escalators, access), parking or bikes.
+- For each ride on the person's last-train trip home (section 3.3): an alert that covers the ride's whole line, or names the station where the ride starts or ends, shows its text as MBTA wrote it. An alert that names only other stations on that line can't be placed on this train, so the plan says "Check MBTA alerts". Otherwise nothing shows.
+- Only members see this, like leave-by times (F5.1). When the feed has never answered, nothing is shown.
+
+### 3.19 Plan end and reminders (F6.4, F5.8)
+
+- **Automatic end:** a cron job every 15 minutes ends an open plan 2 hours after the last valid check-in at its last stop, or 4 hours after the last stop's scheduled time when nobody checked in there. `ended_at` is that time, not the cron's, so the check-in window and the recap cover the night. The night's badges are awarded then.
+- **Remind me:** a calendar file (`text/calendar`) for the signed-in participant only. One event at their leave-by from the last stop, 5 minutes long, with display alarms 20 and 5 minutes before. Times are in UTC so every calendar shows local time. No file when there's no train to catch (home is a walk away, no train runs, or the date is past the timetable) or the plan has ended.
+
 ## 4. Edge cases every algorithm test covers
 
 - GTFS times of 24:00:00 and later. Service date versus calendar date after midnight.

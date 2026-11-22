@@ -606,3 +606,11 @@ Decision:
 - `weekly_plans` stores each week's 3 plans, with their stops as JSON. Migration `0004_phase7_weekly_plans` also adds `plan_stops.walked_from_previous` (DATA 3.11).
 Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
 Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).
+
+**D-073 · 2026-11-22 · Plan end cron, Remind me and route alerts (Phase 4 leftovers: F6.4, F5.8, F5.6).**
+Decision:
+- `end-plans` runs every 15 minutes and sets `ended_at` to the rule's time (DATA 3.19), then awards badges.
+- "Remind me" is a route handler, `/api/plans/[planId]/remind`, that answers only the signed-in participant, because the file names their last train home.
+- Route alerts follow DATA 3.18. An alert that names a station between a ride's ends says "Check MBTA alerts" rather than guessing which trains it affects.
+Why: F6.4, F5.8 and F5.6 were the open Phase 4 server items.
+Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. Note: A's #43 also uses D-072; whichever of #43 and #44 merges second renumbers.
