@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ThemeToggle } from "@/components/system/theme-toggle";
-import { design } from "@/copy";
+import { app, design } from "@/copy";
 import { contrast } from "@/lib/contrast";
 import { duration, ease, spring, stagger } from "@/lib/motion";
 import { parseTokens } from "@/lib/tokens";
@@ -107,6 +108,29 @@ export default function DesignPage() {
           <ThemeToggle />
         </div>
       </header>
+
+      <Section id="brand" title={design.sections.brand}>
+        <ul className="flex flex-wrap items-end gap-6">
+          {[
+            { label: design.iconMasks.square, className: "rounded-lg" },
+            { label: design.iconMasks.circle, className: "rounded-full" },
+          ].map(({ label, className }) => (
+            <li key={label} className="flex flex-col items-center gap-2">
+              <Image
+                src="/icons/icon-192.png"
+                alt={design.iconAlt(label)}
+                width={96}
+                height={96}
+                className={`${className} size-18 shadow-md`}
+              />
+              <span aria-hidden="true" className="text-xs text-ink-muted">
+                {label}
+              </span>
+            </li>
+          ))}
+          <li className="text-4xl font-extrabold tracking-tight">{app.name}</li>
+        </ul>
+      </Section>
 
       <Section id="color" title={design.sections.color}>
         {colorGroups.map((group) => (

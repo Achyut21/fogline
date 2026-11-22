@@ -9,6 +9,7 @@ export const design = {
     night: "Night",
   },
   sections: {
+    brand: "Icon and wordmark",
     color: "Color",
     contrast: "Text contrast",
     type: "Type",
@@ -18,6 +19,11 @@ export const design = {
     motion: "Motion",
     layers: "Layers, bottom to top",
   },
+  iconMasks: {
+    square: "Rounded square",
+    circle: "Circle",
+  },
+  iconAlt: (mask: string) => `Fogline app icon, ${mask.toLowerCase()} mask`,
   colorGroups: {
     surfaces: "Surfaces",
     ink: "Text",
