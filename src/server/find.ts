@@ -77,6 +77,10 @@ export async function allowSearch(db: Db, profileId: string, now = new Date()): 
       returning (output->>'n')::int as n`);
     return Number(rows[0]?.n ?? 0);
   };
+  // Counters older than the last hour count nothing, so each search clears them.
+  await db.execute(
+    sql`delete from ai_cache where key like 'limit:find:%' and created_at < ${new Date(now.getTime() - 2 * 3_600_000).toISOString()}`,
+  );
   if ((await bump(`limit:find:${profileId}:${hour}`)) > perProfileHourly) return false;
   return (await bump(`limit:find:all:${hour}`)) <= allHourly;
 }
