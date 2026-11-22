@@ -167,3 +167,9 @@
     outline-offset: var(--focus-offset);
   }
 }
+
+/* MapLibre's attribution links sit inside a line of text, so they need more than color to stand out
+   (WCAG 1.4.1, axe link-in-text-block). */
+.maplibregl-ctrl.maplibregl-ctrl-attrib a {
+  text-decoration: underline;
+}
