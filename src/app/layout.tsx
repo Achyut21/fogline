@@ -48,10 +48,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           cacheOnNavigation={false}
         >
           <ThemeProvider>
-            {/* Every screen has an offline state (DESIGN); the banner pushes the screen down. */}
-            <OfflineBanner />
             <MotionProvider>{children}</MotionProvider>
             <DemoMark />
+            {/* Every screen has an offline state (DESIGN). The banner floats just above the
+                bottom nav, clear of each screen's title and back link. */}
+            <div className="pointer-events-none fixed inset-x-0 bottom-0 z-(--layer-toast) pb-safe">
+              <div className="mb-14">
+                <OfflineBanner />
+              </div>
+            </div>
             <Toaster />
           </ThemeProvider>
         </SerwistProvider>

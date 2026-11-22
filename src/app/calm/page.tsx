@@ -19,14 +19,18 @@ const next = Object.fromEntries(stations.map((s) => [s.id, nextStops(s.id)]));
 const nameOf = (id: string) => stationById(id)?.name ?? id;
 
 /** Calm mode (F13.1, F13.3): measure a stretch, and the stretches riders measured. */
-export default async function CalmPage() {
+export default async function CalmPage({ searchParams }: PageProps<"/calm">) {
+  const { from } = await searchParams;
+  // From a station sheet the way back is the map; from Me it is Me.
+  const back =
+    from === "map" ? { href: "/", label: app.nav.map } : { href: "/me", label: app.nav.me };
   if (!(await currentProfile())) redirect("/welcome");
   const segments = await measuredSegments(getDb());
   const levels = segments.map((s) => s.db);
   const ranked = [...segments].sort((a, b) => a.db - b.db);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <PageHeader back={{ href: "/me", label: app.nav.me }} />
+      <PageHeader back={back} />
       <main className="flex flex-1 flex-col gap-6 px-4 pb-safe">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-extrabold tracking-tight">{calm.title}</h1>

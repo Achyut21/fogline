@@ -49,9 +49,11 @@ const views = [
 // below, and the first-reveal card until it is dismissed.
 export function MapScreen({ data, homeStation }: { data: MapData; homeStation: string }) {
   const [view, setView] = useState<"map" | "list">("map");
-  const seen = useSyncExternalStore(noop, introSeen, () => true);
+  // Unknown on the server, so neither the card nor the Ride button flashes before hydration.
+  const seen = useSyncExternalStore<boolean | null>(noop, introSeen, () => null);
   const [dismissed, setDismissed] = useState(false);
-  const intro = data.firstVisit && !seen && !dismissed;
+  const intro = data.firstVisit && seen === false && !dismissed;
+  const rideButton = seen !== null && !intro;
   const states = useMemo(() => new Map(data.cells), [data.cells]);
   const names = useMemo(() => new Map(data.stations.map((s) => [s.id, s.name])), [data.stations]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export function MapScreen({ data, homeStation }: { data: MapData; homeStation: s
             label={map.label(data.share)}
             onStation={setSelected}
           />
-          {!intro && (
+          {rideButton && (
             <Button
               asChild
               size="lg"
