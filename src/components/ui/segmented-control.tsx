@@ -39,7 +39,7 @@ export function SegmentedControl<T extends string>({
         <RadioGroup.Item
           key={option.value}
           value={option.value}
-          className="h-11 rounded-sm px-3 text-base font-semibold text-ink-muted transition-colors duration-(--duration-fast) ease-standard data-[state=checked]:bg-surface data-[state=checked]:font-bold data-[state=checked]:text-ink data-[state=checked]:shadow-sm motion-reduce:transition-none"
+          className="h-11 rounded-sm px-3 text-base font-semibold text-ink-muted data-[state=checked]:bg-surface data-[state=checked]:font-bold data-[state=checked]:text-ink data-[state=checked]:shadow-sm"
         >
           {option.label}
         </RadioGroup.Item>

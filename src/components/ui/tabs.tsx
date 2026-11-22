@@ -33,7 +33,7 @@ function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsPrimitiv
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "h-11 rounded-sm px-3 text-base font-semibold text-ink-muted transition-colors duration-(--duration-fast) ease-standard disabled:opacity-50 data-[state=active]:bg-surface data-[state=active]:font-bold data-[state=active]:text-ink data-[state=active]:shadow-sm motion-reduce:transition-none",
+        "h-11 rounded-sm px-3 text-base font-semibold text-ink-muted disabled:opacity-50 data-[state=active]:bg-surface data-[state=active]:font-bold data-[state=active]:text-ink data-[state=active]:shadow-sm",
         className,
       )}
       {...props}
@@ -42,13 +42,7 @@ function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsPrimitiv
 }
 
 function TabsContent({ className, ...props }: ComponentProps<typeof TabsPrimitive.Content>) {
-  return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("outline-none", className)}
-      {...props}
-    />
-  );
+  return <TabsPrimitive.Content data-slot="tabs-content" className={className} {...props} />;
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

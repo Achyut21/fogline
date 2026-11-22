@@ -4,7 +4,8 @@ import { Minus, Plus } from "lucide-react";
 import { system } from "@/copy";
 import { IconButton } from "./icon-button";
 
-// A whole number between min and max. The value is announced politely when it changes.
+// A whole number between min and max. The value is announced politely when it changes. At a
+// limit the button stays focusable (aria-disabled), so keyboard focus doesn't drop to the page.
 export function Stepper({
   label,
   value,
@@ -23,8 +24,8 @@ export function Stepper({
       <IconButton
         label={system.stepper.decrease(label)}
         icon={Minus}
-        disabled={value <= min}
-        onClick={() => onValueChange(Math.max(min, value - 1))}
+        aria-disabled={value <= min}
+        onClick={() => value > min && onValueChange(value - 1)}
       />
       <output
         aria-live="polite"
@@ -35,8 +36,8 @@ export function Stepper({
       <IconButton
         label={system.stepper.increase(label)}
         icon={Plus}
-        disabled={value >= max}
-        onClick={() => onValueChange(Math.min(max, value + 1))}
+        aria-disabled={value >= max}
+        onClick={() => value < max && onValueChange(value + 1)}
       />
     </div>
   );

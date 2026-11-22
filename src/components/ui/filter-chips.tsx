@@ -22,7 +22,7 @@ export function FilterChips<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={cn("flex [scrollbar-width:none] gap-2 overflow-x-auto", className)}
+      className={cn("-m-1 flex [scrollbar-width:none] gap-2 overflow-x-auto p-1", className)}
     >
       {chips.map((chip) => (
         <button

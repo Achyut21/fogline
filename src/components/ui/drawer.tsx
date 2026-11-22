@@ -5,7 +5,8 @@ import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "@/lib/utils";
 
 // The Sheet (DESIGN sections 5 and 7): a bottom drawer with peek, half and full snap points, as
-// fractions of the screen. Vaul animates the drag itself.
+// fractions of the screen. Vaul moves the sheet down from its full height to reach a snap point,
+// so the content is always full height, minus the status bar. Vaul animates the drag itself.
 export const sheetSnaps = [0.3, 0.55, 1];
 
 function Drawer(props: ComponentProps<typeof DrawerPrimitive.Root>) {
@@ -41,7 +42,7 @@ function DrawerContent({
       <DrawerPrimitive.Content
         data-slot="drawer-content"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-(--layer-sheet) mx-auto flex max-h-dvh w-full max-w-md flex-col rounded-t-xl bg-surface pb-safe text-ink shadow-lg outline-none",
+          "fixed inset-x-0 bottom-0 z-(--layer-sheet) mx-auto flex h-sheet w-full max-w-md flex-col rounded-t-xl bg-surface pb-safe text-ink shadow-lg outline-none",
           className,
         )}
         {...props}

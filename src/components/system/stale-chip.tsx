@@ -2,9 +2,9 @@ import { Clock } from "lucide-react";
 import { system } from "@/copy";
 import { cn } from "@/lib/utils";
 
-// How old live data is (F2.5: stale data shows its age). Past `staleAfter` minutes it turns warning.
-export function StaleChip({ minutes, staleAfter = 2 }: { minutes: number; staleAfter?: number }) {
-  const stale = minutes >= staleAfter;
+// How old live data is (F2.5: stale data shows its age). The caller decides when it is stale, since
+// each feed has its own update rate; then the chip turns warning.
+export function StaleChip({ minutes, stale }: { minutes: number; stale: boolean }) {
   return (
     <span
       data-stale={stale}

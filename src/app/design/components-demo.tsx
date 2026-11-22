@@ -101,7 +101,7 @@ export function ComponentsDemo() {
           </label>
           <label className="flex flex-col gap-2">
             <span className="text-sm font-bold">{d.codeLabel}</span>
-            <Input aria-invalid="true" aria-describedby="code-error" defaultValue="FOG-12" />
+            <Input aria-invalid="true" aria-describedby="code-error" defaultValue={d.codeValue} />
             <span id="code-error" className="text-sm text-danger">
               {d.codeError}
             </span>
@@ -139,7 +139,7 @@ export function ComponentsDemo() {
             <DrawerTrigger asChild>
               <Button variant="secondary">{d.openSheet}</Button>
             </DrawerTrigger>
-            <DrawerContent className="h-full">
+            <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle>{d.sheetTitle}</DrawerTitle>
                 <DrawerDescription>{d.sheetBody}</DrawerDescription>
@@ -176,8 +176,8 @@ export function ComponentsDemo() {
 
       <Group title={d.statusChips}>
         <div className="flex flex-wrap gap-2">
-          <StaleChip minutes={0} />
-          <StaleChip minutes={6} />
+          <StaleChip minutes={0} stale={false} />
+          <StaleChip minutes={6} stale />
           <DemoChip />
         </div>
       </Group>

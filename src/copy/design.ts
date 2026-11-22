@@ -102,6 +102,7 @@ export const design = {
     nameLabel: "Your name",
     namePlaceholder: "Maya",
     codeLabel: "Profile code",
+    codeValue: "FOG-12",
     codeError: "That code has 8 letters. Check it and try again.",
     controls: "Controls",
     viewLabel: "View",

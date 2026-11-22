@@ -20,7 +20,7 @@ export function IconButton({
       type="button"
       aria-label={label}
       className={cn(
-        "inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink transition-transform duration-(--duration-fast) ease-standard active:scale-95 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100",
+        "inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink transition-transform duration-(--duration-fast) ease-standard active:scale-95 disabled:pointer-events-none disabled:opacity-50 aria-disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100",
         tone === "sunken" ? "bg-surface-sunken" : "bg-surface shadow-md",
         className,
       )}

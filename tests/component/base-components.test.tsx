@@ -28,7 +28,10 @@ describe("base components", () => {
   it("Stepper stays between min and max", () => {
     const change = vi.fn();
     render(<Stepper label="Friends" value={8} min={2} max={8} onValueChange={change} />);
-    expect(screen.getByRole("button", { name: system.stepper.increase("Friends") })).toBeDisabled();
+    const more = screen.getByRole("button", { name: system.stepper.increase("Friends") });
+    expect(more).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(more);
+    expect(change).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: system.stepper.decrease("Friends") }));
     expect(change).toHaveBeenCalledWith(7);
   });
@@ -45,9 +48,9 @@ describe("base components", () => {
   });
 
   it("[F2.5] StaleChip shows the data's age and turns warning once it is stale", () => {
-    const { rerender } = render(<StaleChip minutes={1} />);
+    const { rerender } = render(<StaleChip minutes={1} stale={false} />);
     expect(screen.getByText(system.stale(1))).toHaveAttribute("data-stale", "false");
-    rerender(<StaleChip minutes={5} />);
+    rerender(<StaleChip minutes={5} stale />);
     expect(screen.getByText(system.stale(5))).toHaveAttribute("data-stale", "true");
   });
 
