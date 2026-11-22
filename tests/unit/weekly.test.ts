@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { openAt } from "@/lib/places/hours";
-import { campusStations, draftWeek, templates, weeklyCount } from "@/lib/weekly";
+import {
+  campusStations,
+  draftWeek,
+  mealAt,
+  templates,
+  weeklyCount,
+  weeklyCronDue,
+} from "@/lib/weekly";
 import { data } from "@/server/data";
 
 const files = () => ({
@@ -50,5 +57,20 @@ describe("weekly plans", () => {
     const sunday = draftWeek(files(), new Date("2026-11-29T12:00:00-05:00"));
     expect(sunday.every((d) => d.startsAt > new Date("2026-11-29T12:00:00-05:00"))).toBe(true);
     expect(sunday.some((d) => d.template === "dinner-dessert")).toBe(false);
+  });
+
+  it("[F10.4] runs the Monday cron in exactly one of its two UTC runs, in EST and EDT", () => {
+    // Nov 23 2026 is in EST; Mar 15 2027 is in EDT.
+    expect(weeklyCronDue(new Date("2026-11-23T10:00:00Z"))).toBe(false);
+    expect(weeklyCronDue(new Date("2026-11-23T11:00:00Z"))).toBe(true);
+    expect(weeklyCronDue(new Date("2027-03-15T10:00:00Z"))).toBe(true);
+    expect(weeklyCronDue(new Date("2027-03-15T11:00:00Z"))).toBe(false);
+    expect(weeklyCronDue(new Date("2026-11-24T11:00:00Z"))).toBe(false);
+  });
+
+  it("[F10.6] names the meal before an event by the hour", () => {
+    expect(mealAt(new Date("2026-11-28T08:20:00-05:00"))).toBe("breakfast");
+    expect(mealAt(new Date("2026-11-22T13:50:00-05:00"))).toBe("lunch");
+    expect(mealAt(new Date("2026-11-27T18:20:00-05:00"))).toBe("dinner");
   });
 });

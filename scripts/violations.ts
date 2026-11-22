@@ -23,11 +23,13 @@ const cacheDir = ".cache/violations";
 const attempts = 3;
 const output = "data/violations.json";
 
-const instructions = `You rewrite one Boston restaurant inspection violation in plain English for college students.
+const instructions = `You rewrite one Boston restaurant inspection violation in plain, dry English.
 Rules:
-- Say what the inspector found wrong, using only what the city's words say. Add nothing.
-- One plain sentence, ${violationMaxLength} characters or fewer, ending with a period.
-- Start with a short noun phrase or a verb, for example "Food stored where it could get contaminated."
+- Say what the inspector cited, using only what the city's words say. Add nothing.
+- If the city's words name only a category, say the problem was with that thing. Don't guess the specific fault.
+- One sentence in sentence case, ${violationMaxLength} characters or fewer, ending with a period.
+- Start with a short noun phrase naming the problem, for example "Problem with how food was stored."
+- Plain words: use, not utilize. No slang, no jokes, no emoji, no semicolons.
 - No opinions, no judgment of the restaurant, no em dashes, no exclamation marks.
 Reply with the sentence only.`;
 
@@ -66,8 +68,14 @@ async function ask(prompt: string): Promise<string> {
   return sentence;
 }
 
-// The AI SDK's errors when Gemini is overloaded or slow: retries used up, or the call timed out.
-const unavailable = new Set(["AI_RetryError", "AI_APICallError", "TimeoutError", "AbortError"]);
+// Gemini is overloaded, out of quota or slow: retries used up, a 429 or 5xx, or a timeout. A bad
+// key (401, 403) or request isn't one of these, so it fails the run.
+function unavailable(error: Error): boolean {
+  if (["AI_RetryError", "TimeoutError", "AbortError"].includes(error.name)) return true;
+  if (error.name !== "AI_APICallError" || !("statusCode" in error)) return false;
+  const status = Number(error.statusCode);
+  return status === 429 || status >= 500;
+}
 
 const places = z.array(placeSchema).parse(await read("data/places.json"));
 const texts = [
@@ -91,7 +99,7 @@ for (const text of texts) {
     try {
       sentence = await ask(`City's words: ${source}${problem}`);
     } catch (error) {
-      if (error instanceof Error && unavailable.has(error.name)) {
+      if (error instanceof Error && unavailable(error)) {
         missing++;
         log.info("data:violations got no answer from Gemini; rerun to fill it", {
           text,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { bannedWords } from "@/lib/banned-words";
 
 // Plain-English violations (F11.2, DATA 2, item 8). The city's descriptions are a short fixed list, so
 // `pnpm data:violations` has Gemini reword each one once into `data/violations.json`. The app
@@ -13,17 +14,24 @@ export const violationsFileSchema = z.object({
 });
 export type ViolationsFile = z.infer<typeof violationsFileSchema>;
 
-/** The city's description without its code-category suffix: "(P)", "(Pf)" or "(C)". */
+/**
+ * The city's description without its labels: a leading "(A) " and a trailing "(P)", "(Pf)" or
+ * "(C)" code category.
+ */
 export function cityWords(text: string): string {
-  return text.replace(/\s*\((?:P|Pf|C)\)\s*$/, "").trim();
+  return text
+    .replace(/^\(A\)\s*/, "")
+    .replace(/\s*\((?:P|Pf|C)\)\s*$/, "")
+    .trim();
 }
 
-const banned =
-  /\b(unlock|unleash|elevate|seamless(ly)?|effortless(ly)?|journey|embark|delve|vibrant|bustling|curated|robust|cutting-edge|world-class|immersive|iconic|boasts|ensure[sd]?|crucial|essential|vital)\b/i;
+// Words a judging or hyped line would use, on top of COPY.md's banned list.
+const judging = /\b(ensure[sd]?|crucial|essential|vital)\b/i;
 
 /**
- * Why a rewrite can't be shown, or null when it can: one plain sentence of 90 characters or
- * fewer, no em dashes or exclamation marks, no hype words, and no number the city didn't write.
+ * Why a rewrite can't be shown, or null when it can: one plain sentence in sentence case of 90
+ * characters or fewer, no semicolons, em dashes or exclamation marks, no banned or judging words,
+ * and no number the city didn't write.
  */
 export function checkRewrite(sentence: string, source: string): string | null {
   const s = sentence.trim();
@@ -31,10 +39,19 @@ export function checkRewrite(sentence: string, source: string): string | null {
   if (s.length > violationMaxLength) return `${s.length} characters, over ${violationMaxLength}`;
   if (!/[.]$/.test(s)) return "doesn't end with a period";
   if (/[.!?]\s+[A-Z0-9]/.test(s.slice(0, -1))) return "more than one sentence";
+  if (s.includes(";")) return "has a semicolon";
   if (/[—!]|\s–\s/.test(s)) return "has a dash between clauses or an exclamation mark";
-  const word = banned.exec(s);
+  const word = bannedWords.exec(s) ?? judging.exec(s);
   if (word) return `uses "${word[0]}"`;
-  const missing = (s.match(/\d+/g) ?? []).find((n) => !source.includes(n));
+  const rest = s
+    .split(/\s+/)
+    .slice(1)
+    .filter((w) => /^[A-Za-z]{4,}/.test(w));
+  if (rest.length >= 2 && rest.filter((w) => /^[A-Z]/.test(w)).length * 2 > rest.length) {
+    return "isn't in sentence case";
+  }
+  const cityNumbers = new Set(source.match(/\d+/g) ?? []);
+  const missing = (s.match(/\d+/g) ?? []).find((n) => !cityNumbers.has(n));
   if (missing !== undefined) return `the number ${missing} isn't in the city's words`;
   return null;
 }

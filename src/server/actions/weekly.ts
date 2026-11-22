@@ -15,6 +15,6 @@ export async function inviteToWeeklyPlan(weeklyId: unknown) {
   const id = z.uuid().parse(weeklyId);
   const creator = await currentProfile();
   if (!creator) return { kind: "no-profile" as const };
-  const copy = await copyWeeklyPlan(getDb(), id, creator);
+  const copy = await copyWeeklyPlan(getDb(), id, creator, new Date());
   return copy ? { kind: "created" as const, ...copy } : { kind: "unknown-plan" as const };
 }

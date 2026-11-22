@@ -5,7 +5,7 @@ import type { PuzzleEvent } from "@/lib/events";
 import type { Graph, Station, Timetable } from "@/lib/gtfs/types";
 import type { Place, PlaceCategory } from "@/lib/places/types";
 import type { SpotFilters } from "@/lib/solver/fair";
-import { addDays, mondayOf, serviceDateOf, serviceTimeToDate } from "@/lib/time";
+import { addDays, mondayOf, serviceDateOf, serviceTimeToDate, zone } from "@/lib/time";
 
 // Weekly plans (F10.4, DATA 3.17, D-072): every Monday, 3 suggested plans for the week. A puzzle
 // event that week gets a Dinner before; crawl templates fill the rest. Fairness and last trains
@@ -35,6 +35,34 @@ export const templates = [
 export type TemplateId = (typeof templates)[number]["id"] | "dinner-before";
 
 const stayMinutes = 60;
+
+const localHour = new Intl.DateTimeFormat("en-US", {
+  timeZone: zone,
+  weekday: "short",
+  hour: "numeric",
+  hourCycle: "h23",
+});
+
+function bostonClock(at: Date): { weekday: string; hour: number } {
+  const parts = Object.fromEntries(localHour.formatToParts(at).map((p) => [p.type, p.value]));
+  return { weekday: parts.weekday, hour: Number(parts.hour) };
+}
+
+/** The meal before an event, by the hour it starts in Boston: before 11, before 4 PM, or later. */
+export function mealAt(at: Date): "breakfast" | "lunch" | "dinner" {
+  const { hour } = bostonClock(at);
+  if (hour < 11) return "breakfast";
+  return hour < 16 ? "lunch" : "dinner";
+}
+
+/**
+ * Whether the weekly cron should run now: Mondays at 6 AM in Boston. Vercel calls it at 10:00
+ * and 11:00 UTC, so exactly one of the two lands at 6 AM in both EST and EDT.
+ */
+export function weeklyCronDue(now: Date): boolean {
+  const { weekday, hour } = bostonClock(now);
+  return weekday === "Mon" && hour === 6;
+}
 
 export const storedStopSchema = z.object({
   /** A place ID from places.json, or an event ID from events.json for Dinner before's event. */

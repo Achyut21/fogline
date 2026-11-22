@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
+import { storedStopSchema } from "@/lib/weekly";
 import { checkIn } from "@/server/actions/live";
 import { planByInvite } from "@/server/actions/plans";
 import { data } from "@/server/data";
@@ -51,11 +53,11 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
     expect(await db.select().from(weeklyPlans)).toHaveLength(3);
     const shown = await weeklyPlansFor(db, new Date("2026-11-25T12:00:00-05:00"));
     expect(shown).toHaveLength(3);
-    expect(shown[0].title).toMatch(/^Dinner before /);
+    expect(shown[0].title).toMatch(/^(Breakfast|Lunch|Dinner), then /);
     expect(shown[0].stops.at(-1)?.category).toBe("event");
     expect(shown.slice(1).map((p) => p.title)).toEqual([
-      "Dinner and dessert",
-      "Coffee and a museum",
+      "Dinner, then dessert",
+      "Coffee, then a museum or show",
     ]);
     expect(await weeklyPlansFor(db, new Date("2026-12-01T12:00:00-05:00"))).toEqual([]);
   });
@@ -72,8 +74,8 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
       })
       .returning();
     const [weekly] = await weeklyPlansFor(db, monday6am);
-    const first = await copyWeeklyPlan(db, weekly.id, maya);
-    const second = await copyWeeklyPlan(db, weekly.id, maya);
+    const first = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
+    const second = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     if (!first || !second) throw new Error("expected copies");
     expect(first.inviteToken).not.toBe(second.inviteToken);
     expect(first.inviteToken).toMatch(/^[A-HJ-NP-Z2-9]{12}$/);
@@ -96,14 +98,34 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
     expect(stops.map((s) => s.walkedFromPrevious)).toEqual(
       weekly.stops.map((s) => s.leg?.mode === "walk"),
     );
-    expect(await copyWeeklyPlan(db, crypto.randomUUID(), maya)).toBeNull();
+    expect(await copyWeeklyPlan(db, crypto.randomUUID(), maya, monday6am)).toBeNull();
+  });
+
+  it("[F10.5] copies only this week's plans, and only while every stop is all-ages", async () => {
+    const [maya] = await db.select().from(profiles).where(eq(profiles.profileCode, "MAYA2345"));
+    const [weekly] = await weeklyPlansFor(db, monday6am);
+    const nextWeek = new Date("2026-11-30T12:00:00-05:00");
+    expect(await copyWeeklyPlan(db, weekly.id, maya, nextWeek)).toBeNull();
+
+    const bar = data.places().find((p) => p.ageRule === "21plus" && p.stations.length > 0);
+    if (!bar) throw new Error("no 21+ spot");
+    const [row] = await db.select().from(weeklyPlans).where(eq(weeklyPlans.id, weekly.id));
+    const stops = z.array(storedStopSchema).parse(row.stops);
+    const changed = [
+      { ...stops[0], placeId: bar.id, stationId: bar.stations[0].id },
+      ...stops.slice(1),
+    ];
+    await db.update(weeklyPlans).set({ stops: changed }).where(eq(weeklyPlans.id, weekly.id));
+    expect((await weeklyPlansFor(db, monday6am)).map((p) => p.id)).not.toContain(weekly.id);
+    expect(await copyWeeklyPlan(db, weekly.id, maya, monday6am)).toBeNull();
+    await db.update(weeklyPlans).set({ stops }).where(eq(weeklyPlans.id, weekly.id));
   });
 
   it("[F10.3] [F10.6] lists every stop of a copied crawl and times leave-by from the event", async () => {
     const [maya] = await db.select().from(profiles).where(eq(profiles.profileCode, "MAYA2345"));
     session.viewer = maya;
     const [weekly] = await weeklyPlansFor(db, monday6am);
-    const copy = await copyWeeklyPlan(db, weekly.id, maya);
+    const copy = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     if (!copy) throw new Error("expected a copy");
     const page = await planByInvite(copy.inviteToken);
     if (!page) throw new Error("expected the plan");

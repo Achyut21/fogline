@@ -592,17 +592,17 @@ Consequences: live trains (F3.1, F3.2) and train-lost (F3.6) come after the gate
 **D-071 · 2026-11-22 · Squad, crawls and Dinner before (Phase 7, F10.1–F10.3, F10.6, F12.2, F12.3).**
 Decision:
 - A squad is defined per person: you and your mates (DATA 3.12). The streak counts Monday-to-Sunday weeks with an ended plan you shared with a mate, and an empty current week doesn't break it until the week ends. This settles D-063's open question.
-- Crawls follow DATA 3.15: fairness for the first stop only, then the nearest matching spot within 10 minutes by walk or T, and last trains from the last stop. A crawl is dropped when anyone has to leave before the full stay at the last stop ends, so nobody turns around on arrival. T legs need a train still boarding at that hour.
+- Crawls follow DATA 3.15: fairness for the first stop only, then a matching spot within 10 minutes by walk or T (known hours first, then the shortest leg), and last trains from the last stop. A crawl is dropped when anyone has to leave before the full stay at the last stop ends, so nobody turns around on arrival. T legs need a train still boarding at that hour.
 - Opening hours come from OSM's `opening_hours`, read by a small parser for the common forms (";" replaces, "," adds, as OSM defines); anything else is "unknown" and flagged, as F10.1 allows. 967 of the 1,000 spots with hours parse.
 - Dinner before follows DATA 3.16: the fairest food spot within 10 minutes of the venue.
 - Vibe and calm (F10.2) aren't crawl filters yet: places carry no vibe tags (D-057), and calm mode (F13) is an Extra.
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
 Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).
 
-**D-072 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5; B's human chose option A).**
+**D-072 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5).**
 Decision:
 - Weekly plans are fair for a group from five campuses (Kendall/MIT, Harvard, BU Central, Northeastern, Medford/Tufts), because the Monday cron runs before anyone joins. Inviting friends copies the plan, and leave-by times then follow the real group.
-- "Crawl templates" (F10.4) are a fixed list of stop categories with a start time: dinner and dessert on Friday at 7 PM, coffee and a museum on Saturday at 2 PM, brunch and a park on Sunday at 11 AM. The week's earliest puzzle event gets a Dinner before first. All are all-ages.
+- "Crawl templates" (F10.4) are a fixed list of stop categories with a start time: dinner, then dessert on Friday at 7 PM; coffee, then a museum or show on Saturday at 2 PM; brunch, then a park walk on Sunday at 11 AM. A meal before the week's first puzzle event comes first, named by its hour: breakfast before 11 AM, lunch before 4 PM, dinner after. Titles are short ("Dinner, then Symphony Hall"); the UI shows the event's name on its own line. All are all-ages, and a plan whose stop leaves the data or turns 21+ is hidden.
 - `weekly_plans` stores each week's 3 plans, with their stops as JSON. Migration `0004_phase7_weekly_plans` also adds `plan_stops.walked_from_previous` (DATA 3.11).
 Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
 Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).

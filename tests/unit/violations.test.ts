@@ -12,6 +12,14 @@ describe("plain-English violations", () => {
     expect(checkRewrite("Hand drying was missing — a crucial lapse.", source)).not.toBeNull();
     expect(checkRewrite("Found 3 sinks without towels.", source)).toMatch(/number 3/);
     expect(checkRewrite("x".repeat(91) + ".", source)).toMatch(/over 90/);
+    expect(checkRewrite("Towels missing; sink dirty.", source)).toMatch(/semicolon/);
+    expect(checkRewrite("Staff did not utilize hand dryers.", source)).toMatch(/utilize/);
+    expect(checkRewrite("Problem With Hand Drying Provision.", source)).toMatch(/sentence case/);
+    expect(checkRewrite("Found 1 sink without towels.", "Item 41 failed")).toMatch(/number 1/);
+    expect(checkRewrite("Item 41 failed at the sink.", "Item 41 failed")).toBeNull();
+    expect(cityWords("(A) Certified Food Protection Manager")).toBe(
+      "Certified Food Protection Manager",
+    );
   });
 
   it("[F11.2] keeps only checked rewrites of real city descriptions", () => {
