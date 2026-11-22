@@ -33,18 +33,14 @@ export async function myStats() {
       .where(eq(badgesAwarded.profileId, id))
       .orderBy(desc(badgesAwarded.awardedAt)),
   ]);
-  const ended = await db
-    .select({ id: plans.id })
-    .from(plans)
-    .where(
-      and(
-        eq(plans.status, "ended"),
-        inArray(
-          plans.id,
-          mine.map((c) => c.planId),
-        ),
-      ),
-    );
+  const myPlans = [...new Set(mine.map((c) => c.planId))];
+  const ended =
+    myPlans.length === 0
+      ? []
+      : await db
+          .select({ id: plans.id })
+          .from(plans)
+          .where(and(eq(plans.status, "ended"), inArray(plans.id, myPlans)));
   const states = new Map<string, CellState>(cells.map((c) => [c.h3, c.state]));
   const events = live(rides);
   const stations = data.stations();

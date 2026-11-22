@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { checkInValidity, type CheckinResult } from "@/lib/checkin";
 import { revealAround } from "@/lib/geo/cells";
@@ -87,7 +87,7 @@ export async function endPlan(input: unknown) {
     await db
       .update(plans)
       .set({ status: "ended", endedAt: new Date() })
-      .where(eq(plans.id, planId));
+      .where(and(eq(plans.id, planId), ne(plans.status, "ended")));
   }
   // Awarding again is safe (F8.6), so a retry after a failed award fills the badges in.
   return { kind: "ended" as const, badges: await awardNightBadges(planId, db) };

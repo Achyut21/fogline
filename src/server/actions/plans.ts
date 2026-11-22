@@ -159,10 +159,12 @@ export async function joinPlan(token: unknown) {
   if (!viewer) return { kind: "no-profile" as const };
   const db = getDb();
   const [plan] = await db
-    .select({ id: plans.id, status: plans.status })
+    .select({ id: plans.id, status: plans.status, isDemo: plans.isDemo })
     .from(plans)
     .where(eq(plans.inviteToken, parsed.data));
-  if (!plan) return { kind: "not-found" as const };
+  // Demo and real never mix (F16.2): a real student in a demo plan would lose their check-ins when
+  // the demo copy is cleaned up, and a demo profile in a real plan would count in real stats.
+  if (!plan || plan.isDemo !== viewer.isDemo) return { kind: "not-found" as const };
   if (plan.status === "ended") return { kind: "ended" as const };
   const stops = await db
     .select({ placeId: planStops.placeId })

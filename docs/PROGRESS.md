@@ -283,7 +283,12 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The solver is timed warm, as the median of 3 runs on next Friday's plan, and reports null if the run finds no options.
     - Demo names live in `src/copy/demo.ts`.
     - Tests now check who gets each badge (the visitor also earns Long Haul from BU), that real plans and check-ins survive cleanup, demo rows in every hypertable, and a real columnstore ratio.
-  - Deferred (prototype): the puzzle is stateless until `puzzle_results` is stored (the six-guess limit is client-side for now), and there are no tests for `endPlan` or `checkIn`.
+  - Second review of the fix commit (asked for by B's human): FAIL. `joinPlan` let demo and real plans mix: a real student in a demo plan would lose their check-ins at cleanup, and a demo profile in a real plan would count in real stats.
+    - Fixed: `joinPlan` refuses across the demo/real line.
+    - Also fixed: a second End tap keeps the first end time, and `myStats` skips the query without check-ins.
+    - New tests: `[F16.2]` both directions, `[F6.4] [F8.6]` creator-only end and no duplicate badges, `[F8.3]` nights out, and next-Friday timing across clock changes (runs without a database).
+  - Deferred (prototype): the puzzle is stateless until `puzzle_results` is stored, so the six-guess limit is client-side for now.
+  - **For A:** `solverMs` is null when the timed plan finds no options. The How it works page needs a string for that case.
   - **For A:** `tests/unit/design-tokens.test.ts` fails on Windows only. `path.relative` returns backslashes, so the `exempt` prefixes never match. Using `path.posix` or normalizing separators would fix it.
   - **For A:** `/demo` calls `seedDemo(getDb())` and then `startSession(profileId)`. Also needed from A: the Demo chip, the How it works page reading `cachedHowItWorks(getDb())`, and the data-source credits in `src/copy`.
 - 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:

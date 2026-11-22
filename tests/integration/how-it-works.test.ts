@@ -15,6 +15,16 @@ import { createScratchDatabase } from "./scratch-database";
 
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
 
+describe("timed plan date", () => {
+  it("[F15.1] times the solver on next Friday at 7 PM New York time, across clock changes", () => {
+    const friday = (iso: string) => nextFridayEvening(new Date(iso)).toISOString();
+    expect(friday("2026-11-22T05:00:00Z")).toBe("2026-11-28T00:00:00.000Z");
+    expect(friday("2026-11-28T01:00:00Z")).toBe("2026-12-05T00:00:00.000Z");
+    expect(friday("2026-10-31T16:00:00Z")).toBe("2026-11-07T00:00:00.000Z");
+    expect(friday("2027-03-13T12:00:00Z")).toBe("2027-03-19T23:00:00.000Z");
+  });
+});
+
 describe.skipIf(testUrl === "")("How it works numbers", () => {
   let scratch: Awaited<ReturnType<typeof createScratchDatabase>>;
   let db: Db;
@@ -119,15 +129,6 @@ describe.skipIf(testUrl === "")("How it works numbers", () => {
     );
     const numbers = await howItWorks(db);
     expect(numbers.compressionRatio).toBeGreaterThan(1);
-  });
-
-  it("[F15.1] times the solver on next Friday at 7 PM New York time", () => {
-    expect(nextFridayEvening(new Date("2026-11-22T05:00:00Z")).toISOString()).toBe(
-      "2026-11-28T00:00:00.000Z",
-    );
-    expect(nextFridayEvening(new Date("2026-11-28T01:00:00Z")).toISOString()).toBe(
-      "2026-12-05T00:00:00.000Z",
-    );
   });
 
   it("[F15.2] serves the same numbers for 60 s, then queries again", async () => {

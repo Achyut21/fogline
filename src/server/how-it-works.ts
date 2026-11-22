@@ -86,7 +86,10 @@ export async function cachedHowItWorks(db: Db, now = Date.now()): Promise<HowItW
   return value;
 }
 
-/** 7:00 PM New York time on the next Friday after `now`, so the timed plan is inside the timetable. */
+/**
+ * 7:00 PM New York time on the next Friday after `now`. A date past the feed uses its day type's
+ * representative date (DATA 3.1), so the timed plan always does the full work.
+ */
 export function nextFridayEvening(now: Date): Date {
   const local = new TZDate(now.getTime(), zone);
   local.setDate(local.getDate() + ((5 - local.getDay() + 7) % 7 || 7));
