@@ -164,6 +164,10 @@ A ride's own summary (F3.4, F3.5) counts its events, replay or not, so a replay 
 
 Two profiles are squad mates once both have a valid check-in on the same ended plan (`src/lib/squad.ts`). The relation isn't transitive: a mate's mate is not a mate.
 
+- **Your squad** is you and your mates (D-071).
+- **Squad map (F12.2):** the union of the squad's revealed cells. A cell is visited when any member visited it, and it's credited to the member who uncovered it first (ties by profile ID), for the color-by-person option.
+- **Squad streak (F12.3):** consecutive weeks, Monday to Sunday by service date in Boston, with at least one ended plan where you and a mate both have a valid check-in. This week counts once it has such a night; until then the count runs to last week, so a streak breaks only when a week ends without one.
+
 ### 3.13 Next departures (F2.5, F3.1)
 
 From `TripUpdates_enhanced.json` (`src/lib/predictions.ts`):
