@@ -49,7 +49,7 @@ export function SquadView({
       <main className="flex flex-1 flex-col gap-4 px-4 pb-safe">
         <h1 className="text-2xl font-extrabold tracking-tight">{s.title}</h1>
         <dl className="grid grid-cols-2 gap-2">
-          <StatTile label={s.streakLabel} value={squad.streak} suffix={` ${s.streak(squad.streak).split(" ")[1]}`} />
+          <StatTile label={s.streakLabel(squad.streak)} value={squad.streak} />
           <StatTile label={s.cells} value={squad.cells.length} accent />
         </dl>
         <SegmentedControl label={s.colorBy} options={options} value={who} onValueChange={setWho} />

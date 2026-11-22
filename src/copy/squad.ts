@@ -5,8 +5,8 @@ export const squad = {
   title: "Your squad",
   back: "Me",
   open: "Squad",
-  streak: (weeks: number) => (weeks === 1 ? "1 week" : `${weeks} weeks`),
-  streakLabel: "streak, a night out each week",
+  streakLabel: (weeks: number) =>
+    weeks === 1 ? "week in a row with a night out" : "weeks in a row with a night out",
   cells: "cells uncovered together",
   members: "Members",
   you: (name: string) => `${name} (you)`,
