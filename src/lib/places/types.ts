@@ -11,6 +11,9 @@ export const placeCategories = [
 ] as const;
 export type PlaceCategory = (typeof placeCategories)[number];
 
+/** Categories that are 21+ by what they are (F1.5, F4.9). */
+export const adultCategories: readonly PlaceCategory[] = ["bar", "club"];
+
 /** Categories where people eat, so the minimum food grade applies (F4.5, F11.5). */
 export const gradedCategories: readonly PlaceCategory[] = ["food", "coffee", "dessert"];
 
@@ -35,7 +38,7 @@ export const placeSchema = z
     hours: z.string().nullable(),
     grade: z.object({ letter: z.enum(grades), date: z.iso.date() }).nullable(),
   })
-  .refine((place) => !["bar", "club"].includes(place.category) || place.ageRule === "21plus", {
+  .refine((place) => !adultCategories.includes(place.category) || place.ageRule === "21plus", {
     message: "Bars and clubs are 21+",
   });
 export type Place = z.infer<typeof placeSchema>;

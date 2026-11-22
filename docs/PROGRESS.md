@@ -221,22 +221,26 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - `rankStations`: S(d), with the sum and then the station as tie-breaks, and the 75-minute cut. Unknown stations throw.
     - `spotsNear`: grades, and no bars, clubs or 21+ spots for under-21 groups.
     - `fairOptions`: 3 stations that have matching spots. When nothing fits it names a blocker, a pair of blockers, or no trains.
-  - `src/lib/gtfs/service.ts`: `trainsRunning` checks that a train leaves within an hour of the plan (D-048).
+  - `src/lib/gtfs/service.ts`: `trainsRunning` checks that a train leaves in the hour before the plan, on its service date or its day type's representative date (D-048).
   - `src/lib/solver/travel.ts` searches once per origin (`travelTimesFrom`). `src/lib/geo/miles.ts` gives ride miles along canonical shapes. `src/lib/places/types.ts` holds the place schema for item 6.
   - Real data: the demo plan (BU, Harvard, Tufts, Friday 7 PM) ranks Government Center first (26, 19 and 25 min), then Aquarium, Bowdoin and Park Street (23, 11 and 28 min). Miles: Harvard → Park Street 3.3, Medford/Tufts → Park Street 5.1, JFK/UMass → Braintree 8.7.
-  - Tests: 16 unit tests on hand-built networks whose scores were worked out by hand.
+  - Tests: 17 unit tests on hand-built networks whose scores were worked out by hand.
     - `[F4.2]` per-friend times, the plan's day type, hour bucket and after-midnight service date.
     - `[F4.3]` ranking, both tie-breaks, exactly 75 minutes, a lone participant, unknown stations.
     - `[F4.4]` 3 options, and skipping a well-ranked station with no spot. `[F4.5]` 600 m exactly, nearest first, budget.
     - `[F11.5]` grades on graded and unmatched spots. `[F1.5]` `[F4.9]` the under-21 rule, mislabeled bars included.
-    - `[F4.6]` each blocker, the relax order, filters that only work together, no trains, and the age rule never relaxed. `[F3.4]` miles.
+    - `[F4.6]` each blocker, the relax order, filters that only work together (named only when set and needed), no trains (3:30, 4:30 AM, 7 PM, Thanksgiving, a date past the feed), and the age rule never relaxed. `[F3.4]` miles.
   - code-critic: first pass FAIL. Three BLOCKING items fixed:
     - No check that trains run at the plan's start: a 3:30 AM Saturday plan got options.
     - An unknown station was reported as "time".
     - The under-21 rule relied only on `ageRule`.
     All three SHOULD FIX items fixed too: filters relaxed together, grades on every graded spot, and tests that could pass while broken. Nits fixed: exact boundaries, spot tie order, the lib tree in ARCHITECTURE.
   - Log times on B's Phase 2 entries corrected to the real commit times; earlier stamps ran ahead of the clock.
-  - Next: code-critic second pass, then item 6 (places and grades).
+  - Second pass: FAIL on one BLOCKING item, fixed. The train check looked at the hour after the start, so a 4:30 AM plan still got options; it now looks at the hour before. Its SHOULD FIX items are fixed too:
+    - A date past the feed is checked against its representative date instead of skipped.
+    - Tests now cover trains only earlier in the evening, and a covered date (Thanksgiving) whose services don't run.
+    Nits fixed: station and spot ID tie-break tests, naming only filters that were set and needed, and one bar-and-club list.
+  - Next: code-critic third pass, then item 6 (places and grades).
 
 - 2026-11-21 20:42 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
   - `src/lib/lasttrain/search.ts`: backward round-based search with two times per station (board, arrive by train), at most two transfers, walks into home and between stations, and no-pickup or no-drop-off stops skipped.

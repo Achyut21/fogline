@@ -45,14 +45,15 @@ const graph: Graph = {
   },
 };
 
-// One train an evening, so trains run around 6 PM on Tuesday 2026-11-17 and not at 3:30 AM.
+// One weekday train at 5:30 PM: trains run in the hour before a 6 PM plan on Tuesday 2026-11-17,
+// but not before 7 PM, 4:30 AM, or on Thanksgiving (Sunday service, no trains in this table).
 const timetable: Timetable = {
   feedVersion: "test",
   stations,
   transferSeconds: stations.map(() => 180),
   walks: [],
-  services: ["WKD"],
-  dates: { "2026-11-17": [0] },
+  services: ["WKD", "SUN"],
+  dates: { "2026-11-17": [0], "2026-11-26": [1] },
   patterns: [[at("H"), at("P")]],
   trips: [
     {
@@ -61,7 +62,7 @@ const timetable: Timetable = {
       direction: 0,
       service: 0,
       pattern: 0,
-      start: 18 * 3600 + 600,
+      start: 17.5 * 3600,
       offsets: [0, 600],
     },
   ],
@@ -143,17 +144,18 @@ describe("rankStations", () => {
   });
 
   // Two friends at E and W. S(Z1) = 600 + 100 = 700 with a total of 1000; S(A1) = 700 with a
-  // total of 1400; Z2 is Z1 again. W to N is exactly 75 minutes and W to O one second more.
+  // total of 1400; Z2 is Z1 again and is listed first. W to N is exactly 75 minutes and W to O
+  // one second more.
   const tie: Graph = {
     ...graph,
-    stations: ["A1", "E", "N", "O", "W", "Z1", "Z2"],
+    stations: ["A1", "E", "N", "O", "W", "Z2", "Z1"],
     transferSeconds: [180, 180, 180, 180, 180, 180, 180],
     legs: {
       weekday: [
-        { from: 1, to: 5, ride: everyBucket(300), wait: everyBucket(100), routes: everyBucket(0) },
-        { from: 4, to: 5, ride: everyBucket(500), wait: everyBucket(100), routes: everyBucket(0) },
         { from: 1, to: 6, ride: everyBucket(300), wait: everyBucket(100), routes: everyBucket(0) },
         { from: 4, to: 6, ride: everyBucket(500), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 1, to: 5, ride: everyBucket(300), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 5, ride: everyBucket(500), wait: everyBucket(100), routes: everyBucket(0) },
         { from: 1, to: 0, ride: everyBucket(600), wait: everyBucket(100), routes: everyBucket(0) },
         { from: 4, to: 0, ride: everyBucket(600), wait: everyBucket(100), routes: everyBucket(0) },
         { from: 1, to: 2, ride: everyBucket(60), wait: everyBucket(0), routes: everyBucket(0) },
@@ -162,8 +164,8 @@ describe("rankStations", () => {
         { from: 4, to: 3, ride: everyBucket(4501), wait: everyBucket(0), routes: everyBucket(0) },
       ],
       saturday: [
-        { from: 1, to: 5, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
-        { from: 4, to: 5, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 1, to: 6, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 6, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
       ],
       sunday: [],
     },
@@ -236,6 +238,14 @@ describe("spotsNear", () => {
     );
   });
 
+  it("[F4.5] orders spots at the same distance by name, then by ID", () => {
+    const twins = [
+      place("dunkin-b", "coffee", "X", 300),
+      place("dunkin-a", "coffee", "X", 300),
+    ].map((p) => ({ ...p, name: "Dunkin" }));
+    expect(spotsNear(twins, "X", eat).map((s) => s.place.id)).toEqual(["dunkin-a", "dunkin-b"]);
+  });
+
   it("[F11.5] keeps only graded spots that meet the minimum, and unmatched ones only where nobody eats", () => {
     expect(spotsNear(places, "P", { ...eat, minGrade: "B" }).map((s) => s.place.id)).toEqual([
       "p9-near-food",
@@ -299,11 +309,19 @@ describe("fairOptions", () => {
     });
   });
 
-  it("[F4.6] names filters that only work relaxed together", () => {
+  it("[F4.6] names filters that only work relaxed together, and only ones that were set and needed", () => {
     const pricey = [place("pricey-b", "food", "P", 100, { price: 3, grade: gradeB })];
     expect(
       options({ ...eat, categories: ["food"], budget: 1, minGrade: "A" }, friends, pricey),
     ).toEqual({ kind: "none", blockedBy: ["budget", "minGrade"] });
+    const dessertB = [place("dessert-b", "dessert", "P", 100, { price: 1, grade: gradeB })];
+    expect(options({ ...eat, categories: ["coffee"], minGrade: "A" }, friends, dessertB)).toEqual({
+      kind: "none",
+      blockedBy: ["minGrade", "categories"],
+    });
+    expect(
+      options({ ...eat, categories: ["coffee"], budget: 1, minGrade: "A" }, friends, dessertB),
+    ).toEqual({ kind: "none", blockedBy: ["minGrade", "categories"] });
   });
 
   it("[F4.6] reports time, no trains or no spots, and never relaxes the age rule", () => {
@@ -311,11 +329,14 @@ describe("fairOptions", () => {
       kind: "none",
       blockedBy: ["time"],
     });
-    const lateNight = serviceTimeToDate("2026-11-17", 3.5 * 3600);
-    expect(options(eat, friends, places, lateNight)).toEqual({
-      kind: "none",
-      blockedBy: ["no-trains"],
-    });
+    const noTrains = { kind: "none", blockedBy: ["no-trains"] };
+    for (const hours of [3.5, 4.5, 19]) {
+      expect(options(eat, friends, places, serviceTimeToDate("2026-11-17", hours * 3600))).toEqual(
+        noTrains,
+      );
+    }
+    const thanksgiving = serviceTimeToDate("2026-11-26", 18 * 3600);
+    expect(options(eat, friends, places, thanksgiving)).toEqual(noTrains);
     expect(options(eat, friends, [])).toEqual({ kind: "none", blockedBy: ["spots"] });
     const barsOnly = [place("p2-bar", "bar", "P", 100)];
     expect(options({ ...eat, categories: ["bar"], under21: true }, friends, barsOnly)).toEqual({
@@ -324,9 +345,14 @@ describe("fairOptions", () => {
     });
   });
 
-  it("[F4.4] still offers options on a date the timetable doesn't cover", () => {
-    const nextMonth = serviceTimeToDate("2027-01-05", 18 * 3600);
-    expect(options(eat, friends, places, nextMonth).kind).toBe("options");
+  it("[F4.4] checks a date the timetable doesn't cover against its day type's representative date", () => {
+    expect(options(eat, friends, places, serviceTimeToDate("2027-01-05", 18 * 3600)).kind).toBe(
+      "options",
+    );
+    expect(options(eat, friends, places, serviceTimeToDate("2027-01-05", 3.5 * 3600))).toEqual({
+      kind: "none",
+      blockedBy: ["no-trains"],
+    });
   });
 });
 

@@ -1,23 +1,21 @@
 import type { Timetable } from "@/lib/gtfs/types";
-import { toServiceTime } from "@/lib/time";
 
 const windowSeconds = 3600;
 
 /**
- * Whether any subway train leaves within an hour of a moment, on that moment's service date.
- * Null when the timetable doesn't cover the date, so callers can't tell.
+ * Whether any subway train leaves in the hour before a moment on a service date, which is when
+ * friends ride to a plan that starts then (D-048).
  */
-export function trainsRunning(timetable: Timetable, at: Date): boolean | null {
-  const { serviceDate, seconds } = toServiceTime(at);
+export function trainsRunning(timetable: Timetable, serviceDate: string, seconds: number): boolean {
   const running = timetable.dates[serviceDate];
-  if (!running) return null;
+  if (!running) throw new Error(`The timetable doesn't cover ${serviceDate}`);
   const services = new Set(running);
   return timetable.trips.some(
     (trip) =>
       services.has(trip.service) &&
       trip.offsets.some((offset) => {
         const departs = trip.start + offset;
-        return departs >= seconds && departs < seconds + windowSeconds;
+        return departs >= seconds - windowSeconds && departs < seconds;
       }),
   );
 }

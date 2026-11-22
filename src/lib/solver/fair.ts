@@ -1,6 +1,7 @@
 import { trainsRunning } from "@/lib/gtfs/service";
 import type { Graph, Timetable } from "@/lib/gtfs/types";
 import {
+  adultCategories,
   gradedCategories,
   placeCategories,
   type Grade,
@@ -92,8 +93,6 @@ export function rankStations(
   );
 }
 
-const adultCategories: readonly PlaceCategory[] = ["bar", "club"];
-
 /** A spot with a grade must meet the minimum; an unmatched spot fails it only where people eat. */
 function meetsGrade(place: Place, minGrade: "A" | "B"): boolean {
   const letter: Grade | undefined = place.grade?.letter;
@@ -143,7 +142,8 @@ function pick(ranked: RankedStation[], places: Place[], filters: SpotFilters): F
 /**
  * Up to three fair options at different stations, each with its matching spots (F4.3–F4.5).
  * When none exists, names what to relax (F4.6): one filter at a time first, in the order budget,
- * minimum grade, category, then the same filters together. The age rule is never relaxed.
+ * minimum grade, category, then the same filters together, naming only the ones that were set
+ * and needed. The age rule is never relaxed.
  */
 export function fairOptions(
   graph: Graph,
@@ -154,28 +154,40 @@ export function fairOptions(
   filters: SpotFilters,
 ): FairResult {
   const ranked = rankStations(graph, participants, startsAt);
-  if (trainsRunning(timetable, startsAt) === false)
+  const { serviceDate, seconds } = toServiceTime(startsAt);
+  const checkedDate =
+    serviceDate in timetable.dates ? serviceDate : graph.dates[dayTypeOf(serviceDate)];
+  if (!trainsRunning(timetable, checkedDate, seconds)) {
     return { kind: "none", blockedBy: ["no-trains"] };
+  }
   if (ranked.length === 0) return { kind: "none", blockedBy: ["time"] };
   const options = pick(ranked, places, filters);
   if (options.length > 0) return { kind: "options", options };
 
-  const relaxations: [Blocker, Partial<SpotFilters>][] = [
-    ["budget", { budget: null }],
-    ["minGrade", { minGrade: null }],
-    ["categories", { categories: placeCategories }],
-  ];
-  for (const [blocker, change] of relaxations) {
-    if (pick(ranked, places, { ...filters, ...change }).length > 0) {
-      return { kind: "none", blockedBy: [blocker] };
+  const relaxations = (
+    [
+      ["budget", { budget: null }, filters.budget !== null],
+      ["minGrade", { minGrade: null }, filters.minGrade !== null],
+      [
+        "categories",
+        { categories: placeCategories },
+        filters.categories.length < placeCategories.length,
+      ],
+    ] satisfies [Blocker, Partial<SpotFilters>, boolean][]
+  ).filter(([, , changes]) => changes);
+  const works = (blockers: Blocker[]) => {
+    let loosened = filters;
+    for (const [blocker, change] of relaxations) {
+      if (blockers.includes(blocker)) loosened = { ...loosened, ...change };
     }
+    return pick(ranked, places, loosened).length > 0;
+  };
+
+  for (const [blocker] of relaxations) {
+    if (works([blocker])) return { kind: "none", blockedBy: [blocker] };
   }
-  const blockers: Blocker[] = [];
-  let loosened = filters;
-  for (const [blocker, change] of relaxations) {
-    blockers.push(blocker);
-    loosened = { ...loosened, ...change };
-    if (pick(ranked, places, loosened).length > 0) return { kind: "none", blockedBy: blockers };
-  }
-  return { kind: "none", blockedBy: ["spots"] };
+  const all = relaxations.map(([blocker]) => blocker);
+  if (!works(all)) return { kind: "none", blockedBy: ["spots"] };
+  const needed = all.filter((blocker) => !works(all.filter((other) => other !== blocker)));
+  return { kind: "none", blockedBy: needed.length > 0 ? needed : all };
 }
