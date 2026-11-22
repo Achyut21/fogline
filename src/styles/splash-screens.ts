@@ -1,5 +1,7 @@
 // The iPhone screens that get a splash screen (PWA.md): CSS size and pixel ratio, portrait.
 export const splashScreens = [
+  { width: 440, height: 956, ratio: 3 },
+  { width: 402, height: 874, ratio: 3 },
   { width: 430, height: 932, ratio: 3 },
   { width: 393, height: 852, ratio: 3 },
   { width: 390, height: 844, ratio: 3 },

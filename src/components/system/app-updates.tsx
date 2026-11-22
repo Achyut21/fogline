@@ -20,11 +20,19 @@ export function AppUpdates() {
   useEffect(() => {
     if (!serwist) return;
     const waiting = () => {
+      // One toast however many versions wait. Another tab may already have switched to the new
+      // version, and then nothing is waiting here: Refresh just reloads.
       toast(system.update.title, {
+        id: "update-ready",
         duration: Number.POSITIVE_INFINITY,
         action: {
           label: system.update.refresh,
-          onClick: () => {
+          onClick: async () => {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (!registration?.waiting) {
+              window.location.reload();
+              return;
+            }
             serwist.addEventListener("controlling", () => window.location.reload());
             serwist.messageSkipWaiting();
           },
