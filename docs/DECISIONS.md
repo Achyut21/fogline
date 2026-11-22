@@ -443,3 +443,19 @@ Consequences:
 - A squad streak (F12.3) needs its own definition of the squad, since mates are pairwise. Decide in Phase 7.
 - F8.1 now says the `end-plans` cron recomputes a night's badges once every last train has left plus 10 minutes (Phase 6 builds it).
 - Phase 6 shows each badge's number (minutes late, minutes to spare) from the same inputs it passed to `nightAwards`. A late last train has 0 to spare, so the copy needs a wording for it (copy-critic).
+
+**D-060 · 2026-11-21 · Daily puzzle rules, words and events (Phase 2 item 8).**
+Decision:
+- The puzzle date is the New York calendar date, changing at midnight (`calendarDateOf`), not the 3 AM service date the trains use.
+- Feedback marks correct letters first; a repeated letter is present only as often as the answer has it left over.
+- A guess must be 5 letters a to z (any case, trimmed) and in `words.json`. No guess is taken after a solve or the sixth guess.
+- Solving reveals the event and clears fog; failing reveals the event only (F7.3, F7.7).
+- A streak counts consecutive solved dates ending today, or ending yesterday while today's puzzle is still open. A failed or missed day resets it.
+- Valid guesses: dwyl/english-words `words_alpha.txt`, The Unlicense, pinned commit, 15,921 five-letter words. It includes rare words, which only makes more guesses valid.
+- Events: a hand-written list in `scripts/events/curated.json` with `allAges: true` and a `checked` flag the human sets per event. `data:events` publishes nothing until every entry is checked and valid. An event serves the puzzle date it's on or up to 3 days before it, so a multi-day run can fill a date.
+- `events.json` is server-only because it holds the answers.
+- `data:events` also refuses a gap between published dates (a date without a puzzle would break every streak) and an answer used twice. Guesses past six are ignored.
+- An event can start earlier on its puzzle date than someone solves it (three of the first 14 start before noon). The reveal shows its time, so a late solver sees it has passed. Accepted to keep the list to real, all-ages events.
+Why: everyone shares one answer per date (F7.1), so the date must not depend on the server's zone. A human check is the only way to know a real event's date, venue and age policy are right (DATA 2.6).
+Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data note updated. Rerun `data:events` weekly with a new checked list (DATA 5).
+
