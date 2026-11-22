@@ -11,6 +11,7 @@ function block(css: string, selector: string): TokenSet {
 }
 
 export function parseTokens(css: string): { day: TokenSet; night: TokenSet } {
-  const day = block(css, ":root");
-  return { day, night: { ...day, ...block(css, "\\.dark") } };
+  const plain = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const day = block(plain, ":root");
+  return { day, night: { ...day, ...block(plain, "\\.dark") } };
 }

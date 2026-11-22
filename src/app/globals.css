@@ -12,6 +12,8 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-rule: var(--rule);
+  --color-field: var(--field);
+  --color-field-border: var(--field-border);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
@@ -47,30 +49,35 @@
   --color-muted-foreground: var(--ink-muted);
   --color-destructive: var(--danger);
   --color-border: var(--rule);
-  --color-input: var(--rule);
+  --color-input: var(--field-border);
   --color-ring: var(--focus);
 
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 
   --text-*: initial;
   --text-xs: var(--type-xs);
-  --text-xs--line-height: 1rem;
+  --text-xs--line-height: var(--type-xs-leading);
   --text-sm: var(--type-sm);
-  --text-sm--line-height: 1.25rem;
+  --text-sm--line-height: var(--type-sm-leading);
   --text-base: var(--type-base);
-  --text-base--line-height: 1.5rem;
+  --text-base--line-height: var(--type-base-leading);
   --text-lg: var(--type-lg);
-  --text-lg--line-height: 1.625rem;
+  --text-lg--line-height: var(--type-lg-leading);
   --text-xl: var(--type-xl);
-  --text-xl--line-height: 1.75rem;
+  --text-xl--line-height: var(--type-xl-leading);
   --text-2xl: var(--type-2xl);
-  --text-2xl--line-height: 2.125rem;
+  --text-2xl--line-height: var(--type-2xl-leading);
   --text-3xl: var(--type-3xl);
-  --text-3xl--line-height: 2.5rem;
+  --text-3xl--line-height: var(--type-3xl-leading);
   --text-4xl: var(--type-4xl);
-  --text-4xl--line-height: 1;
+  --text-4xl--line-height: var(--type-4xl-leading);
   --text-5xl: var(--type-5xl);
-  --text-5xl--line-height: 1;
+  --text-5xl--line-height: var(--type-5xl-leading);
+
+  --tracking-*: initial;
+  --tracking-tight: var(--type-tracking-tight);
+  --tracking-snug: var(--type-tracking-snug);
+  --tracking-wide: var(--type-tracking-wide);
 
   --radius-*: initial;
   --radius-sm: var(--radius-small);
@@ -79,6 +86,9 @@
   --radius-xl: var(--radius-sheet);
 
   --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
   --shadow-sm: var(--elevation-1);
   --shadow-md: var(--elevation-2);
   --shadow-lg: var(--elevation-3);
@@ -103,7 +113,7 @@
     @apply bg-accent-soft text-ink;
   }
   :focus-visible {
-    outline: 0.125rem solid var(--focus);
-    outline-offset: 0.125rem;
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-offset);
   }
 }

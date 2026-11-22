@@ -1,10 +1,10 @@
 // WCAG 2.2 contrast ratio between two opaque colors given as #rgb or #rrggbb.
 
-function channels(hex: string): [number, number, number] {
+function channels(hex: string): number[] {
   const h = hex.replace("#", "");
   const full = h.length === 3 ? [...h].map((c) => c + c).join("") : h;
   if (!/^[0-9a-f]{6}$/i.test(full)) throw new Error(`Not an opaque hex color: ${hex}`);
-  return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255) as [number, number, number];
+  return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
 }
 
 export function luminance(hex: string): number {

@@ -7,6 +7,8 @@
   --surface-raised: #ffffff;
   --surface-sunken: #eef1f4;
   --rule: #e3e6ea;
+  --field: #f4f5f7;
+  --field-border: #848c95;
   --ink: #15181c;
   --ink-muted: #5b636d;
   --ink-subtle: #6b737d;
@@ -18,6 +20,8 @@
   --danger: #c2321f;
   --danger-ink: #ffffff;
   --focus: #0b7a75;
+  --focus-width: 0.125rem;
+  --focus-offset: 0.125rem;
   --scrim: rgb(21 24 28 / 0.12);
 
   --fog: #fcfcfd;
@@ -26,6 +30,8 @@
   --map-water: #b6d0ea;
   --map-park: #cce6c6;
   --map-road: #ffffff;
+  --halo: #ffffff;
+  --fog-edge: rgb(11 122 117 / 0.45);
 
   --line-red: #da291c;
   --line-orange: #ed8b00;
@@ -48,9 +54,21 @@
   --type-lg: 1.125rem;
   --type-xl: 1.375rem;
   --type-2xl: 1.75rem;
-  --type-3xl: 2.25rem;
+  --type-3xl: 2.5rem;
   --type-4xl: 3rem;
   --type-5xl: 4rem;
+  --type-xs-leading: 1rem;
+  --type-sm-leading: 1.25rem;
+  --type-base-leading: 1.5rem;
+  --type-lg-leading: 1.625rem;
+  --type-xl-leading: 1.75rem;
+  --type-2xl-leading: 2.125rem;
+  --type-3xl-leading: 1;
+  --type-4xl-leading: 1;
+  --type-5xl-leading: 1;
+  --type-tracking-tight: -0.02em;
+  --type-tracking-snug: -0.01em;
+  --type-tracking-wide: 0.18em;
 
   --radius-small: 0.5rem;
   --radius-tile: 0.75rem;
@@ -81,6 +99,8 @@
   --surface-raised: #262b31;
   --surface-sunken: #2a3037;
   --rule: #2e343b;
+  --field: #15181c;
+  --field-border: #6b737d;
   --ink: #eef1f4;
   --ink-muted: #a3acb6;
   --ink-subtle: #8a939e;
@@ -100,6 +120,8 @@
   --map-water: #122030;
   --map-park: #1b2a21;
   --map-road: #30353c;
+  --halo: #08090b;
+  --fog-edge: rgb(150 236 228 / 0.7);
 
   --line-red-casing: #0e1013;
   --line-orange-casing: #0e1013;
