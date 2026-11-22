@@ -13,7 +13,7 @@ This is the shared status board for both builders. Update it after every finishe
 | 4 Plans, last train, live night | Not started | B (+A UI) |
 | 5 Daily puzzle and demo mode | Not started | B + A |
 | 6 Badges, stats, recap, How it works | Not started | A + B |
-| 7 Crawls, weekly plans, grades, squad | Not started | B (+A UI) |
+| 7 Crawls, weekly plans, grades, squad | In progress (B server side, 2026-11-22) | B (+A UI) |
 | 8 Extras | Not started | A + B |
 | 9 Hardening and release | Not started | A + B |
 
@@ -121,6 +121,14 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
 
 ### Builder B
+- **Now (2026-11-22 04:05):** Phase 7 server side on `b/crawls`, from `main` (independent of #36). B's human said to start the parts with no dependency and keep merging as A lands work. Plan:
+  1. **Crawl builder (F10.1–F10.3):** `src/lib/crawl.ts` (2–4 stops; first stop by fairness; each next stop within 10 min by walk or T; open at its time where OSM hours parse, unknown hours flagged; last train from the last stop) and `src/lib/places/hours.ts`. DATA 3.15 defines it. Tests `[F10.1]` `[F10.2]` `[F10.3]`.
+  2. **Dinner before (F10.6):** a 2-stop crawl ending at a puzzle event's venue. Test `[F10.6]`.
+  3. **Squad map and streak (F12.2, F12.3):** union of squad mates' cells with who uncovered each, and consecutive weeks with a completed plan. Tests `[F12.2]` `[F12.3]`.
+  4. code-critic (and copy-critic for any strings) on each item, then one PR.
+  - **Needs B's human:** one migration, later: weekly plans (F10.4, F10.5), cached violation rewrites (F11.2), and `plan_stops.walked_from_previous` (DATA 3.11).
+  - **Needs A:** crawl builder, weekly plans, Dinner before (after #38), grade detail and squad map screens.
+  - **Decision to log:** "crawl templates" for F10.4 are fixed category sequences (for example food → dessert).
 - **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-067) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
 - **Now (00:45):** demo seed and How it works numbers are built on `b/demo-seed`, under review. Waiting on B's human for migrations 0002 and 0003.
 - **Next:** fix review findings and open the `b/demo-seed` PR; when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
