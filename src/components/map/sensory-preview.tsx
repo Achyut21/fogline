@@ -24,7 +24,7 @@ export function SensoryPreview({ station }: { station: string }) {
       <ul className="flex flex-col gap-1 text-sm">
         <li>{data?.sound ? s.sound(data.sound.loudness, data.sound.readings) : s.noSound}</li>
         {/* Any day works: only the hour is shown. */}
-        {data?.quietestHour != null && (
+        {data && data.quietestHour !== null && (
           <li>{s.quietest(clock(serviceTimeToDate("2026-01-05", data.quietestHour * 3600)))}</li>
         )}
         <li className="text-ink-muted">{s.crowds}</li>
