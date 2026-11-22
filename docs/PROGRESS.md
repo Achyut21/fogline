@@ -304,12 +304,14 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - violation checks share COPY's banned words and patterns and reject semicolons, Title Case and invented numbers.
   - **Migration 0004 is on fogline-db** (checked 2026-11-22: 5 migrations recorded, `weekly_plans` and `plan_stops.walked_from_previous` present), so this branch can deploy.
   - Known flake: `[F15.2]` in `tests/integration/hypertables.test.ts` failed once in a full parallel run (3/3 pass alone); the continuous-aggregate refresh is slow under load. Not touched here.
+  - Known flake (A's test): `offers a retry when the inspection fails to load` in `tests/component/grades.test.tsx` fails in the full parallel run on this machine and passes alone; its `findByRole` waits only the default 1 s.
+  - Merged `main` (#40, #41) into `b/crawls`. `planByInvite` keeps A's multi-stop shape and now reads stops through `stopSpot`, so event stops work. `spotInspection` maps violations through `violationWords` (F11.2).
   - Earlier deploy-order note: `plan_stops` now selects `walked_from_previous`, so plan pages and `endPlan` fail until the column exists.
   - Data note: one city violation reads "uspension of Permit / Emergency Closure without a Prior Hearing", with its first letter missing in `places.json`. Check `data:grades` against the source next time it runs.
   - Tests: 398 pass. The only steady failure is A's Windows-only token test. code-critic and copy-critic re-reviews: PASS (one test timeout fixed after).
   - **For B's human:** rerun `pnpm data:violations` once Gemini quota is back.
   - **For A:**
-    - #40: in `spotInspection`, map each violation's `text` through `violationWords(text, data.violations())` from `src/lib/violations.ts`. F11.2 also wants a link to the city record, for example https://data.boston.gov/dataset/food-establishment-inspections.
+    - F11.2 still wants a link to the city record on the inspection details, for example https://data.boston.gov/dataset/food-establishment-inspections.
     - `planByInvite` now also returns `stops` (every stop in order, events as their venue), and leave-by runs from the last stop. A crawl's plan page can list them; `spot` and `station` are still the first stop.
     - Weekly plan titles are short headings. A meal-before title names the venue (or "the event"); the event's own title isn't sent, so it can't give away a puzzle word.
     - Screens: crawl builder (`findCrawl`), Dinner before on Plan it (`findDinnerBefore`), weekly plans (`thisWeeksPlans`, `inviteToWeeklyPlan`).
