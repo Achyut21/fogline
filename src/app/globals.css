@@ -5,6 +5,56 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Safe areas (DESIGN section 5): nothing sits under the notch or the home indicator. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+/* Full sheet height, stopping below the status bar. */
+@utility sheet-full {
+  height: calc(100% - env(safe-area-inset-top));
+}
+
+/* vaul's sheet motion on the motion tokens (DESIGN section 8); with reduced motion the sheet
+   fades instead of sliding. vaul injects its own CSS and inline transitions, hence !important. */
+[data-vaul-drawer],
+[data-vaul-overlay] {
+  animation-duration: var(--duration-slow) !important;
+  animation-timing-function: var(--motion-standard) !important;
+  transition-duration: var(--duration-slow) !important;
+  transition-timing-function: var(--motion-standard) !important;
+}
+[data-vaul-drawer] [data-vaul-handle] {
+  opacity: 1;
+  width: calc(var(--spacing) * 10);
+  height: var(--spacing);
+  margin-top: calc(var(--spacing) * 2);
+  background: var(--rule);
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-vaul-drawer] {
+    transition-property: opacity !important;
+  }
+  [data-vaul-drawer][data-state="open"] {
+    animation-name: sheet-in !important;
+  }
+  [data-vaul-drawer][data-state="closed"] {
+    animation-name: sheet-out !important;
+  }
+}
+
 @theme inline {
   --color-*: initial;
   --color-bg: var(--bg);

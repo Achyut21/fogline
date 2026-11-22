@@ -17,12 +17,7 @@ const { day } = themes;
 
 // Raw values are allowed only in the token files and, until item 6 restyles them, in the stock
 // shadcn primitives (D-037, extended by D-054).
-const exempt = [
-  "src/styles/tokens.css",
-  "src/styles/theme-color.ts",
-  "src/lib/motion.ts",
-  "src/components/ui/",
-];
+const exempt = ["src/styles/tokens.css", "src/styles/theme-color.ts", "src/lib/motion.ts"];
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

@@ -97,7 +97,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** merge item 4, then item 6 (base components and `/design`). Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
+- **Next:** item 6a PR, then 6b (display components and motion demos) on `/design`. Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
 - **Blocked:** none.
 
 ### Builder B
@@ -224,6 +224,8 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-21 23:55 ET · Builder A · Item 4 merged ([#24](https://github.com/Achyut21/fogline/pull/24), `7dcc9c0`). code-critic's narrow re-check passed all three blocking fixes. Its one new note goes to Phase 3 with the rest: full fog's opacity drifts between 0.72 and 0.97 inside the mask but is a flat 0.92 outside, so a seam may show at the mask edge. Item 6 split in two (D-059): 6a on `a/design-base` (restyled primitives, controls, state components, BottomNav), 6b built in parallel by a subagent in its own worktree.
 
 - 2026-11-21 23:05 ET · Builder A · Phase 1 item 4, the 3D fog spike (`a/fog-spike`, `ad6c0bf`, `ec63c59`):
   - Built both approaches on one shader, measured them with `tests/perf/fog-fps.ts`, kept A (custom layer, fog under the T lines) and deleted B (R3F overlay, which covered the lines) with `@react-three/fiber` and `@react-three/drei`. Numbers and reasons in D-058; DESIGN section 9 updated.

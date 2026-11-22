@@ -32,13 +32,13 @@ test.describe("/design", () => {
   test("keeps a manual theme across a reload and points theme-color at it", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/design");
-    const theme = page.getByRole("group", { name: design.theme.label });
-    await expect(theme.getByRole("button", { name: design.theme.system })).toHaveAttribute(
-      "aria-pressed",
+    const theme = page.getByRole("radiogroup", { name: design.theme.label });
+    await expect(theme.getByRole("radio", { name: design.theme.system })).toHaveAttribute(
+      "aria-checked",
       "true",
     );
 
-    await theme.getByRole("button", { name: design.theme.night }).click();
+    await theme.getByRole("radio", { name: design.theme.night }).click();
     await expect(page.locator("html")).toHaveClass(night);
     await expect
       .poll(() => themeColors(page))
@@ -49,8 +49,8 @@ test.describe("/design", () => {
 
     await page.reload();
     await expect(page.locator("html")).toHaveClass(night);
-    await expect(theme.getByRole("button", { name: design.theme.night })).toHaveAttribute(
-      "aria-pressed",
+    await expect(theme.getByRole("radio", { name: design.theme.night })).toHaveAttribute(
+      "aria-checked",
       "true",
     );
     await expect
@@ -60,7 +60,7 @@ test.describe("/design", () => {
         { media: "(prefers-color-scheme: dark)", content: themeColor.night },
       ]);
 
-    await theme.getByRole("button", { name: design.theme.system }).click();
+    await theme.getByRole("radio", { name: design.theme.system }).click();
     await expect(page.locator("html")).not.toHaveClass(night);
     await expect
       .poll(() => themeColors(page))
@@ -74,8 +74,8 @@ test.describe("/design", () => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/design");
     await page
-      .getByRole("group", { name: design.theme.label })
-      .getByRole("button", { name: design.theme.night })
+      .getByRole("radiogroup", { name: design.theme.label })
+      .getByRole("radio", { name: design.theme.night })
       .click();
     await page.goto("/no-such-page");
     await expect(page.locator("html")).toHaveClass(night);

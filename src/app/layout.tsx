@@ -2,6 +2,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import { ThemeProvider } from "@/components/system/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { app } from "@/copy";
 import { themeColor } from "@/styles/theme-color";
 import "./globals.css";
@@ -43,7 +44,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           reloadOnOnline={false}
           cacheOnNavigation={false}
         >
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </SerwistProvider>
       </body>
     </html>
