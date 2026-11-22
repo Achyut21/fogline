@@ -218,6 +218,14 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 23:30 ET · Builder B · Phase 2 item 8, puzzle, on `b/puzzle-data` (stacked on `b/badges-stats`), in progress:
+  - `src/lib/puzzle.ts`: the puzzle for a New York date, guess checks, feedback with repeated letters, game state and reveals, the share grid, streaks (F7.1, F7.2, F7.5, F7.6, F7.7). `calendarDateOf` and `addDays` in `src/lib/time.ts`.
+  - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-060).
+  - `pnpm data:events`: publishes only checked, all-ages events near a station, one per date (D-060).
+  - Tests: 16 unit tests, including the midnight reset under a UTC server clock and on both DST days, repeated letters, streaks, and every reason `data:events` refuses.
+  - `data/events.json`: 14 events, one a day from Nov 22 to Dec 5. They include city tree lightings, a holiday market, Bruins, Celtics, Messiah, the Holiday Pops, a Harvard Book Store talk and the Huntington's new opera. Every answer is distinct.
+  - Event check: Claude's research found 2 to 4 candidates a day and confirmed each 2026 date on the organizer's page. B accepted that list to save time, without opening each link, and the entries are marked checked on that basis. 13 of the 14 pages print the 2026 date. The Holiday Pops page (Dec 4) shows the date without a year; its address says 2026. Few pages state an age policy; none of these events is 21+. Thanksgiving's puzzle points to Messiah on Nov 27.
+  - code-critic: PASS. Its notes are fixed: summer-time midnight tests, gaps and repeated answers refused, stricter dates, guesses past six ignored.
 - 2026-11-21 22:20 ET · Builder B · Phase 2 item 10, check-ins, badges and stats, on `b/badges-stats` (stacked on `b/neighborhoods`):
   - `src/lib/checkin.ts`: check-in validity with the reason and number for a refusal (F6.2, DATA 3.9).
   - `src/lib/rides.ts`: rides, lines and visited stations from ride events, and `live()` to leave replays out of totals and badges.

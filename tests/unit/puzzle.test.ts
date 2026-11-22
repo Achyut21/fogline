@@ -21,6 +21,8 @@ describe("puzzle date", () => {
     expect(calendarDateOf(new Date("2026-11-22T23:59:59-05:00"))).toBe("2026-11-22");
     expect(calendarDateOf(new Date("2026-11-23T00:00:00-05:00"))).toBe("2026-11-23");
     expect(calendarDateOf(new Date("2026-07-04T23:30:00-04:00"))).toBe("2026-07-04");
+    expect(calendarDateOf(new Date("2026-07-05T00:30:00-04:00"))).toBe("2026-07-05");
+    expect(calendarDateOf(new Date("2026-03-09T00:30:00-04:00"))).toBe("2026-03-09");
     expect(calendarDateOf(new Date("2026-03-08T00:30:00-05:00"))).toBe("2026-03-08");
     expect(calendarDateOf(new Date("2026-03-08T23:30:00-04:00"))).toBe("2026-03-08");
     expect(calendarDateOf(new Date("2026-11-01T01:30:00-05:00"))).toBe("2026-11-01");
@@ -116,6 +118,8 @@ describe("results", () => {
       revealFog: false,
     });
     expect(gameState([...lost.slice(0, 5), "light"], "light").status).toBe("solved");
+    expect(gameState([...lost, "light"], "light").status).toBe("failed");
+    expect(shareGrid([...lost, "light"], "light").split("\n")).toHaveLength(6);
   });
 
   it("[F7.5] shares a grid of squares with one row per guess and no letters", () => {

@@ -19,8 +19,9 @@ export type CuratedEvent = z.infer<typeof curatedSchema>;
 const published = eventSchema.omit({ station: true });
 
 /**
- * The published events: only checked ones, one per date, each answer a real word, each event on
- * its puzzle date or up to 3 days after, each venue within 600 m walking of a station. Throws
+ * The published events: only checked ones, one per date with no gaps (a missing date would break
+ * every streak), each answer a real word used once, each event on its puzzle date or up to 3 days
+ * after, each venue within 600 m walking of a station. Throws
  * with every problem found, so nothing half-checked is written.
  */
 export function toEvents(
@@ -29,15 +30,19 @@ export function toEvents(
   words: ReadonlySet<string>,
 ): PuzzleEvent[] {
   const problems: string[] = [];
-  const seen = { ids: new Set<string>(), dates: new Set<string>() };
+  const seen = { ids: new Set<string>(), dates: new Set<string>(), words: new Set<string>() };
   const events: PuzzleEvent[] = [];
   for (const entry of curated) {
     const event = published.parse(entry);
     if (!entry.checked) problems.push(`${event.id}: not checked yet`);
     if (seen.ids.has(event.id)) problems.push(`${event.id}: duplicate id`);
     if (seen.dates.has(event.date)) problems.push(`${event.id}: a second event for ${event.date}`);
+    if (seen.words.has(event.word)) {
+      problems.push(`${event.id}: "${event.word}" is already an answer`);
+    }
     seen.ids.add(event.id);
     seen.dates.add(event.date);
+    seen.words.add(event.word);
     if (!words.has(event.word)) problems.push(`${event.id}: "${event.word}" isn't in words.json`);
     const day = calendarDateOf(new Date(event.startsAt));
     if (day < event.date || day > addDays(event.date, maxDaysAfterPuzzle)) {
@@ -51,6 +56,12 @@ export function toEvents(
       continue;
     }
     events.push({ ...event, station });
+  }
+  const dates = [...seen.dates].sort();
+  for (let i = 1; i < dates.length; i++) {
+    if (dates[i] !== addDays(dates[i - 1], 1)) {
+      problems.push(`no event between ${dates[i - 1]} and ${dates[i]}`);
+    }
   }
   if (problems.length > 0) throw new Error(`Events not published:\n${problems.join("\n")}`);
   return events.sort((a, b) => (a.date < b.date ? -1 : 1));

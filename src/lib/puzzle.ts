@@ -63,7 +63,8 @@ export function gameState(
   guesses: readonly string[],
   answer: string,
 ): { status: GameStatus; revealEvent: boolean; revealFog: boolean } {
-  const solved = guesses.some((guess) => normalizeGuess(guess) === answer);
+  const played = guesses.slice(0, maxGuesses);
+  const solved = played.some((guess) => normalizeGuess(guess) === answer);
   if (solved) return { status: "solved", revealEvent: true, revealFog: true };
   if (guesses.length >= maxGuesses)
     return { status: "failed", revealEvent: true, revealFog: false };
@@ -75,6 +76,7 @@ const squares: Record<LetterResult, string> = { correct: "🟩", present: "🟨"
 /** The spoiler-free share grid: one row of squares per guess, no letters (F7.5). */
 export function shareGrid(guesses: readonly string[], answer: string): string {
   return guesses
+    .slice(0, maxGuesses)
     .map((guess) =>
       feedback(guess, answer)
         .map((result) => squares[result])

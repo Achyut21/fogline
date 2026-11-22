@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { wordsFileSchema } from "@/lib/events";
+import { z } from "zod";
+import { eventSchema, wordsFileSchema } from "@/lib/events";
+import { stationSchema } from "@/lib/gtfs/types";
 import type { Station } from "@/lib/gtfs/types";
 import { curatedSchema, toEvents, type CuratedEvent } from "../../scripts/events/build";
 
@@ -78,9 +80,48 @@ describe("data:events", () => {
     );
   });
 
+  it("[F7.1] [F7.6] refuses a gap between dates and a repeated answer", () => {
+    const gap = event({
+      id: "gap",
+      date: "2026-12-05",
+      word: "skate",
+      startsAt: "2026-12-05T18:00:00-05:00",
+    });
+    expect(() => toEvents([event(), gap], [parkStreet], words)).toThrow(
+      /no event between 2026-12-03 and 2026-12-05/,
+    );
+    const again = event({ id: "again", date: "2026-12-04", startsAt: "2026-12-04T18:00:00-05:00" });
+    expect(() => toEvents([event(), again], [parkStreet], words)).toThrow(
+      /"light" is already an answer/,
+    );
+    expect(curatedSchema.safeParse({ ...event(), date: "2026-02-30" }).success).toBe(false);
+  });
+
   it("[F7.1] counts an event that starts up to 3 days after its puzzle date", () => {
     const run = event({ startsAt: "2026-12-06T23:59:00-05:00" });
     expect(toEvents([run], [parkStreet], words)).toHaveLength(1);
+  });
+});
+
+describe("committed events.json", () => {
+  it("[F7.1] has one event a day from Nov 22 to Dec 5, each answer a valid word near a real station", () => {
+    const read = (name: string): unknown =>
+      JSON.parse(readFileSync(path.join(import.meta.dirname, "../../data", name), "utf8"));
+    const events = z.array(eventSchema).parse(read("events.json"));
+    const valid = new Set(wordsFileSchema.parse(read("words.json")).words);
+    const stations = new Set(
+      z
+        .array(stationSchema)
+        .parse(read("stations.json"))
+        .map((s) => s.id),
+    );
+    expect(events.map((e) => e.date)).toEqual(
+      Array.from({ length: 14 }, (_, i) =>
+        new Date(Date.UTC(2026, 10, 22 + i)).toISOString().slice(0, 10),
+      ),
+    );
+    expect(new Set(events.map((e) => e.word)).size).toBe(events.length);
+    expect(events.every((e) => valid.has(e.word) && stations.has(e.station.id))).toBe(true);
   });
 });
 
