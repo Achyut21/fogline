@@ -87,6 +87,20 @@ export function FogFallback({
             />
           );
         })}
+        {pins.map((pin) => {
+          const [u, v] = maskUv(pin.lon, pin.lat);
+          return (
+            <circle
+              key={`${pin.lat},${pin.lon}`}
+              cx={u * width}
+              cy={v * height}
+              r={9}
+              fill="var(--accent)"
+              stroke="var(--surface)"
+              strokeWidth={3}
+            />
+          );
+        })}
       </svg>
       <p className="absolute right-2 bottom-2 rounded-sm bg-surface px-2 py-1 text-xs text-ink-muted">
         {legal.mbta}
