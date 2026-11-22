@@ -65,6 +65,22 @@ describe.skipIf(testUrl === "")("ride replay", () => {
         toM: 9120,
         minutes: 3,
       }),
+      // The same trip ID ran yesterday too, past Kenmore to Beaconsfield.
+      ...recordedTripRows(greenD, {
+        id: "trip-daily",
+        start: new Date(now.getTime() - 23 * 60 * 60_000),
+        fromM: 7400,
+        toM: 12445,
+        minutes: 9,
+      }),
+      // Today's run is still between Kenmore and Longwood.
+      ...recordedTripRows(greenD, {
+        id: "trip-daily",
+        start: new Date(now.getTime() - 3 * 60_000),
+        fromM: 7400,
+        toM: 9120,
+        minutes: 3,
+      }),
     ]);
   });
 
@@ -82,6 +98,11 @@ describe.skipIf(testUrl === "")("ride replay", () => {
     expect(ride.stops.map((s) => s.station)).toContain("place-bcnfd");
     expect(ride.miles).toBeGreaterThan(3);
     expect(ride.miles).toBeLessThan(4);
+  });
+
+  it("[F3.5] keeps only the latest run of a trip ID that repeats each day", async () => {
+    const rides = await recordedRides(db, "place-kencl", now);
+    expect(rides.map((r) => r.tripId)).not.toContain("trip-daily");
   });
 
   it("[F3.8] [F3.3] records each replayed stop as a replay event and clears its cells", async () => {

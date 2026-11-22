@@ -36,7 +36,7 @@ This is the shared status board for both builders. Update it after every finishe
      - Riding view (2D): line, "To Riverside", current stop, "Next: Hynes · 2 min", 1× to 20×, Replay label, End, the stop card at each stop, the stop list. Each stop goes through the `recordReplayStop` Server Action: a `ride_events` row with `is_replay` and its k=1 cells as seen (F3.3, F3.8). Wake lock while playing (F3.7).
      - Summary: stops passed, miles on the T, minutes, lines, new cells, back to the map (F3.4).
      - Tests `[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`, and the gate e2e at 390×844.
-     - **Status 2026-11-22 01:52 ET (handoff):** built and seen working locally; tests, e2e, critics and the PR are left. See the handoff log entry.
+     - **Status 2026-11-22 03:13 ET:** PR [#35](https://github.com/Achyut21/fogline/pull/35). Component test and the gate e2e (`tests/e2e/ride.spec.ts`, also item 5) pass on desktop-chrome, iphone and pixel. D-069, DATA 3.14, WALKTHROUGH F3.
   5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
   - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
   - Tests stay on the acceptance criteria. One code-critic pass per item, no parallel subagents (D-060).
@@ -117,7 +117,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Next:** finish item 4 on `a/ride-replay` (exact steps in the 01:52 ET handoff), then item 5 (gate e2e) and `/phase-gate 3`. Still open from Phase 1: B's human approves `/design` and direction C.
+- **Next:** merge #35, then the core-loop screens for Phases 4 and 5 on B's existing actions (plan builder, plan page with leave-by and check-in, daily puzzle, demo entry). B is taking Phase 6 alone (`b/recap`). Still open from Phase 1: B's human approves `/design` and direction C.
 - **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
 
 ### Builder B
@@ -271,6 +271,13 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-22 03:20 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
+  - Rebased onto `main` (`7ef3feb`); replay reads shapes through `data.shapes()`. Component test `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`) and the Phase 3 gate e2e `tests/e2e/ride.spec.ts` (seeded Green-D trip, onboarding, sheet → Ride from here → 20× past three stops → summary → stations uncovered; plus End with reduced motion). e2e 15/15 with onboarding and the sheet on desktop-chrome, iphone, pixel; 350 unit/component/integration passed; lint and typecheck clean.
+  - Seen at 390×844 in night theme on a local build against the test DB; fixed "1 lines" in the summary.
+  - code-critic: PASS, no BLOCKING. Fixed two SHOULD FIX: trip IDs repeat daily, so a 30-minute gap now starts a new run and only the latest is kept (test fails on the old code); the stop action allows 2 h past the 24 h list window so a replay started from the list keeps recording.
+  - Logged, not fixed: a stop whose `recordReplayStop` call fails (offline in a tunnel) is not retried and the summary undercounts new cells without saying so.
+  - Speed (A, 2026-11-22): design-critic and copy-critic run once over all the new core-loop screens instead of per item. B is taking Phase 6 alone.
 
 - 2026-11-22 01:52 ET · Builder A · Handoff (session limit; the next session runs under another Claude account):
   - **Finished this session:**

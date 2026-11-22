@@ -10,6 +10,9 @@ import { stationById, stationOfStop } from "./stations";
 // into the stops a rider passes from a station.
 
 const lookbackMs = 24 * 60 * 60_000;
+// A replay started from the list keeps working for this long after its trip ages out of it.
+const replaySlackMs = 2 * 60 * 60_000;
+const runGapMs = 30 * 60_000;
 const tripsListed = 8;
 const candidates = 40;
 // Board plus three more stops, so a replay shows at least three stop cards.
@@ -74,6 +77,10 @@ async function rows(db: Db, where: ReturnType<typeof and>): Promise<Row[]> {
       direction: r.direction,
       samples: [],
     };
+    // Trip IDs repeat on every day with the same service, so a long gap starts a new run and only
+    // the latest run of a trip is kept.
+    const prev = row.samples.at(-1);
+    if (prev && r.ts.getTime() - prev.ts.getTime() > runGapMs) row.samples = [];
     row.samples.push({ ts: r.ts, lat: r.lat, lon: r.lon, stopId: r.stopId });
     byTrip.set(r.tripId, row);
   }
@@ -122,7 +129,7 @@ export async function recordedRide(
   from: string,
   now = new Date(),
 ): Promise<RecordedRide | null> {
-  const since = new Date(now.getTime() - lookbackMs);
+  const since = new Date(now.getTime() - lookbackMs - replaySlackMs);
   const [row] = await rows(
     db,
     and(gte(vehiclePositions.ts, since), eq(vehiclePositions.tripId, tripId)),
