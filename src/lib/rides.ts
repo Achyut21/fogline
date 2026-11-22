@@ -3,7 +3,7 @@ import type { Station } from "@/lib/gtfs/types";
 
 /**
  * A `ride_events` row as the rules read it. A ride's own summary counts its events, replay or not
- * (F3.5); night and lifetime totals and badges count only `live` events (D-059).
+ * (F3.5); night and lifetime totals and badges count only `live` events (D-063).
  */
 export type RideEvent = {
   ts: Date;
@@ -120,7 +120,7 @@ export function rideHomeStart(lastStopAt: Date, checkins: readonly Date[]): Date
  * tap or board event from `after` (see `rideHomeStart`). Before the departure it counts with the
  * time left. Up to 10 minutes after, it counts with 0 to spare when it's the last train's trip or
  * a tap without a trip, because the last train often runs late and people tap once seated
- * (D-059). Pass the profile's events from `after` on, with or without the plan's ID.
+ * (D-063). Pass the profile's events from `after` on, with or without the plan's ID.
  */
 export function lastTrainMargin(
   events: readonly RideEvent[],

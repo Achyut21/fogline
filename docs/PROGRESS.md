@@ -20,7 +20,22 @@ This is the shared status board for both builders. Update it after every finishe
 ## Board
 
 ### Builder A
-- **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
+- **Now:** Phase 3 (profile, map, fog, ride), approved by A on 2026-11-22. Order, sized for the hackathon's remaining ~9 hours:
+  1. **F1 onboarding and profile** (`a/onboarding`): the four canvas screens (name, school, home station, age band), `createProfile` and `restoreProfile` Server Actions with Zod, an HMAC-signed httpOnly cookie (`SESSION_SECRET`), home cells revealed (F2.1), Me with the profile code (F1.3), restore by code. Tests `[F1.1]`, `[F1.2]`, `[F1.3]`, `[F2.1]`.
+  2. **F2 map**: the real network from `data/stations.json` and `shapes.json`, the D-058 fog layer from the profile's `revealed_cells`, the 2D fallbacks, the station list view (F2.7).
+  3. **F2.5 station sheet**: name, lines, live departures through `/api/mbta/predictions`, "Ride from here".
+  4. **F3 ride replay**: a recorded trip at 1× to 20×, stop cards, reveals, summary (miles, stops, minutes, lines, new cells), `ride_events`. Live mode if time allows. Until B's recorder has a trip, a timetable-built trip labeled as demo data.
+  5. **Gate e2e** (iPhone and Pixel): onboarding, map, a replay past three stops, fog lifting, the summary.
+  - Deferred to the end of the phase or later: F1.4 primers (no location request in Phase 3), F1.6 install prompts, F1.7 delete my data, F2.4 neighborhoods sheet.
+  - Tests stay on the acceptance criteria. One code-critic pass per item, no parallel subagents (D-060).
+- **Then (done):** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
+  - **Status 2026-11-21 23:05 ET:** item 4 (fog spike) built on `a/fog-spike`, critics running. Approach A, the MapLibre custom layer, won on F2.3 layering; both approaches ran far inside the frame budget (D-058). A asked to keep tests to the important parts to save time: the item 4 plan's component test (rendering stops while `document.hidden`) and the reduced-motion e2e are dropped; reduced motion was checked with headless screenshots.
+  - **Status 2026-11-21 21:49 ET (handoff, session ends; the next session runs under another Claude account):** items 1 and 5 are done. Item 5 is on `main` ([#20](https://github.com/Achyut21/fogline/pull/20), `c6ccaad`), with its production check passed. The 20:32 order change stands: code now, canvas alongside. Items 2 and 3 (canvas, storyboards) are partly done; items 4, 6, 7 and 8 haven't started. See the 21:49 log entry.
+    - **A approved three changes to the item 5 plan (2026-11-21, D-054):** one type family instead of two; the D-037 exemption for `src/components/ui/` stays until item 6 restyles those files; the custom line and station glyphs land with LineBadge and StationDot in item 6.
+    - **Dev servers:** a stale `next dev` from the previous session still runs on :3001 and serves old CSS. Check UI against `fogline-prod` (`.claude/launch.json`, port 3200) or restart the dev server.
+    - **Canvas:** onboarding page done (6 artboards). The Map page has map home, station sheet, neighborhoods sheet and list view. Next is the Map states artboard (`map-states.dc.html` is listed in the canvas index but has no file yet), then Ride, Daily, Plans, Me, Squad, System and the motion storyboards.
+    - **Canvas access:** the canvas belongs to the Claude account that made it. This session's account can't open it: the Artifact tool says it isn't shared with this account, even with the `sk` link. Item 5 was checked against A's HTML exports (onboarding, round 1, Map) and the artboard sources in `.canvas-work/canvas/project/`. To draw more pages from this account, A shares the canvas with edit access to it. Otherwise the canvas batches run from A's own account.
+    - **Tooling:** `.canvas-work/` (git-ignored, on A's Mac) holds the map renderer (`render/map.html`, `shoot2.mjs` for direction C renders, `qa.mjs` local artboard check), the canvas sources (`canvas/project/`), the GTFS extractor (`tools/`) and `round2-plan.md` (screen list and C token values). `render/out*/positions.json` has the pixel positions used for map labels.
   - **Status 2026-11-21 20:18 ET:** item 1 done on `a/design-direction`. A picked mood C, the familiar option, with Apple Maps, Transit and Strava as the craft bar (DESIGN "Direction", D-050). Theme follows the OS (D-051). `docs/PRODUCT.md` added for impeccable. **B's human: confirm the direction here before the Phase 1 gate.** Item 2 round 2 is under way: the Onboarding page is on the canvas (6 screens, both themes).
     - Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR. It is private until A shares it from the page's Share menu. Round 1 (three moods) stays on it for the record.
     - The canvas maps are real renders: MBTA GTFS canonical shapes, OpenFreeMap tiles and H3 resolution-9 fog cells. Names, times and numbers on the artboards are sample data (PRD personas).
@@ -89,11 +104,12 @@ This is the shared status board for both builders. Update it after every finishe
     7. **`/design` on production** ships with every deployment. Recommendation: keep it reachable with `noindex` and label its sample data, since CLAUDE.md bans unlabeled fake data.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-- **Next:** item 1, Direction.
+  - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
+- **Next:** the Phase 1 gate needs A's and B's human approval of `/design` and the canvas as cut (D-060). Then Phase 3: profile and onboarding first, then the map with the D-058 fog layer and Phase 2's GTFS data. Item 6 shows FogLayer and FogFallback from item 4 and the fog preview with a tier toggle, so item 4 comes first. Branch from `a/design-components`, so the PROGRESS commits on it ride along. Canvas batches go in between when an account with edit access is available.
 - **Blocked:** none.
 
 ### Builder B
-- **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-062) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
+- **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-067) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
 - **Next:** when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
 - **Earlier plan (Phase 2):** approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
   1. **Time, geo and H3 helpers** (`b/time-geo`; F2.1, F2.4, F3.3, F4.5, F5.1, F6.3, F7.3)
@@ -120,7 +136,7 @@ This is the shared status board for both builders. Update it after every finishe
      - `src/lib/solver/fair.ts`: `S(d)`, the `sum(t_i)` tie-break, exclusion over 75 min or unreachable, top 3 distinct stations, spots within 600 m that match filters and the age rule, and the blocking constraint when nothing fits.
      - `src/lib/geo/miles.ts`: board and alight stops projected onto the shape, rounded to 0.1 mi.
      - Tests `[F4.3]`, `[F4.4]`, `[F4.5]`, `[F4.6]`, `[F1.5]`, `[F3.4]`, plus one participant, no home station and ties.
-  6. **Places and grades** (`b/places-grades`; F1.5, F4.5, F11.1, F11.4; F11.3, the grade label, moves to Phase 7 with the grade UI)
+  6. **Places and grades** (`b/places-grades`; F1.5, F4.5, F11.1, F11.3, F11.4)
      - `pnpm data:places`: one Overpass query, raw response cached, normalized and deduped, every station within 600 m walking (not only the nearest), `age_rule`.
      - `pnpm data:grades`: Analyze Boston inspections, `src/lib/grades.ts` (points and cutoffs after checking the real `viol_level` values) and matching (address, else Jaro-Winkler ≥ 0.8 within 50 m).
      - Fixture tests `[F11.1]`, `[F11.4]`, `[F1.5]`. Citywide grade distribution in DECISIONS (gate).
@@ -142,7 +158,7 @@ This is the shared status board for both builders. Update it after every finishe
   - Then `/phase-gate 2`.
 - **Decisions:** B confirms D-013 to D-044, with D-031 amended (demo rows flagged in the hypertables) and D-018's school list taken by B (D-045). B's Phase 2 answers are D-046 (data model) and D-047 (graph, service-date cutoff, demo lines).
 - **Asks for A:**
-  - **Prototype by 4:00 AM (D-062), from B's human.** Please do three things:
+  - **Prototype by 4:00 AM (D-067), from B's human.** Please do three things:
     1. Merge B's stack now, in order: #16 (then B's human applies migrations 0002 and 0003), #17, #18, #19, #21, #22, #23, #26, then the station-cards PR.
     2. Say whether you agree to the core-loop scope and to building feature UI before the Phase 1 gate.
     3. If yes, build the screens: profile with home station, map with fog in 2D, plan builder with options and leave-by, puzzle. B wires Server Actions and route handlers to the existing `src/lib` rules.
@@ -153,10 +169,10 @@ This is the shared status board for both builders. Update it after every finishe
 ## Open questions
 
 - Move the recorder into Phase 2? See Asks for A under Builder B.
-- Replays and fog (Phase 3, D-059): F3.5 says replay reveals cells like a live ride, so replays clear fog without riding. A replay's own ride summary counts its events, as F3.5 asks, but its events earn no badges and don't count in night or lifetime totals. The cells it clears do count toward percent uncovered and First Light. Keep that, or make replays reveal nothing? Decide before Phase 3's ride work.
-- Prices (Phase 2 item 6, D-057): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. The budget filter therefore excludes nothing today. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
-- Vibe and the F4 category list (Phase 2 item 5, D-056): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
-- Rail-replacement shuttles (Phase 2 item 4, D-055): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
+- Replays and fog (Phase 3, D-063): F3.5 says replay reveals cells like a live ride, so replays clear fog without riding. A replay's own ride summary counts its events, as F3.5 asks, but its events earn no badges and don't count in night or lifetime totals. The cells it clears do count toward percent uncovered and First Light. Keep that, or make replays reveal nothing? Decide before Phase 3's ride work.
+- Prices (Phase 2 item 6, D-061): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. The budget filter therefore excludes nothing today. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
+- Vibe and the F4 category list (Phase 2 item 5, D-057): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
+- Rail-replacement shuttles (Phase 2 item 4, D-056): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
@@ -198,6 +214,25 @@ Copy this table for each phase when its gate runs.
 | axe | | |
 | docs current | | |
 | phase-specific checks | | |
+
+### Phase 1 gate
+
+Run 2026-11-21 by Builder A. Code at `main` `957c3c4` (local runs on `2ed9c2c`, the same tree before the squash), then this PR's small follow-ups. Scope as cut by D-060.
+
+| Check | Result | Evidence |
+|---|---|---|
+| typecheck / lint / unit / e2e / build | PASS | Local on `2ed9c2c`: typecheck and lint clean. Vitest 95 passed, 1 skipped (the live DB check). Playwright 59 passed, 13 skipped (deployment-only specs, and Chromium-only specs on WebKit). Build compiled (`.next/BUILD_ID` 23:41:46, from the e2e web server). CI green on #24, #25 and #27, and on #16 (re-run, 3m28s) after Phase 2 joined. This PR: vitest 250 passed. |
+| token check | PASS | `design-tokens.test.ts` scan: 0 findings across `src/`. The `src/components/ui/` exemption is gone (D-059). AA for every text pair, 3:1 for controls and F2.3 lines, day and night. |
+| code-critic | PASS | Every item reviewed: item 4 FAIL, then narrow re-check PASS (`8a3be98`); 6a FAIL, 6b FAIL, then a narrow re-check of the fix commits `c1642ed`, `16e3348`, `bfa6a5f` and `2ed9c2c` PASS: all four blocking items fixed (safe areas for toast and sheet, tab-panel focus, a string outside `src/copy/`, the `/design` hydration mismatch), no new blocking bug. B's Phase 2 PRs each record their own code-critic PASS. |
+| test-auditor | PASS | Audited by Builder A, not the subagent (D-060, credits). Every criterion Phase 1 touched has a named test that runs: F2.2 (4 tests), F2.3 (3, plus LineBadge names), F2.5 (StaleChip), F2.6 (4, including the WebGL-off e2e), F5.4 (Countdown tones), F8.4 (count-up and reduced motion). F2.3's layer-order test belongs to the Phase 3 map (D-058). |
+| design-critic (if UI) | PASS | Gate pass on `/design` and `/design/fog`, run on production (`main` `957c3c4`): 390×844 day and night, 360, 768 and 1440 with no horizontal scroll, every target 44 px or more, every contrast pair AA, sheet focus and tap-to-snap, toast, chips, stepper, tabs, count-up, countdown tones, fog reveal on tiers 3, 2 and 1. No BLOCKING. Its should-fix: two pairs added to `pairs.ts` and the night offline banner softened (this PR); the rest is logged below. Earlier item passes: 4 FAIL, fixed; 6a FAIL, fixed. |
+| copy-critic (if copy) | PASS | The gate's design-critic pass covered copy (D-060): no BLOCKING. "Delete my data" became "Delete data" in this PR. Earlier copy-critic runs: item 4 FAIL, fixed; item 6 FAIL, fixed. |
+| axe | PASS | `design.spec.ts`: 0 serious or critical violations on `/design` with the OS in light and in dark, on desktop-chrome, iphone and pixel. |
+| docs current | PASS | This log covers items 1, 4, 5 and 6 and the D-060 cut of items 2, 3, 7 and 8. DECISIONS has D-050 to D-064 (B's numbers renumbered at merge). WALKTHROUGH: Phase 1 ships no PRD feature, so no entry is due. DATA: no data source or algorithm changed in Phase 1. |
+| Fog frame rate and 2D fallback | PASS | D-058: tier 3 and tier 2 mean 1.3 ms, p95 3 ms under 4× CPU throttle with Pixel 7 emulation (M4 Pro, vsync off). The real phone check waits on A's Android phone. `[F2.6]` e2e renders the SVG fog with WebGL disabled. |
+| Visual baselines | DEFERRED | Moved to Phase 9 (D-060). |
+| Both humans approve the canvas (as cut) and `/design` | A: PASS. B: WAITING | A approved `/design` and the canvas as cut on 2026-11-21 23:58 ET, in chat. B's human approves here and confirms direction C. Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR |
+| Production works at phone size | WAITING | Runs on the production deployment after this PR merges (the first A-authored commit after Phase 2, D-052). |
 
 ### Phase 0 gate
 
@@ -250,20 +285,20 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - Migrations: 0002 and 0003 (in #16); B's human applies them to fogline-db.
     - New data files: `events.json`, `words.json`, `station-cards.json`. `places.json` was regenerated.
     - Needed on Vercel: `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
-    - Decisions to read: D-059 to D-062.
+    - Decisions to read: D-063, D-064, D-066 and D-067.
   - **Tests:** 253 pass and 1 is skipped (the live Tiger check). `pnpm build` passes. No e2e for B's work (no UI). The database Server Actions haven't run against Tiger yet.
 - 2026-11-22 00:18 ET · Builder B · **Phase 2 gate** on `b/core-loop` (the whole stack, items 1–10, plus the core-loop server work):
   - `pnpm typecheck` and `pnpm lint` pass. `pnpm test` with the test database: 253 passed, 1 skipped (the live Tiger check), with integration tests running; `src/lib` line coverage 99.85%. `pnpm build` passes.
   - Evidence:
     - known trips within 3 minutes (item 3);
     - known last trains match the MBTA schedule (item 4);
-    - grade calibration recorded in D-057;
+    - grade calibration recorded in D-061;
     - every pipeline rebuilds byte-identical files.
-  - test-auditor: FAIL on F11.3 only, which moved to Phase 7 (D-057). Its weak tests are fixed.
+  - test-auditor: FAIL on F11.3 only, which moved to Phase 7 (D-061). Its weak tests are fixed.
   - Still open, both for B's human:
     - apply migrations 0002 and 0003 to fogline-db once #16 merges, so the hypertables exist on Tiger;
     - check the 47 demo-line station cards listed in the item 9 entry.
-- 2026-11-22 00:18 ET · Builder B · Prototype track (D-062), server side on `b/core-loop`:
+- 2026-11-22 00:18 ET · Builder B · Prototype track (D-067), server side on `b/core-loop`:
   - `src/server/actions/core-loop.ts`: `findMeetup` (fair options with each friend's trip and leave-by time), `todaysPuzzle`, `playPuzzle` (the answer never leaves the server).
   - `src/server/actions/plans.ts`: `createProfile` (cookie, no auth), `myProfile`, `createPlan`, `planByInvite` (with everyone's leave-by), `joinPlan`.
   - `src/server/actions/live.ts`: `checkIn` (validity rules, reveals 2 rings of cells), `endPlan` (awards night badges).
@@ -272,10 +307,10 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Data loads from `data/*.json` through `process.cwd()`. **Ask for A:** on Vercel, add `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
   - Tests: 6 unit tests (meetup, puzzle, recorder). The database actions haven't been run against Tiger yet; they need migrations 0002 and 0003.
 - 2026-11-22 00:10 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
-  - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-061).
+  - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-066).
   - The Gemini sentences come from `gemini-3.1-flash-lite`, and code checks them: 140 characters, one sentence, no banned words, and every number must be in the Wikipedia intro. Articles about bars, nightclubs and violent events are left out (F1.5).
   - Tests: 11 unit tests, including the committed file (one card per station, all-ages spots).
-  - code-critic: one pass (D-062). Its blocking findings are fixed: bar articles, ungrounded numbers. Deferred under D-062: a reviewed exclusion list beyond the violent-event filter.
+  - code-critic: one pass (D-067). Its blocking findings are fixed: bar articles, ungrounded numbers. Deferred under D-067: a reviewed exclusion list beyond the violent-event filter.
   - **Demo-line cards for B's check** (Red Line and Green Line E, 47 cards). Each line is the station, then the article and its fact, then the spot:
     - Alewife | Alewife Brook Reservation: Established in 1900, this Massachusetts state park and urban wild is located in Cambridge, Arlington, and Somerville. | Dunkin' (food)
     - Andrew | Old Harbor Housing Project: The 27-acre Mary Ellen McCormack Project is located opposite Joe Moakley Park in South Boston. | Dunkin' (food A)
@@ -324,10 +359,106 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - Symphony | Matthews Arena: Matthews Arena was the original home of the NHL's Boston Bruins, the NBA's Boston Celtics, and the WHA's New England Whalers. | Symphony Hall (culture)
     - Union Square | Union Square (Somerville): Union Square served as a recruitment and mustering site for the Union Army during the Civil War. | Life Alive (food)
     - Wollaston | Wollaston (Quincy, Massachusetts): Wollaston Station is served by the B branch of the MBTA Red Line. | Fairy Cafe (coffee)
+
+- 2026-11-22 00:09 ET · Builder A · Phase 3 item 1, F1 onboarding and profile (`a/onboarding`): `/welcome` (name, school, home station, age, as on the canvas), `/restore`, `/me` with the profile code, and `/` sending new visitors to onboarding. `createProfile` and `restoreProfile` Server Actions (Zod) call `insertProfile` and `profileIdByCode` in `src/server/profile.ts`. The cookie is the profile ID plus an HMAC under `SESSION_SECRET` (`src/server/session.ts`). Codes use 31 characters without 0, O, 1, I or L. The school list (12 campuses) lives in `src/server/schools.ts`, and `src/server/stations.ts` parses `data/stations.json` with B's `stationSchema`. E2e global setup now migrates the local test database, and the e2e server gets a test-only `SESSION_SECRET` when none is set. Tests: `[F1.2]` and `[F1.3]` unit, `[F2.1]` and `[F1.3]` integration, `[F1.1] [F1.2] [F1.3]` e2e on desktop-chrome, iphone and pixel. Checked at 390×844.
+  - **For B:** `[F5.1] returns only possible routes on the real timetable` in your `tests/unit/lasttrain.test.ts` now has a 20 s timeout. It timed out at 5 s on CI twice (5.2 s and 5.4 s); the test itself is unchanged.
+  - **Production needs:** `SESSION_SECRET` in Vercel's environment (A), and B's migrations applied to `fogline-db` so `profiles` and `revealed_cells` exist (B).
+
+- 2026-11-21 23:57 ET · Builder A · Merged item 6b ([#27](https://github.com/Achyut21/fogline/pull/27), `957c3c4`) and, at A's request, all of B's open Phase 2 PRs as one admin squash ([#16](https://github.com/Achyut21/fogline/pull/16), `7dadf7d`, D-052): #17, #18, #19, #22, #23 and #26 were merged into their parent branches first, then `main` was merged into `b/schema-hypertables` (A's merge commits `4dc0069`, `b0a6cce`, no force-push). #21's commits rode in with #16, so it was closed with a note. Each B PR records a code-critic PASS in its description. B's decisions were renumbered: D-054 to D-056 became D-055 to D-057, and D-057 to D-060 became D-061 to D-064, in every file that cites them. #16's CI first failed on a timeout in `[F5.1] returns only possible routes on the real timetable` (5 s, slow runner); the re-run passed. This PR is the A-authored commit that deploys it all to production (D-052).
+  - **For B:** apply the new migrations to `fogline-db` from your terminal, then check `timescaledb_information.hypertables` (your #16 note).
+  - Logged from the gate's design-critic for later: `/design` doesn't show StatTile `outlined`, disabled Input and IconButton, or success, warning and error toasts; Countdown announces nothing at 20 and 5 min (F5.4, Phase 4); the BottomNav demo links to routes that don't exist yet; the "lines above fog" swatch hides the fog states at 390 px; "1200 ms" lacks a separator; toasts use `rounded-md`. vaul's `isIPad()` treats the Mac pane's mobile emulation as iPadOS, so check tap-to-snap on a real phone.
+
+- 2026-11-21 23:37 ET · Builder A · A cut Phase 1 for the deadline (D-060): no more canvas pages or storyboards, microcopy goes with each feature, visual baselines move to Phase 9, and no parallel subagents. Item 6a got code-critic and design-critic fixes (safe areas, sheet focus and tap-to-snap, token motion for vaul, chip selection, copy). 6b (display components, `/design` demos, root MotionConfig) got copy-critic fixes; it skips its own design-critic run to save credits (I checked it at 390×844 in both themes), and the gate's design-critic pass covers it.
+
+- 2026-11-21 23:16 ET · Builder A · Item 4 merged ([#24](https://github.com/Achyut21/fogline/pull/24), `7dcc9c0`). code-critic's narrow re-check passed all three blocking fixes. Its one new note goes to Phase 3 with the rest: full fog's opacity drifts between 0.72 and 0.97 inside the mask but is a flat 0.92 outside, so a seam may show at the mask edge. Item 6 split in two (D-059): 6a on `a/design-base` (restyled primitives, controls, state components, BottomNav), 6b built in parallel by a subagent in its own worktree.
+
+- 2026-11-21 23:05 ET · Builder A · Phase 1 item 4, the 3D fog spike (`a/fog-spike`, `ad6c0bf`, `ec63c59`):
+  - Built both approaches on one shader, measured them with `tests/perf/fog-fps.ts`, kept A (custom layer, fog under the T lines) and deleted B (R3F overlay, which covered the lines) with `@react-three/fiber` and `@react-three/drei`. Numbers and reasons in D-058; DESIGN section 9 updated.
+  - Measuring: with vsync on, every run held exactly 30 fps, `about:blank` included. The Mac was on battery below 20%, where Chromium caps frames at 30. The recorded runs have vsync off.
+  - Fixed on the way: the reveal front now travels to the farthest cell that lost fog (it was a fixed 2 km, so a ride's reveal finished in about 0.1 s); `--fog-edge` arrives from the CSS build as 8-digit hex and was read as gray; R3F's inline styles had put the overlay below the map.
+  - Tests: unit `[F2.2]` mask and reveal reach, `[F2.6]` tier mapping, token color parsing; e2e `[F2.6] shows the 2D fog map with the same cell states when WebGL is unavailable` (pixel, desktop-chrome; WebKit can't turn WebGL off). typecheck, lint, unit (60) pass.
+  - Checked at 390×844: day and night on tier 3 and 2, tier 1 fill, reveal edge, reduced-motion crossfade (headless).
+  - Review: code-critic, design-critic and copy-critic each failed the first pass. Fixed: fog stopped at the mask rectangle; the 2D fill cleared fog pockets enclosed by uncovered cells (`[F2.6]` test added); two `as` casts; button copy ("Next stop"); no MBTA credit; casings under 2 px per side; pointer thinning didn't repaint with reduced motion; GPU resources weren't disposed on unmount. A asked to move on, so the rest of both lists is recorded for Phase 3 in D-058's consequences.
+  - Open: the real frame rate needs the Android phone (Waiting on A). The 2D fill's p95 (17 ms) is higher than the shader's (3 ms). Not investigated.
+
+- 2026-11-21 21:49 ET · Builder A · Handoff (session ends; the next one runs under another Claude account):
+  - **Finished:**
+    - Phase 1 item 5, tokens, type, theme switching, token check, app icon and the first `/design` slice: [#20](https://github.com/Achyut21/fogline/pull/20), squash `c6ccaad` on `main`. Branch commits: `728efc0` (the previous session's WIP), then `f43c333`, `8275e94`, `a05bc84`, `2544cf3`, `9121596`, `d18d2c6`, `e3cb31a`, `90ca503`, `ed4af5b`, `d9796a5`, `f341f07`, `d590414`, `40f1300`, `2bd16ca`. Production check passed on `fogline-mu.vercel.app` (run 44977110387).
+    - code-critic, design-critic and copy-critic PASS (D-054 lists the decisions, the 21:18 entry the review rounds).
+    - A approved the three item 5 plan changes (D-054).
+  - **In progress:**
+    - `a/design-components` (pushed) holds only PROGRESS commits: `3ab4402` (merge log) and this handoff. No code. Nothing half-done, nothing to hold back from a merge.
+    - Exact next step: start item 4 (fog spike) per the Builder A plan above, branched from `a/design-components`. Read D-054's consequences before item 6: Input uses `--field` and `--field-border`, SegmentedControl bolds the selected label and becomes a radiogroup, the app shell adds safe-area padding, the `src/components/ui/` token-check exemption ends, and the stock Drawer's `z-50` moves to `z-(--layer-sheet)`.
+    - Canvas: the Map states artboard is next (`map-states.dc.html` is listed in the canvas index but has no file). This session's account couldn't open the canvas. Design checks used A's HTML exports in `~/Downloads` and the artboard sources in `.canvas-work/canvas/project/`.
+    - Local servers: a stale `next dev` from the earlier session still runs on :3001 with old CSS. This session started `fogline-prod` (`.claude/launch.json`, a production build on :3200). Use that, or restart the dev server, before judging UI.
+    - Deferred, recorded: `/favicon.ico` returns 404, and the icon doesn't read below 32 px (Phase 9 PWA polish). Line casings must stay at least 2 px wide at every zoom (DESIGN section 10, Phase 3).
+  - **Blocked:** nothing. Canvas batches from another account need A to share the canvas with edit access (under Waiting on A).
+  - **For Builder B:**
+    - The token check (`tests/unit/design-tokens.test.ts`, run by `pnpm test`) now scans every `.ts`, `.tsx` and `.css` file under `src/`, `src/lib` and `src/server` included. It flags:
+      - hex colors and color functions;
+      - `px`, `rem`, `em` and viewport units;
+      - `ms` and decimal-second times;
+      - Motion `transition` objects with literal durations or delays on one line;
+      - `stiffness`, `damping`, `mass` or `bounce` with a number;
+      - raw `z-` layers.
+      `main` passes today. After rebasing #16 and #17, run `pnpm test`: a comment like "// 500ms" or a hex string in your code is a finding. The exemptions are listed in D-054.
+    - Shared files changed:
+      - `src/app/globals.css`: Tailwind's palette, type sizes, tracking, radii, shadows and easings are reset to tokens, so classes like `bg-red-500` or `text-2xl` at Tailwind's default size don't exist.
+      - `src/app/layout.tsx`: Hanken Grotesk and the theme provider.
+      - `package.json`: `test:e2e:deployment` now includes `tests/e2e/design.spec.ts`.
+      - `.claude/launch.json`: new `fogline-prod` entry.
+      - `CLAUDE.md` and `.claude/commands/phase-gate.md`: token-check wording.
+      - Docs: `docs/COPY.md`, `docs/TESTING.md`, `docs/PHASES.md`, `docs/DESIGN.md`.
+    - COPY.md: a clock time joins its AM or PM with a no-break space. Write `"12:14\u00a0AM"` in last-train and puzzle strings.
+    - Decision numbers: #16 keeps D-053, and this work took D-054. #17 numbers its entries D-050 and D-051 on an old base, so they need new numbers (D-055 and up) when it rebases.
+    - No new environment variables, no migrations, no new scripts. Regenerated: the icon PNGs in `public/icons/`. Design tokens: all of them are final (DESIGN section 4, D-054), and `text-3xl` is now 40 px.
+  - **Tests:**
+    - Passing:
+      - Local: typecheck, lint and `format:check` clean. Vitest 71 passed, 1 skipped (the live `fogline-db` check). Playwright 57 passed, 12 skipped.
+      - Preview check on `2bd16ca`: 46 passed, 23 skipped.
+      - Production check: 58 passed, 11 skipped.
+    - Failing: none.
+    - Not written yet:
+      - Item 4: `[F2.2]` and `[F2.6]` fog tests, and the WebGL-off e2e.
+      - Item 6: component tests, including `[F8.4]` StatCounter, `[F5.4]` Countdown and `[F2.3]` LineBadge.
+      - Item 7: `[F8.5]` badge copy.
+      - Item 8: the visual baselines.
+      - `/design` has no explicit 768×1024 run. The Playwright projects cover 390×844 and 1440×900.
+
+- 2026-11-21 21:41 ET · Builder A · Phase 1 item 5 merged: [#20](https://github.com/Achyut21/fogline/pull/20), squash `c6ccaad`.
+  - PR head `2bd16ca`: CI `check` passed (run 44976393167). The deployment check on its own preview `fogline-n4h2afh4k` passed 46 and skipped 23 (run 44976482857), `/design` spec included; the service-worker specs skip on previews (D-043).
+  - Production: `vercel ls --meta githubCommitSha=c6ccaad…` showed `fogline-ely18wk3l` Ready, and `vercel inspect fogline-mu.vercel.app` showed the same deployment. The production check on `fogline-mu.vercel.app` passed 58 and skipped 11 (run 44977110387).
+  - `test:e2e:deployment` now includes `tests/e2e/design.spec.ts` (it writes nothing).
+  - A approved the three item 5 plan changes (D-054).
+  - Next: item 6.
+
+- 2026-11-21 21:18 ET · Builder A · Phase 1 item 5 review rounds on `a/design-tokens` (`d18d2c6`, `e3cb31a`, `90ca503`, `ed4af5b`, `d9796a5`, `f341f07`):
+  - code-critic pass 1 FAIL. BLOCKING: a manual theme lost its `theme-color` after an in-app navigation, because Next swaps in fresh meta tags with the server values. The sync now reruns when `<head>` changes. A new e2e follows a link from the 404 page and waits for the tag swap; it failed without the fix on both phones. SHOULD FIX, all fixed: the scanner missed inline and Motion durations, `rem`, `em` and viewport units, raw `z-` layers and one-off springs; the F2.3 test skipped park, road and fog; an `as` in `contrast.ts`; `/design` didn't show every token (now a test checks it). Pass 2 PASS; its SHOULD FIX (fog drawn over the lines on `/design`) is fixed.
+  - design-critic pass 1 FAIL. BLOCKING: the type roles didn't match the canvas. DESIGN section 4 now has canvas-derived roles and a px-to-token mapping, `text-3xl` is 40 px and three tracking tokens exist. Also fixed: the icon read as a percent sign (redrawn), new tokens `--field`, `--field-border`, `--halo` and `--fog-edge`, a map-ground strip, the bold selected segment, more tested pairs, and a no-break space before AM. Pass 2 PASS (18/20); its two SHOULD FIX items are fixed.
+  - copy-critic pass 1 FAIL (strings in JSX, an inaccurate intro, a passive note); pass 2 FAIL on a six-word heading. Both fixed, pass 3 PASS.
+  - F2.3 now reads WCAG 1.4.11 through the casing: a line needs 3:1 against the ground or against its casing (D-054). code-critic and design-critic agreed. DESIGN section 10 asks for casings of at least 2 px at every zoom.
+  - Tests: Vitest 71 passed, 1 skipped (live `fogline-db`). Playwright 57 passed, 12 skipped. typecheck, lint and `format:check` clean. Checked on a production build at 320, 360 and 390 px in day and night: no overflow.
+  - Deferred: `/favicon.ico` 404 and the icon below 32 px (Phase 9 PWA polish); safe-area padding and radiogroup semantics (item 6).
+  - Next: PR, Vercel preview check at 390×844.
+
+- 2026-11-21 20:52 ET · Builder A · Phase 1 item 5, tokens, fonts and icon, on `a/design-tokens` (`f43c333`, `8275e94`, `a05bc84`, `2544cf3` on top of the WIP `728efc0`):
+  - Found at 390×844: the theme toggle hydrated with a mismatched `aria-pressed`, so after a reload no option looked selected. It now marks the stored theme after hydration.
+  - Checked against the canvas exports: chips are pills (new 8 px `--radius-small` instead of the 6 px chip radius), night elevations get a hairline ring, and day warning and success are darker than the canvas for AA (D-054).
+  - `/design` lists every token: easings, springs, stagger and layers added. Contrast chips no longer break across lines. New icon and wordmark section.
+  - impeccable `typeset`: detector scan clean; Hanken Grotesk confirmed as the one family. Its figures are tabular by default.
+  - App icon drawn (seven H3 cells, three cleared along a teal line), PNGs regenerated with `pnpm icons`.
+  - Tests: `tests/e2e/design.spec.ts`: axe in both OS themes, a manual theme kept across a reload with `theme-color` rewritten, no horizontal scroll, tabular figures. Mutants: a broken `theme-color` sync and the old toggle each failed the theme test; the sample in `system-ui` without `tabular-nums` failed the tabular test by 26 px. Full run: typecheck, lint and `format:check` clean; Vitest 67 passed, 1 skipped (live `fogline-db`); Playwright 54 passed, 12 skipped; build compiled.
+  - Seen at 390×844 in day and night, each with and without reduced motion: no overflow, no console errors.
+  - Docs: DESIGN section 4 final, section 11 icon and wordmark, D-054 (D-053 is taken by B's open #16), PHASES, CLAUDE.md and `/phase-gate` token check wording.
+  - Moved within the plan: the custom line and station glyphs land with LineBadge and StationDot in item 6. The test file is `design-tokens.test.ts`, not `tokens.test.ts`.
+  - Next: critics (see the 21:18 entry).
+
+- 2026-11-21 20:32 ET · Builder A · Merged #15 (`e7c28c5`), which brought production up to date after B's #12 to #14; the production check (run 44971213723) passed on `fogline-mu.vercel.app`. Started item 5 on `a/design-tokens` (WIP, see the handoff under Builder A). Canvas Map page: 4 of 5 artboards. Session handed off at its usage limit.
+
 - 2026-11-21 23:30 ET · Builder B · Phase 2 item 8, puzzle, on `b/puzzle-data` (stacked on `b/badges-stats`), in progress:
   - `src/lib/puzzle.ts`: the puzzle for a New York date, guess checks, feedback with repeated letters, game state and reveals, the share grid, streaks (F7.1, F7.2, F7.5, F7.6, F7.7). `calendarDateOf` and `addDays` in `src/lib/time.ts`.
-  - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-060).
-  - `pnpm data:events`: publishes only checked, all-ages events near a station, one per date (D-060).
+  - `pnpm data:words`: 15,921 five-letter guesses from dwyl/english-words (The Unlicense), pinned (D-064).
+  - `pnpm data:events`: publishes only checked, all-ages events near a station, one per date (D-064).
   - Tests: 16 unit tests, including the midnight reset under a UTC server clock and on both DST days, repeated letters, streaks, and every reason `data:events` refuses.
   - `data/events.json`: 14 events, one a day from Nov 22 to Dec 5. They include city tree lightings, a holiday market, Bruins, Celtics, Messiah, the Holiday Pops, a Harvard Book Store talk and the Huntington's new opera. Every answer is distinct.
   - Event check: Claude's research found 2 to 4 candidates a day and confirmed each 2026 date on the organizer's page. B accepted that list to save time, without opening each link, and the entries are marked checked on that basis. 13 of the 14 pages print the 2026 date. The Holiday Pops page (Dec 4) shows the date without a year; its address says 2026. Few pages state an age policy; none of these events is 21+. Thanksgiving's puzzle points to Messiah on Nov 27.
@@ -337,7 +468,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - `src/lib/rides.ts`: rides, lines and visited stations from ride events, and `live()` to leave replays out of totals and badges.
   - `src/lib/badges.ts`: the 8 night badges and 4 explorer badges, including when a region reached 50% for First Light (F8.1, F8.2).
   - `src/lib/stats.ts`: miles on the T, stops, lines, miles walked, nights out, last trains caught (F8.3). `src/lib/squad.ts`: squad mates (F12.1).
-  - Rules the docs left open are in D-059:
+  - Rules the docs left open are in D-063:
     - comparing badges need 2 people in their own comparison, and how ties share
     - the ride home starts after the last check-in and the last stop's time
     - a late last train counts within 10 minutes
@@ -352,7 +483,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - `[F8.3]`: rides, miles, stops, lines, walking, nights out, last trains.
     - `[F12.1]`: squads.
   - Full suite 199 passed; `src/lib` line coverage 99.8%.
-  - code-critic: the first pass failed. The docs said replays never count, though First Light and percent uncovered follow fog that replays clear; the ride home could be a crawl ride; a late last train didn't count; and the Night Owl test passed with a server-time bug. All fixed, with tests (D-059).
+  - code-critic: the first pass failed. The docs said replays never count, though First Light and percent uncovered follow fog that replays clear; the ride home could be a crawl ride; a late last train didn't count; and the Night Owl test passed with a server-time bug. All fixed, with tests (D-063).
   - code-critic, second pass: failed. F3.5 needs a replay's own ride summary to count, the 10-minute grace accepted a different trip, and Closest Call ran before the rides home. Now:
     - a ride summary counts replays; totals and badges use live events;
     - the grace needs the last train's trip;
@@ -362,21 +493,21 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - code-critic, third pass: PASS. Its notes are done too: home-station cells don't count for First Light, F8.1 names the cron rerun for Closest Call, and stale replay notes are fixed.
   - Next: item 8 (events, words and puzzle).
 - 2026-11-21 21:34 ET · Builder B · Phase 2 item 7, neighborhoods, on `b/neighborhoods` (stacked on `b/places-grades`):
-  - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-058).
+  - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-062).
   - `src/lib/geo/regions.ts`: region lookup, each region's uncovered share, and Boston's share as the union of its neighborhoods (F2.4).
   - A second run produced a byte-identical file.
   - Tests: 8 unit tests.
     - `[F2.4]` polygon fill, holes and multipolygons, the first region keeping a shared cell.
     - Region shares, Boston's union, Beyond.
     - The committed file: 26 neighborhoods and 3 cities, each cell once, unique IDs, and six known stations in the right region (Harvard, Davis, Coolidge Corner, Kenmore, Park Street, and Quincy Center in Beyond).
-  - code-critic: the share tests used one share for every region, so wrong formulas still passed. They now use different shares. The script now validates the file before writing it, and First Light leaves out the two regions smaller than a cell (D-058).
+  - code-critic: the share tests used one share for every region, so wrong formulas still passed. They now use different shares. The script now validates the file before writing it, and First Light leaves out the two regions smaller than a cell (D-062).
   - Next: item 10 (check-ins, badges and stats), then item 8 (events, words and puzzle).
 - 2026-11-21 21:31 ET · Builder B · Phase 2 item 6, places and grades, on `b/places-grades` (stacked on `b/fair-solver`):
   - `pnpm data:places` writes `data/places.json`: 2,327 named spots within 600 m walking of a station, from 5,154 OSM elements (data of 2026-11-22T02:19Z).
     - By category: food 1,341, coffee 320, park 290, bar 162, culture 154, dessert 43, club 17.
     - Every nearby station is kept with its walking distance.
-  - `pnpm data:grades` adds inspection grades from Analyze Boston. `src/lib/grades.ts` holds points, cutoffs, name and street normalization, Jaro-Winkler and matching (D-057).
-  - **Grade distribution (PHASES gate, also in D-057):**
+  - `pnpm data:grades` adds inspection grades from Analyze Boston. `src/lib/grades.ts` holds points, cutoffs, name and street normalization, Jaro-Winkler and matching (D-061).
+  - **Grade distribution (PHASES gate, also in D-061):**
     - Citywide, 4,092 active establishments: A 2,991 (73.1%), B 705 (17.2%), C 396 (9.7%).
     - Matched to spots: 809 of 1,883 inspectable spots, A 516, B 167, C 126.
     - The plain latest inspection would have given 98.8% A, because re-inspections mark violations corrected; the grade uses the latest routine inspection instead.
@@ -386,7 +517,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The inspection SQL had no test.
     - Whole-name similarity left false matches.
     - Bars that OSM tags as restaurants were all-ages.
-    - All fixed with tests: an integration test runs the inspection SQL on Postgres, and the reruns and calibration above are from the fixed code (D-057).
+    - All fixed with tests: an integration test runs the inspection SQL on Postgres, and the reruns and calibration above are from the fixed code (D-061).
   - code-critic, second pass: failed on OSM `min_age=21` being ignored (Lolita was all-ages). Also fixed: more bar words, short words must match exactly ("Mario's" no longer matches "Maria's"), the city's counter numbers dropped, and blank comments not counted as a second citation. Rebuilt twice with identical output.
   - Reproducible: rerunning either pipeline from the cache gave byte-identical `places.json`.
   - Environment note: the Claude Code sandbox blocks `overpass-api.de` and two mirrors. The one reachable mirror answered 504 when busy, so `data:places` ran once with the sandbox off. `.cache/` is ignored by git (shared file `.gitignore`).
@@ -398,7 +529,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The committed `places.json` checked against its schema.
   - Next: code-critic, then item 7 (neighborhoods).
 - 2026-11-21 20:55 ET · Builder B · Phase 2 item 5, fair solver and miles, on `b/fair-solver` (stacked on `b/last-train`):
-  - `src/lib/solver/fair.ts`: `rankStations`, `spotsNear` and `fairOptions` (D-056).
+  - `src/lib/solver/fair.ts`: `rankStations`, `spotsNear` and `fairOptions` (D-057).
     - `rankStations`: S(d), with the sum and then the station as tie-breaks, and the 75-minute cut. Unknown stations throw.
     - `spotsNear`: grades, and no bars, clubs or 21+ spots for under-21 groups.
     - `fairOptions`: 3 stations that have matching spots. When nothing fits it names a blocker, a pair of blockers, or no trains.
@@ -429,7 +560,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
 - 2026-11-21 20:42 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
   - `src/lib/lasttrain/search.ts`: backward round-based search with two times per station (board, arrive by train), at most two transfers, walks into home and between stations, and no-pickup or no-drop-off stops skipped.
-  - `src/lib/lasttrain/leave-by.ts`: the F5.2 buffer, the F5.3 warning, the F5.5 last stop, the F5.7 walk home. Results also give `firstTrain`. D-055.
+  - `src/lib/lasttrain/leave-by.ts`: the F5.2 buffer, the F5.3 warning, the F5.5 last stop, the F5.7 walk home. Results also give `firstTrain`. D-056.
   - `timetable.json` now carries transfer times and walks, regenerated from the same feed.
   - **Known last trains (PHASES gate).** `pnpm check:last-trains 2026-11-23` against the MBTA V3 schedules API, matching by headsign:
 
@@ -440,7 +571,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     | Orange Line, Downtown Crossing → Forest Hills | Mon 2026-11-23 | 12:45 AM | 12:45 AM |
 
     - All three match to the second. On Saturday 2026-11-28 they match too (2:14 AM, 1:36 AM, 1:45 AM).
-    - On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM). A Red Line diversion turns trains at Broadway with shuttle buses beyond, so the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-055, Open questions, deferred).
+    - On Friday 2026-11-20, E and Orange match (2:18 AM, 1:41 AM). A Red Line diversion turns trains at Broadway with shuttle buses beyond, so the search finds no train to Ashmont while the MBTA lists a 1:30 AM trip to Broadway (D-056, Open questions, deferred).
   - Tests: 22 unit tests: 21 on hand-built timetables, and 1 checking that every route returned for sampled real station pairs is possible and never rides past home.
     - `[F5.1]`: past 24:00:00, transfer time, at most two transfers, a walk without the transfer time, a route checked through the right rounds, a walk on when a transfer is too tight, walking home, a walk at the start, no-board and no-alight stops, a tie, holiday service, the 3 AM rule.
     - `[F5.2]` (including the night the clocks fall back), `[F5.3]`, `[F5.5]`, `[F5.7]`. No train needed, no timetable, unknown stations, the margin.
@@ -454,7 +585,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
 
 - 2026-11-21 20:17 ET · Builder B · Phase 2 item 3, GTFS pipeline and travel time, on `b/gtfs`:
   - `pnpm data:gtfs` (tsx) downloads the MBTA feed ("Fall 2026, 2026-11-19T01:01:13+00:00, version D", valid 2026-11-12 to 2026-12-12) and writes `data/stations.json` (125 stations), `graph.json` (3,446 weekday station pairs), `timetable.json` (19,807 trips, 42 station patterns) and `shapes.json` (18 canonical patterns). Representative dates: Mon 2026-11-16, Sat 2026-11-28, Sun 2026-11-29. A second run produced byte-identical files (sha256).
-  - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-054).
+  - `src/lib/solver/travel.ts`: shortest path over direct rides, with lines, waits and transfer stations. `src/lib/gtfs/types.ts` holds Zod schemas for the four files (D-055).
   - **Known trips (PHASES gate).** `pnpm check:trips` compares the model with a replay of the raw timetable: a rider arriving at each minute of the hour catches the actual next trains along the usual path, with `transfers.txt` times. Minutes:
 
     | Trip | When | Model | Timetable replay | Difference |
@@ -467,7 +598,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     | Sullivan Square → Lechmere (Orange, then Green at North Station) | Mon 6 PM | 16.8 | 16.0 | +0.8 |
     | Savin Hill → North Quincy (Ashmont branch, then Braintree at JFK/UMass) | Mon 6 PM | 19.4 | 16.6 | +2.8 |
 
-    All seven are within 3 minutes. JFK/UMass is the closest because the model assumes a random wait after a transfer, while the schedule times the Ashmont-to-Braintree connection: 6.0 min modeled for the walk and wait at JFK against 3.5 in the replay. Harvard → Kenmore is high for the same reason (D-054).
+    All seven are within 3 minutes. JFK/UMass is the closest because the model assumes a random wait after a transfer, while the schedule times the Ashmont-to-Braintree connection: 6.0 min modeled for the walk and wait at JFK against 3.5 in the replay. Harvard → Kenmore is high for the same reason (D-055).
   - Data notes: Symphony is marked "no drop-off" on all but one trip in this feed, so it's never a destination or a home with a last train. 1,221 Green Line E trips carry that `noAlight`. Items 4 and 5 should say so rather than fail.
   - Tests: 28 unit tests on a synthetic GTFS slice (`tests/fixtures/gtfs/`) and a hand-built graph.
     - Feed: the subway filter, quoted fields, missing columns, Thanksgiving's `calendar_dates` swap, a diversion on the first Monday and Saturday, canonical trips on a service that never runs.
@@ -483,7 +614,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The known-trip check is committed, with North Station and JFK trips.
     - Combining platforms is kept and documented with the JFK figure.
     Nits fixed too: one `bucketIndex`, the dead tie-break, `tripStops` built once, and typed loading through Zod.
-  - Second pass: PASS. Its SHOULD FIX corrected the reason given for the JFK trip, above and in D-054. Nits fixed:
+  - Second pass: PASS. Its SHOULD FIX corrected the reason given for the JFK trip, above and in D-055. Nits fixed:
     - Walks only count platform pairs on different lines.
     - The data-file test checks every index range.
     - One default transfer constant, a `meters` schema, and a warning log.

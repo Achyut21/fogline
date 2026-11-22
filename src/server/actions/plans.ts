@@ -8,7 +8,7 @@ import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { ageBands, planParticipants, planStops, plans, profiles } from "@/server/db/schema";
 
-// Profiles and saved plans for the prototype's core loop (D-062): an anonymous profile kept in a
+// Profiles and saved plans for the prototype's core loop (D-067): an anonymous profile kept in a
 // cookie (no auth provider), a plan with placeholder friends and one stop, an invite link, and
 // joining it (F1, F4.7, F4.8).
 
@@ -93,16 +93,14 @@ export async function createPlan(input: unknown) {
         inviteToken,
       })
       .returning({ id: plans.id });
-    await tx
-      .insert(planParticipants)
-      .values([
-        { planId: row.id, profileId: creator, rsvp: "yes" },
-        ...plan.friends.map((f) => ({
-          planId: row.id,
-          placeholderName: f.name,
-          originStationId: f.station,
-        })),
-      ]);
+    await tx.insert(planParticipants).values([
+      { planId: row.id, profileId: creator, rsvp: "yes" },
+      ...plan.friends.map((f) => ({
+        planId: row.id,
+        placeholderName: f.name,
+        originStationId: f.station,
+      })),
+    ]);
     await tx.insert(planStops).values({
       planId: row.id,
       seq: 0,

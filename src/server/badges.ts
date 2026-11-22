@@ -15,7 +15,7 @@ import {
 
 /**
  * Computes an ended plan's night badges and stores them once each (F8.1, F8.6). Closest Call
- * needs last-train data and the later cron run (D-059), so the prototype awards the rest.
+ * needs last-train data and the later cron run (D-063), so the prototype awards the rest.
  */
 export async function awardNightBadges(planId: string): Promise<number> {
   const db = getDb();

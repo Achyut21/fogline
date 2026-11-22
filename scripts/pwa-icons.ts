@@ -1,7 +1,7 @@
 import sharp from "sharp";
 
-// Placeholder artwork until Phase 1. The shapes sit inside the central 80% so the same
-// file works as a maskable icon.
+// Renders the app icon (D-054) to the PNG sizes the manifest and iOS need. The shapes sit inside
+// the central 80%, so the same file works as a maskable icon.
 const source = "public/icons/icon.svg";
 const outputs = [
   { file: "public/icons/icon-192.png", size: 192 },

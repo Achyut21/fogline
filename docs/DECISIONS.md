@@ -343,7 +343,34 @@ Consequences:
 
 
 
-**D-054 · 2026-11-21 · Travel time over direct rides, and data scripts run with tsx (Phase 2 item 3).**
+**D-054 · 2026-11-21 · Final design tokens, type roles, token check and app icon (Phase 1 item 5, flag 4).**
+Decision:
+- The tokens in DESIGN section 4 are final. They live in `src/styles/tokens.css`, except springs and the list stagger, which only Motion and R3F use (`src/lib/motion.ts`). `src/app/globals.css` maps them into Tailwind and resets Tailwind's default palette, type sizes, tracking, radii, shadows (inset, drop and text shadows too) and easings, so a stock class like `bg-red-500` or `rounded-2xl` doesn't exist.
+- Where the tokens differ from the canvas:
+  - Day `--warning` is `#A35600` instead of the canvas's `#B25E00`, which reaches 4.28:1 on `--bg` and 4.12:1 on `--surface-sunken`. The new value reaches 4.95 and 4.76.
+  - Day `--success` is `#1B7348` instead of `#1E7F4F`, which reaches 4.41:1 on `--surface-sunken`. The new value reaches 5.16.
+  - Chips are pills (`rounded-full`), as drawn. DESIGN section 4's 6 px chip radius is gone. A new 8 px `--radius-small` serves segmented-control thumbs, inset in a 12 px track with 4 px padding. The canvas's 14 px inputs and rows use 12, and its 22 and 28 px button radii are pills.
+  - Night elevations add a hairline light ring (6, 8 and 10% ink). DESIGN section 4 asked for light borders at night, a black shadow barely shows on near-black, and night `--surface` (`#1E2227`) is almost night `--map-land` (`#1D2126`), so a card over cleared fog would lose its edge.
+  - The canvas's `--field`, `--halo` and `--edge` variables become tokens: `--field` (input fill, darker than the card at night as drawn), `--halo` (label halos, station rings) and `--fog-edge` (the reveal's bright edge, a shader uniform). `--field-border` is new: the canvas draws no resting input border, and WCAG 1.4.11 needs a 3:1 control boundary.
+  - Type: the canvas uses about 18 sizes. They map to the scale (10–12 px → `xs`, 13–14 → `sm`, 15–17 → `base`, 18 → `lg`, 20–22 → `xl`, 24–30 → `2xl`, 40 → `3xl`), and `text-3xl` moved from 36 to 40 px to match the map's hero number. The type roles in DESIGN section 4 come from the canvas: primary buttons are `text-lg` bold (18/700), not `text-sm` semibold as first written. Three tracking tokens follow the canvas: -0.02em, -0.01em and 0.18em.
+- One font family: Hanken Grotesk (OFL), variable, through `next/font`, replacing Geist. impeccable `typeset` confirmed it: one grotesque fits the Direction's "one family", the detector scan was clean, and its figures are tabular by default. Numbers still carry `tabular-nums`, which matters if a fallback font renders: with `system-ui`, "1111" and "0000" differ by 26 px without it.
+- The token check (flag 4) is a Vitest test, `tests/unit/design-tokens.test.ts` with the rules in `tests/support/token-scan.ts`. It scans every `.ts`, `.tsx` and `.css` file under `src/` for hex colors, color functions, `px` and `rem` values, `ms` and `s` times, arbitrary Tailwind values and properties containing a digit or `#`, Tailwind palette colors, off-scale spacing, raw durations (classes, Motion `transition` objects, inline styles), numeric inline style lengths and raw `z-` layers. It reads one line at a time, so a style or transition object split over lines can slip through. Exempt: `src/styles/tokens.css`, `src/styles/theme-color.ts` (the manifest and meta tags need literal colors, D-043), `src/lib/motion.ts` (the Motion token source) and `src/components/ui/` (the D-037 exemption, kept until item 6 restyles those primitives).
+- The same test file checks AA for every text pair in both themes, F2.3 line visibility, `theme-color` against `--bg`, Motion values against the CSS tokens in both directions, and that `/design` shows every color token once (`src/styles/swatches.ts`).
+- F2.3 reads WCAG 1.4.11 literally: a line needs 3:1 against its adjacent color. Where a ground (land, water, park, road, fog) is too close to the line color, the casing is the adjacent color, so the line needs 3:1 against the casing there. The first version also required the casing to reach 3:1 against the ground. WCAG doesn't ask that. With roads added it would have forced light casings onto night red and green only, while the canvas draws dark casings over lighter roads at night, as Apple Maps does. Night red and green reach 3.91 and 3.96 against their casings.
+- Theme switching: next-themes, class strategy, default `system` (D-051). A small client component rewrites the `theme-color` meta tags only when the user picks Day or Night, and again whenever `<head>` changes, because Next puts the server values back on every in-app navigation. The toggle marks the stored theme only after hydration: the server can't know it, and React doesn't patch a mismatched attribute.
+- App icon: seven H3 cells on the night background. A teal line enters from the lower right and ends at a station dot in the center. The cells it crossed are cleared (tinted `--accent-soft`), the cells beside them hold thin fog, and the rest full fog. The first draft put two white cells on either side of a diagonal line, and at 32 to 60 px it read as a percent sign. Every shape is within 195 px of the center (the maskable safe zone is 205 px). The wordmark is "Fogline" in `text-xl font-extrabold tracking-snug`, not a separate file.
+- COPY.md: a time and its AM or PM are joined by a no-break space.
+Why: the approved Phase 1 plan (item 5 and flag 4), and the item 5 review: design-critic, copy-critic and code-critic each failed the first pass. The PHASES grep skipped `.ts` and `.css` files and missed arbitrary values, palette classes, off-scale spacing and raw durations, while flagging any `#` followed by hex-looking text. The canvas values were drawn before AA was checked against every background.
+Consequences:
+- PHASES standing checks, CLAUDE.md and `/phase-gate` now name the Vitest check instead of the grep.
+- The plan named the test file `tests/unit/tokens.test.ts`. It is `design-tokens.test.ts`, because it covers more than the scan.
+- Changes to the approved plan, which A approved on 2026-11-21: two type families became one; the D-037 exemption for `src/components/ui/` stays until item 6 instead of ending here; the custom line and station glyphs land with LineBadge and StationDot in item 6.
+- Item 6 restyles `src/components/ui/`, then removes that exemption. Input uses `--field` and `--field-border`, SegmentedControl bolds the selected label (and becomes a radiogroup), and the app shell adds safe-area padding.
+- The canvas still shows `#B25E00`, `#1E7F4F` and off-scale sizes. New artboards use the token values.
+- `--layer-*` tokens are used as `z-(--layer-sheet)`. The stock shadcn Drawer still uses `z-50` until item 6.
+- Numbering: B's PR #16 uses D-053 for the hypertables, so this entry is D-054. B's #17, #18 and #19 used D-054 to D-056 and were renumbered to D-055 to D-057 when they merged.
+
+**D-055 · 2026-11-21 · Travel time over direct rides, and data scripts run with tsx (Phase 2 item 3).**
 Decision:
 - `graph.json` holds one entry per pair of stations that a single train serves in order, with the median ride, the expected wait and the routes for each day type and hour bucket. The search runs over stations: a ride costs its wait plus its ride, a ride after another ride adds the station's transfer time, and walks between stations come from `transfers.txt`. This replaces DATA 3.1's (station, route, direction) nodes and supersedes D-047's description of `graph.json`.
 - The expected wait is the sum of squared gaps over twice their sum, not half the median gap. A train's gap is the time since the previous departure, capped at an hour.
@@ -356,9 +383,9 @@ Decision:
 Why: the MBTA feed has branches that share track: Green B, C and D from Kenmore, and two Red Line branch patterns under one route. A per-route wait made a Kenmore rider wait for one branch when any westbound train would do. Median gaps understated waits where trains are scheduled close together (Kenmore at 6 PM: 0.5 min by median, 3.0 min by the random-arrival formula). Service differs by date: Friday late trips, weekend diversions and Thanksgiving. Node's type stripping doesn't resolve `@/`.
 Consequences: seven known trips land within 2.8 minutes of a replay of the raw timetable (PROGRESS, 2026-11-21). The first code-critic pass found commuter-rail and bus transfers inflating North Station and JFK/UMass by about 2.5 minutes. Counting departures from every platform is optimistic where branches use separate platforms (JFK/UMass northbound: 3.1 min against about 6 at 9 PM). After a transfer the model assumes a random wait, while the schedule often times connections, so trips with a transfer come out pessimistic: Savin Hill → North Quincy is 6.0 min modeled for the JFK/UMass walk and wait against 3.5 in the replay. A new feed could push such a trip past 3 minutes, and `pnpm check:trips` would catch it. The late bucket uses the representative Monday, so Friday's later trains don't change it. `graph.json` is about 2.9 MB and `timetable.json` 3.4 MB. Both are server-only, and each regeneration adds them to git history. The travel time still uses one bucket for the whole trip, even when a long trip crosses into the next hour.
 
-**D-055 · 2026-11-21 · Last-train search (Phase 2 item 4).**
+**D-056 · 2026-11-21 · Last-train search (Phase 2 item 4).**
 Decision:
-- `src/lib/lasttrain/search.ts` runs a backward round-based search with at most three rides over the service date's trips in `timetable.json`. It uses the station transfer times and walks from D-054, which `timetable.json` now carries too. Each round keeps a board time and an arrive-by-train time per station, and walks into home count.
+- `src/lib/lasttrain/search.ts` runs a backward round-based search with at most three rides over the service date's trips in `timetable.json`. It uses the station transfer times and walks from D-055, which `timetable.json` now carries too. Each round keeps a board time and an arrive-by-train time per station, and walks into home count.
 - The result says which case applies: a train, no train needed (home is the same station or a walk away), no timetable for that date, or none. A date outside the feed is "no timetable", never "no train home".
 - `src/lib/lasttrain/leave-by.ts` takes the plan's last stop (F5.5): `leave_by = departure − walk − 5 min` (F5.2). It flags a plan that starts after the leave-by (F5.3), and gives the walking minutes home when there's no train (F5.7).
 - An unknown station is an error, not "no train". A broken trace throws instead of returning partial legs.
@@ -370,7 +397,7 @@ Consequences: on Monday 2026-11-23, all three match to the second. On Friday 202
 Why: saying "no train home" for a date with no timetable would be false. Callers need to tell "home is next door" apart from "stranded".
 Consequences: on Monday 2026-11-23, all three match to the second. On Friday 2026-11-20 a Red Line diversion turns trains at Broadway and shuttle buses run to JFK/UMass and North Quincy. The subway-only search (D-006) then reports no train from Harvard to Ashmont while the MBTA lists a 1:30 AM trip to Broadway. F5.6's alert text covers this in Phase 4. Including rail-replacement shuttles is an open question.
 
-**D-056 · 2026-11-21 · Fair options, spot filters and the blocking filter (Phase 2 item 5).**
+**D-057 · 2026-11-21 · Fair options, spot filters and the blocking filter (Phase 2 item 5).**
 Decision:
 - `rankStations` ranks every station everyone can reach within 75 minutes by `S(d)`, then `sum(t_i)`, then station ID. It runs one travel search per participant over every station.
 - `fairOptions` walks down that ranking and keeps the first 3 stations with at least one matching spot within 600 m walking, instead of taking the top 3 stations and then looking for spots.
@@ -381,11 +408,66 @@ Decision:
 Why: a top-ranked station with no matching spot isn't an option the UI can show. OpenStreetMap rarely tags prices, so failing unknown prices would empty most results. Parks and museums have no food inspections. F4.6 needs a single constraint to offer relaxing.
 Consequences: DATA 3.2 and 3.4 updated. Vibe isn't a filter yet: F4.5 doesn't require it and no place data carries vibe tags (Open questions). Walking down the ranking has no fairness floor beyond 75 minutes, so a strict filter can return an option much less fair than the top station without F4.6 firing; that is within the spec. code-critic's first pass found the missing service check (a 3:30 AM plan got options), unknown stations reported as "time", and a bar marked all-ages passing for under-21 groups. Its second pass found the check looked at the hour after the start, so 3:45–4:59 AM plans still got options. Its third pass found that any train anywhere counted (a 2:30 AM plan for Harvard and Tufts got options from trains finishing their runs elsewhere) and that the named filters could fail together. A real-data check on the walkthrough's demo plan (BU, Harvard and Tufts, Friday 7 PM) puts Government Center first at 26, 19 and 25 minutes.
 
-**D-057 · 2026-11-21 · Places, grades and their calibration (Phase 2 item 6).**
+**D-058 · 2026-11-21 · The fog is a MapLibre custom layer (approach A). Phase 1 item 4.**
+Decision:
+- three.js draws the fog into MapLibre's own WebGL context as a custom layer (`src/three/fog-layer.ts`), added before the T-line layers. Approach B, a React Three Fiber canvas over the map, is deleted, and `@react-three/fiber` and `@react-three/drei` with it. The first R3F scene adds them back.
+- One shader (`src/three/shaders/fog.ts`) samples two density masks, before and after the latest reveal. `src/three/mask.ts` rasterizes them from H3 cell states at 256² over Boston, Cambridge, Somerville and Brookline: fog 255, seen 110, visited 0. Drift is FBM noise, 3 octaves on tier 3 and 2 on tier 2. A reveal burns outward to the farthest pixel that lost fog over `duration.reveal`, with a `--fog-edge` edge. A finger or pointer thins the fog under it.
+- Tiers: `detect-gpu` with its benchmark files copied into `public/detect-gpu/` (flag 6). They must be copied again when the package updates. Tier 0–1 and Force 2D get a MapLibre fill layer (fog at 0.92 opacity, seen at 0.45). No WebGL gets an SVG map with the same cells, lines and stations (`src/components/map/fog-fallback.tsx`). The map's pixel ratio is clamped to 1.5 on tier 2 and 2 on tier 3. The fog draws into the map's canvas, so the clamp covers the whole map.
+- Reduced motion: the drift stops and a reveal crossfades over `duration.fast` (160 ms). DESIGN section 8 says 200 ms, but no 200 ms token exists and D-054 bans raw durations.
+- The map repaints every frame while the fog drifts or a reveal runs, and stops while `document.hidden`. With reduced motion it repaints only for map moves and the crossfade.
+- Token colors reach the shader through `getComputedStyle`. The CSS build rewrites them as 3, 4, 6 or 8-digit hex (`--fog-edge` arrives as `#0b7a7573`), so `colorVector` reads every hex length.
+Why: F2.3 puts every line and station above the fog. A custom layer draws between the basemap and the lines in one canvas. An overlay canvas covers the lines: in the spike they washed out under the fog. A also uses one WebGL context instead of two and can't lag the map camera, because it draws in the same frame. Performance didn't separate them. `tests/perf/fog-fps.ts`: headed Chromium, Pixel 7 emulation, 4× CPU throttle, 20 s of scripted pans, zooms and reveals, Apple M4 Pro (ANGLE Metal).
+
+| Run | Mean frame | p95 | Frames over 22 ms |
+|---|---|---|---|
+| A, tier 3 | 1.3 ms | 3 ms | 7 of 15,836 |
+| A, tier 2 | 1.3 ms | 3 ms | 6 of 15,340 |
+| B, tier 3 | 1.1 ms | 3 ms | 9 of 18,892 |
+| B, tier 2 | 1.1 ms | 3 ms | 11 of 18,861 |
+| 2D fill, tier 1 | 2.3 ms | 17 ms | 0 of 8,722 |
+
+These runs had vsync off. With vsync on, every run, `about:blank` included, held exactly 30 fps: the Mac was on battery below 20%, where Chromium caps frames at 30. Vsync off shows the real cost of a frame.
+Consequences:
+- A laptop GPU flatters a phone, and the CPU throttle doesn't slow the GPU (flag 5). The 45 fps gate line passes on this Mac. The real check is the Android phone when A has it (Phase 9 item 2 re-checks on one). drei's `PerformanceMonitor` (DESIGN section 9) doesn't fit a custom layer. If the phone drops frames, the layer measures its own frame time and steps down from tier 3 to tier 2 settings.
+- The 2D fill's p95 (17 ms) is higher than the shader's. Not investigated. Recheck on the phone.
+- The drift keeps the map repainting at the display rate while the map is open. Measure battery on the phone. Fallback: drift at 30 fps.
+- The layer is 2D and north-up: rotation and pitch stay off. Globe projection isn't supported.
+- `/design/fog` is the spike's preview page (`noindex`, sample data labeled). `?tier=0` to `?tier=3` overrides detection. Item 6 moves the fog layer and fallback into `/design` with a tier toggle.
+- Fog covers the mask area plus 1° on every side. Outside the mask, the shader and the 2D fill draw plain fog. The 2D fill keeps pockets of fog enclosed by uncovered cells (`src/components/map/fill-fog.ts`).
+- Left for Phase 3, where the real map is built (from code-critic and design-critic, item 4 review): the 256² mask covers only Boston, Cambridge, Somerville and Brookline and gets blocky past zoom 13, so outer stations (Ashmont, Braintree, Oak Grove, Riverside) can't clear in 3D and street zoom needs a finer or tiled mask; build the mask from a cached pixel-to-cell index (65,536 `latLngToCell` calls take about 30 ms on an M4 Pro); the reveal edge should read as a continuous eased ring like the canvas `onb-reveal` artboard; restyle the map when the theme flips; add fog on `style.load` and keep the latest states for a reveal pressed before load; load three.js only for the shader tiers; fall back to SVG if MapLibre fails to start; fog opacities as tokens (`--fog-thin` is unused); a crossfade for tier 0–1 reveals; style the attribution control (44 px toggle, safe-area inset, night colors, stays expanded); an F2.3 test of the layer order; line names and a live region for screen readers (F2.7).
+- Credits: the map's attribution control keeps OpenFreeMap's own credit from its TileJSON, because it also names OpenMapTiles, and adds "Train data: MBTA. Not affiliated with the MBTA." from `src/copy/legal.ts`. The SVG fallback shows the MBTA line in a corner. COPY.md notes the difference from its OpenFreeMap line.
+- Numbering: B's open PRs use D-053 to D-056, and #17's D-054 collides with D-054 on `main`. B renumbers on rebase: #17, #18 and #19 take D-055 to D-057, so this entry is D-058.
+
+**D-059 · 2026-11-21 · Base components, first half (Phase 1 item 6a).**
+Decision:
+- Item 6 ships as two PRs: 6a restyles the shadcn primitives and adds the controls and state components; 6b adds the transit and data components (LineBadge, StationDot, StatCounter, StatTile, Countdown, LeaveByChip, BadgeChip, AvatarStack, ParticipantChip) and the motion demos.
+- Buttons have four variants (primary, secondary, ghost, danger) and two sizes: `lg` (56 px, `text-lg`) for primary actions and `md` (44 px, `text-base`). shadcn's `outline` and `link` variants are gone.
+- SegmentedControl is a Radix radiogroup (D-054). The theme toggle on `/design` uses it, so its e2e tests look for radios and `aria-checked`.
+- The Sheet is vaul's drawer with snap points as fractions of the screen (`sheetSnaps`: 0.3, 0.55, 1), so no raw px reaches the code. The scrim shows from the half snap up.
+- The sheet moves on `duration.slow` and `ease.standard` instead of `spring.smooth`: vaul animates with CSS, which has no springs. `globals.css` overrides vaul's own 0.5 s curve, and with reduced motion the sheet fades instead of sliding. Focus moves into the sheet on open, and a tap on the grabber moves to the next snap point (WCAG 2.5.7). The `/design` sheet is modal at every snap; map sheets in Phase 3 decide whether peek stays non-modal (vaul `modal={false}`) so the map takes taps.
+- Toasts and the full-height sheet stay below the status bar (`sheet-full` utility, toast offset with the safe-area inset).
+- The Toaster mounts once in the root layout, top center, on `--layer-toast`, unstyled sonner with token classes.
+- Skeletons are still blocks. No shimmer: it would be one more looping animation with a reduced-motion branch, for little gain.
+- `pt-safe` and `pb-safe` utilities in `globals.css` add the safe-area insets. BottomNav and the Sheet use them; the app shell adopts them when the first screens land.
+- The token check no longer exempts `src/components/ui/` (D-037, D-054).
+- `.claude/worktrees/` (agent worktrees) is ignored by git and ESLint.
+Why: the approved item 6 plan, D-054's consequences, and A's request to move faster.
+
+**D-060 · 2026-11-21 · Phase 1 scope cut for the hackathon deadline.**
+Decision (A, 2026-11-21): A has about 10 hours left in the hackathon and asked to skip the canvas wherever possible and not run parallel subagents. Phase 1 closes with:
+- Item 2 (canvas): stops at the three moods, Onboarding and Map. Ride, Daily, Plans, Me, Squad and System aren't drawn. `/design` and its components are the visual reference for those screens.
+- Item 3 (motion storyboards): cut. `/design`'s live demos (count-up, countdown, sheet, toast, reduced-motion switch, fog reveal on `/design/fog`) stand in.
+- Item 7 (microcopy): deferred. Each feature adds its strings to `src/copy/` with the feature, and copy-critic reviews them there. `src/copy/badges.ts` and its `[F8.5]` test come with F8.
+- Item 8 (visual baselines): deferred to Phase 9.
+- The gate keeps the token check, the fog frame-rate and fallback checks, one design-critic and copy-critic pass on `/design`, and both humans' approval of `/design` and the canvas as cut. B's human still confirms direction C.
+Why: the hackathon ends in about 10 hours, and the remaining canvas pages and storyboards were the largest part of the 6–8 hours left in Phase 1.
+Consequences: features in Phases 3–8 are designed in code against `/design` and DESIGN.md, without a canvas artboard to compare against. design-critic reviews them against DESIGN.md, the Direction and the canvas pages that exist.
+
+**D-061 · 2026-11-21 · Places, grades and their calibration (Phase 2 item 6).**
 Decision:
 - `pnpm data:places` queries Overpass in a 3 × 3 grid of tiles over a box around every station, caching each tile under `.cache/overpass/`. It tries `overpass-api.de`, then the `maps.mail.ru` mirror, with up to 5 tries when Overpass answers busy (429 or 504). Spots are deduped by name within 50 m, and the kept copy is 21+ if either copy was.
 - Under-21 (F1.5): OSM tags some bars as restaurants. A spot is also 21+ when OSM gives `min_age` 21, when its name has a bar word, when OSM tags it as a brewery or hookah, or when it's on a reviewed list ("21st Amendment", "Hurricane's at the Garden", "Lolita", "Club Café"), DATA 2.2. In the current data that hides 72 restaurants and cafes from under-21 profiles, among them Beantown Pub, Dive Bar, Tip Tap Room, Democracy Brewing, both Lolitas, Habibi's Lounge and Tap 151. The rule errs toward hiding: a few are coffee shops or restaurants that aren't bars ("Nine Bar Espresso", "Linden Lounge", "PURO ceviche bar"). "Club" isn't a bar word: it would hide Juliet Social Club and Northeast Eating Club.
-- Price: OpenStreetMap carries almost no price tags (none in the current data). Fast food, food courts, ice cream and cafes are "$" by what they are; every other spot's price is unknown and passes the budget filter (D-056).
+- Price: OpenStreetMap carries almost no price tags (none in the current data). Fast food, food courts, ice cream and cafes are "$" by what they are; every other spot's price is unknown and passes the budget filter (D-057).
 - Grades come from each active establishment's latest routine inspection, the latest one with no other inspection of that license in the 30 days before it, closures included. Violations cited as failed count, once per distinct inspector comment. Points (2, 5, 10) and cutoffs (A up to 13, B up to 27, C above) stay as DATA 3.6 started them. The selection runs as SQL on the Analyze Boston datastore, and an integration test runs that same SQL on Postgres.
 - Matching (DATA 3.7) compares words, not whole names: every distinctive word of the shorter name equal to a word of the other, or a typo away for words of 8 letters or more (Jaro-Winkler 0.9), names equal without spaces, or names that differ only by generic words. The city's counter numbers ("No. 822") are dropped first. Address matches must be within 2 km, and a tie between two licenses is no match. Only food, coffee, dessert, bar and club spots are matched.
 Why:
@@ -399,10 +481,9 @@ Why:
 Consequences:
 - DATA 2.2, 2.3, 3.6 and 3.7 updated.
 - The budget filter excludes nothing today: every known price is "$" (1) and the smallest budget is 1, so F4.6 can't name budget as the blocker until a price source exists (Open questions). The UI must label "$" for cafes as an estimate.
-- F11.3 (every grade shown with "Unofficial grade from City of Boston inspection records") moves to Phase 7, where the grade UI is built (F11). Phase 2 only produces grades; nothing shows them yet.
 - In this development environment the Claude Code sandbox blocks `overpass-api.de`, so `data:places` runs with the sandbox off. Reruns read the tile cache and reproduce `places.json` byte for byte, as does a second `data:grades`.
 
-**D-058 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**
+**D-062 · 2026-11-21 · Neighborhood regions (Phase 2 item 7).**
 Decision:
 - `pnpm data:neighborhoods` builds `data/neighborhoods-h3.json` from Boston's BPDA neighborhood boundaries (Analyze Boston, 26 neighborhoods including the Harbor Islands) and the US Census TIGERweb boundaries of Cambridge, Somerville and Brookline, one region each.
 - Each region holds the resolution-9 cells whose centers fall inside it. A cell inside two boundaries goes to the first region listed (Boston's neighborhoods by name, then Cambridge, Somerville, Brookline).
@@ -415,7 +496,7 @@ Consequences:
 - `data:neighborhoods` refuses to write a file in which a region has no cell.
 - A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
 
-**D-059 · 2026-11-21 · Check-ins, badges, stats and squads (Phase 2 item 10).**
+**D-063 · 2026-11-21 · Check-ins, badges, stats and squads (Phase 2 item 10).**
 Decision:
 - Check-in validity (DATA 3.9) checks time, then accuracy, then distance, and returns the first failure with its number rounded up. A fuzzy position is reported as fuzzy, not as far away, and a refused 150.3 m never reads "150 m".
 - A night badge that compares people needs at least 2 people in its own comparison, not only 2 people checked in anywhere on the plan. First In compares arrivals at the first stop, Long Haul people with a travel time, Closest Call people who caught their last train. Exact ties share.
@@ -425,7 +506,7 @@ Decision:
 - A ride's own summary counts its events, replay or not (F3.5). Night and lifetime totals and badges count live ride events only. First Light and percent uncovered follow `revealed_cells`, which replays write under F3.5, so they count replay reveals until Phase 3 decides (Open questions).
 - Every Green Branch counts a branch at a station that branch alone serves, from a board, pass or alight event.
 - Miles walked counts a walking leg between two checked-in crawl stops instead of both station walks. DATA 3.11 had added the leg on top of `2 × walk_m` for each stop, counting the same street twice. Nights are summed in meters and converted once. Miles on the T sums each ride's miles already rounded to 0.1 mi.
-- First Light compares when each person's share of a region reached 50%, from `revealed_cells.first_at`; mates within 30 s share it. Cells revealed by the home station don't count: picking Longwood Medical Area as home would otherwise reach 50% of Longwood at onboarding. A profile with no squad is its own first, and regions under 3 cells don't count (D-058). Awards are only ever added (F8.6), so mates who each earned it before meeting both keep it.
+- First Light compares when each person's share of a region reached 50%, from `revealed_cells.first_at`; mates within 30 s share it. Cells revealed by the home station don't count: picking Longwood Medical Area as home would otherwise reach 50% of Longwood at onboarding. A profile with no squad is its own first, and regions under 3 cells don't count (D-062). Awards are only ever added (F8.6), so mates who each earned it before meeting both keep it.
 - Squad membership is pairwise and not transitive.
 - All of this is pure functions in `src/lib/` (`checkin.ts`, `rides.ts`, `badges.ts`, `stats.ts`, `squad.ts`). Phase 6 reads the rows and writes `badges_awarded`.
 Why:
@@ -445,7 +526,7 @@ Consequences:
 - F8.1 now says the `end-plans` cron recomputes a night's badges once every last train has left plus 10 minutes (Phase 6 builds it).
 - Phase 6 shows each badge's number (minutes late, minutes to spare) from the same inputs it passed to `nightAwards`. A late last train has 0 to spare, so the copy needs a wording for it (copy-critic).
 
-**D-060 · 2026-11-21 · Daily puzzle rules, words and events (Phase 2 item 8).**
+**D-064 · 2026-11-21 · Daily puzzle rules, words and events (Phase 2 item 8).**
 Decision:
 - The puzzle date is the New York calendar date, changing at midnight (`calendarDateOf`), not the 3 AM service date the trains use.
 - Feedback marks correct letters first; a repeated letter is present only as often as the answer has it left over.
@@ -460,7 +541,13 @@ Decision:
 Why: everyone shares one answer per date (F7.1), so the date must not depend on the server's zone. A human check is the only way to know a real event's date, venue and age policy are right (DATA 2.6).
 Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data note updated. Rerun `data:events` weekly with a new checked list (DATA 5).
 
-**D-061 · 2026-11-21 · Station cards (Phase 2 item 9).**
+
+**D-065 · 2026-11-22 · Profile-code restore ships without a rate limit for now (Phase 3 item 1).**
+Decision: `restoreProfile` checks the code but doesn't yet limit attempts. D-005 asks for a limit and ARCHITECTURE puts a token-bucket table with restore. That table needs a new migration on B's schema and B applying it to `fogline-db`, so it lands as a follow-up, not in item 1.
+Why: the hackathon deadline (D-060). Codes have about 39.6 bits of randomness (8 characters from 31), so guessing one takes on the order of 10^11 tries per existing profile.
+Consequences: the limit stays open on the Phase 9 hardening list until it ships. Needs A's sign-off as an accepted risk until then.
+
+**D-066 · 2026-11-21 · Station cards (Phase 2 item 9).**
 Decision:
 - The card's article is the longest of the 20 nearest Wikipedia articles within 600 m that isn't about transit, a bar or nightclub (F1.5), a violent event, a list or a disambiguation, with an intro of 150 characters or more, and not used by another card. Length stands in for notability; the exclusions keep tragedies and bars off cards everyone sees.
 - An image is kept only when it's Creative Commons or public domain, not non-free, and credits an author.
@@ -471,7 +558,7 @@ Decision:
 Why: DATA 2.4 asks for one notable article and a fact grounded in it; checks in code keep AI output to the rules COPY.md sets (ARCHITECTURE: AI writes words, never facts beyond the source).
 Consequences: DATA 2.4 and ARCHITECTURE updated; `.env.example` names `gemini-3.1-flash-lite`. The demo-line cards are listed in PROGRESS for B's check, and copy-critic reviews the sentences.
 
-**D-062 · 2026-11-22 · Prototype track to 4:00 AM (B's human).**
+**D-067 · 2026-11-22 · Prototype track to 4:00 AM (B's human).**
 Decision:
 - Until a presentable prototype runs (target 2026-11-22 04:00 ET), each item gets one code-critic pass, and only findings that would break the prototype or show wrong facts are fixed. Docs are updated once at the end of the track. This relaxes CLAUDE.md's "never skip a review" for the track only; the full loop resumes after it, starting with the deferred findings listed in PROGRESS.
 - Proposed scope for the prototype, the core loop:

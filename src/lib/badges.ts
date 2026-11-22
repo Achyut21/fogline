@@ -83,7 +83,7 @@ const ids = (entries: [string, number][]) => entries.map(([id]) => id);
 
 /**
  * Night badges for an ended plan, from valid check-ins only. A badge that compares people needs
- * at least 2 people in its comparison (D-059).
+ * at least 2 people in its comparison (D-063).
  */
 export function nightAwards(night: Night): NightAward[] {
   const valid = night.checkins.filter((c) => c.valid);
@@ -161,7 +161,7 @@ export function nightAwards(night: Night): NightAward[] {
 /**
  * For each region, when the profile's uncovered share first reached 50%: the time its
  * ceil(n / 2)-th cell left the fog. Regions still under 50% are left out, and so are regions under
- * 3 cells, where one reveal would reach 50% (D-058). Cells revealed by the home station don't
+ * 3 cells, where one reveal would reach 50% (D-062). Cells revealed by the home station don't
  * count: choosing a home isn't uncovering anything. Cells cleared by a replay do, like all fog.
  */
 export function halfUncoveredAt(

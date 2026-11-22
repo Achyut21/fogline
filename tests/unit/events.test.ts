@@ -41,9 +41,8 @@ describe("data:events", () => {
       word: "skate",
       startsAt: "2026-12-06T10:00:00-05:00",
     });
-    const boylston: Station = { ...parkStreet, id: "place-boyls", lat: 42.35302, lon: -71.06459 };
-    const [first, second] = toEvents([later, event()], [parkStreet, boylston], words);
-    expect(first).toMatchObject({ id: "common-tree-lighting", station: { id: "place-boyls" } });
+    const [first, second] = toEvents([later, event()], [parkStreet], words);
+    expect(first).toMatchObject({ id: "common-tree-lighting", station: { id: "place-pktrm" } });
     expect(first.station.walkM).toBeGreaterThan(0);
     expect(first.station.walkM).toBeLessThan(600);
     expect(first).not.toHaveProperty("checked");

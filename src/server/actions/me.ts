@@ -14,7 +14,7 @@ import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { badgesAwarded, checkins, plans, revealedCells, rideEvents } from "@/server/db/schema";
 
-// The Me screen's numbers for the prototype (F8.3, D-062): lifetime stats from the profile's
+// The Me screen's numbers for the prototype (F8.3, D-067): lifetime stats from the profile's
 // rows, its badges, and how much of Boston it has uncovered.
 
 const read = (name: string): unknown =>

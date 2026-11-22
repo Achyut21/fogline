@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import type { MetadataRoute } from "next";
-import { app, system } from "@/copy";
+import { app, onboarding, system } from "@/copy";
 
 // Behind Vercel's deployment protection the service worker never activates, even with the bypass
 // cookie. That covers every generated URL, production ones too (D-043, D-044). CI and the public
@@ -166,12 +166,14 @@ test.describe("service worker", () => {
   });
 
   test("opens a page it loaded before while offline", async ({ page, context }) => {
-    await page.goto("/");
+    await page.goto("/welcome");
     await waitForServiceWorker(page);
     await page.reload();
     await context.setOffline(true);
-    await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1, name: app.name })).toBeVisible();
+    await page.goto("/welcome");
+    await expect(
+      page.getByRole("heading", { level: 1, name: onboarding.welcome.title }),
+    ).toBeVisible();
   });
 
   // The one allowed wait for something that must not happen (TESTING.md): a reload would start

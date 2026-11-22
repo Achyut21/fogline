@@ -10,7 +10,7 @@ import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { checkins, planStops, plans, revealedCells } from "@/server/db/schema";
 
-// Live night for the prototype (D-062): checking in at a plan's spot (F6.2, F6.3) and the
+// Live night for the prototype (D-067): checking in at a plan's spot (F6.2, F6.3) and the
 // organizer ending the plan (F6.4).
 
 const checkinInput = z.object({

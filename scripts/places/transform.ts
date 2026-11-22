@@ -22,13 +22,13 @@ const categories: Record<string, PlaceCategory> = {
   park: "park",
 };
 
-// OpenStreetMap rarely tags prices. These kinds are "$" by what they are (D-057); every other
+// OpenStreetMap rarely tags prices. These kinds are "$" by what they are (D-061); every other
 // spot's price stays unknown.
 const inexpensive = new Set(["fast_food", "food_court", "ice_cream", "cafe"]);
 
 // OpenStreetMap tags some bars as restaurants. Under-21 profiles never see bars (F1.5), so a
 // spot is 21+ when OSM says `min_age` 21, when its name says it's a bar, when OSM marks a brewery
-// or hookah, or when it's on the reviewed list below (D-057). Hiding a restaurant by mistake
+// or hookah, or when it's on the reviewed list below (D-061). Hiding a restaurant by mistake
 // costs less than showing a bar.
 const barName =
   /\b(pub|bar|tavern|tap|taproom|tap room|saloon|lounge|spirits|hookah|brewing|brewery|brewpub|beer hall|beer garden|biergarten|alehouse|ale house|speakeasy|cocktails?)\b/;

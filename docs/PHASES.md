@@ -7,7 +7,7 @@ Builder letters and ownership are in `docs/TEAM.md`. Items marked **A** or **B**
 ## Standing checks (part of every gate)
 
 - `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e` (all Playwright projects) and `pnpm build` pass.
-- **Token check:** `grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9]+px" src/components src/app --include=*.tsx` finds nothing outside `src/styles/tokens.css`, the `/design` route, and documented exceptions in DECISIONS.md. (Refine the pattern in Phase 1 so it fits the token setup, and record that refinement.)
+- **Token check:** the "finds no raw colors, pixels, arbitrary values, palette colors or off-scale spacing in src" test in `tests/unit/design-tokens.test.ts` passes, so it runs with every `pnpm test` and CI run. It scans every `.ts`, `.tsx` and `.css` file under `src/` except the exemptions recorded in DECISIONS.md (D-054). It replaced the Phase 0 grep in Phase 1.
 - `code-critic` and `test-auditor` verdicts are PASS. `design-critic` and `copy-critic` are PASS when UI or copy changed.
 - axe finds zero serious or critical violations on every route touched.
 - `docs/PROGRESS.md`, `docs/WALKTHROUGH.md` and `docs/DECISIONS.md` are current.
@@ -61,20 +61,20 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 
 **Items:** follow `DESIGN.md` section 12 in order.
 1. Direction with impeccable `shape`, design-taste-frontend and frontend-design. Write it into DESIGN.md.
-2. Claude Design canvas: 2–3 mood directions, the humans pick one, then every key screen at 390×844 in both themes.
-3. Motion storyboards for every choreography row.
+2. Claude Design canvas: 2–3 mood directions, the humans pick one, then every key screen at 390×844 in both themes. **Cut on 2026-11-21 (D-060):** the canvas stops at the three moods, Onboarding and Map. `/design` is the visual reference for everything else.
+3. Motion storyboards for every choreography row. **Cut (D-060):** `/design`'s live motion demos stand in for them.
 4. The 3D fog spike, approaches A and B, measured under 4× CPU throttling. Pick one and log it in DECISIONS.
 5. Final tokens in DESIGN.md, `src/styles/tokens.css` and the Tailwind theme. Fonts and icons.
 6. Base components and the `/design` living style guide (tokens with contrast ratios, every component and state, motion demos, 3D previews with tier and reduced-motion toggles, theme toggle).
-7. Microcopy drafted in `src/copy/` for every screen in DESIGN.md section 6.
-8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes.
+7. Microcopy drafted in `src/copy/` for every screen in DESIGN.md section 6. **Deferred (D-060):** each feature brings its own strings in `src/copy/`, reviewed by copy-critic with the feature; `badges.ts` lands with F8.
+8. Playwright visual baselines for `/design` at 390×844 and 1440×900 in both themes. **Deferred to Phase 9 (D-060).**
 
 **Gate**
-- Both humans have approved the canvas and `/design`. The canvas link is recorded in DESIGN.md and DECISIONS.md.
+- Both humans have approved the canvas (as cut by D-060) and `/design`. The canvas link is recorded in DESIGN.md and DECISIONS.md.
 - `design-critic` and `copy-critic` PASS on `/design`.
 - The token check passes.
 - The fog layer holds 45 fps or better on the mid tier under 4× CPU throttling with mobile emulation, and the 2D fallback renders when WebGL is disabled.
-- Visual baselines are committed.
+- ~~Visual baselines are committed.~~ Deferred to Phase 9 (D-060).
 
 ---
 
@@ -162,7 +162,7 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 
 ## Phase 7: Crawls, weekly plans, grades, squad (B leads; A on UI)
 
-**Read:** `PRD.md` F10–F12, `DATA.md` sections 3.6–3.7 and 3.10–3.12 (the crawl builder stores whether each leg is walked; squad streaks need a squad definition, D-059).
+**Read:** `PRD.md` F10–F12, `DATA.md` sections 3.6–3.7 and 3.10–3.12 (the crawl builder stores whether each leg is walked; squad streaks need a squad definition, D-063).
 
 **Items:** F10 crawls and the weekly cron, including "Dinner before" from a puzzle event (F10.6), F11 grade badges with plain-English summaries, F12 squad map and streaks.
 

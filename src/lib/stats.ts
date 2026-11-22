@@ -61,7 +61,7 @@ export type NightStop = {
 /**
  * Meters walked on one person's night, about: each stop with a valid check-in adds the walk from
  * its station and back. A walk between two checked-in stops replaces the walk back to the station
- * from the first and the walk from the station to the second (D-059). Sum nights in meters and
+ * from the first and the walk from the station to the second (D-063). Sum nights in meters and
  * convert once with `toMiles`.
  */
 export function metersWalked(stops: readonly NightStop[]): number {

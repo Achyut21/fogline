@@ -13,6 +13,9 @@ const bypass = Boolean(remoteURL && process.env.VERCEL_AUTOMATION_BYPASS_SECRET)
 // when none is configured, so /api/health answers 503) instead of DATABASE_URL from .env.
 const fileEnv = existsSync(".env") ? parseEnv(readFileSync(".env", "utf8")) : {};
 const testDatabaseURL = process.env.DATABASE_URL_TEST ?? fileEnv.DATABASE_URL_TEST ?? "";
+// The local server signs profile cookies with the developer's secret, or a test-only one.
+const sessionSecret =
+  process.env.SESSION_SECRET ?? fileEnv.SESSION_SECRET ?? "e2e-only-session-secret";
 
 // Full Chromium instead of the headless shell: the shell reports no installability errors even
 // for a page with no manifest, so the installability test could never fail there.
@@ -51,6 +54,6 @@ export default defineConfig({
         // Never reuse a server already on the port: it may have loaded fogline-db from .env.
         reuseExistingServer: false,
         timeout: 240_000,
-        env: { TZ: "UTC", DATABASE_URL: testDatabaseURL },
+        env: { TZ: "UTC", DATABASE_URL: testDatabaseURL, SESSION_SECRET: sessionSecret },
       },
 });

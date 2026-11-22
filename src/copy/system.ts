@@ -1,4 +1,12 @@
 export const system = {
+  offlineBanner: "You're offline. Your map and saved plans still work.",
+  stale: (minutes: number) =>
+    minutes < 1 ? "Updated just now" : `Updated ${Math.floor(minutes)} min ago`,
+  demo: "Demo",
+  stepper: {
+    decrease: (label: string) => `${label}: one less`,
+    increase: (label: string) => `${label}: one more`,
+  },
   offline: {
     title: "You're offline",
     body: "This page isn't saved for offline use. Reconnect, then try again.",

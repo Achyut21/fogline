@@ -5,7 +5,7 @@ import { data } from "@/server/data";
 import { meetupInput, planMeetup, type MeetupResult } from "@/server/meetup";
 import { guessInput, playGuesses, puzzleBoard, type PuzzlePlay } from "@/server/puzzle";
 
-// Server Actions for the prototype's core loop (D-062): fair meetup options with leave-by times,
+// Server Actions for the prototype's core loop (D-067): fair meetup options with leave-by times,
 // and the daily puzzle. Inputs are validated with Zod; results are facts from src/lib.
 
 export async function findMeetup(input: unknown): Promise<MeetupResult> {

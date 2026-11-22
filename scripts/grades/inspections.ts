@@ -4,7 +4,7 @@ import { gradeFor, inspectionPoints, type Establishment, type ViolationLevel } f
 import { violationLevels, type InspectionGrade } from "@/lib/places/types";
 
 // Analyze Boston's Food Establishment Inspections (CKAN datastore, no key), read with SQL so only
-// each active establishment's latest routine inspection comes back (D-057).
+// each active establishment's latest routine inspection comes back (D-061).
 const resource = "4582bec6-2b4f-4f9e-bc55-cbaa73117f4c";
 const endpoint = "https://data.boston.gov/api/3/action/datastore_search_sql";
 const pageSize = 10_000;
