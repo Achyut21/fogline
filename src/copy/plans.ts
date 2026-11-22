@@ -16,7 +16,7 @@ const dayFormat = new Intl.DateTimeFormat("en-US", {
 });
 
 /** "7:12 PM" in New York time, with a no-break space before AM or PM (COPY.md). */
-export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, " ");
+export const clock = (at: Date) => clockFormat.format(at).replace(/\s/g, "\u00a0");
 
 export const plans = {
   pageTitle: "Plans",
@@ -37,9 +37,11 @@ export const plans = {
     back: "Plans",
     when: (at: Date) => `${dayFormat.format(at)} · ${clock(at)}`,
     adultsOnly: "This plan is 21+",
+    hiddenTitle: "A 21+ plan",
     adultsOnlyBody:
       "The spot is a bar or club, so it's hidden for under-21 profiles and you can't join.",
     spot: "Spot",
+    stops: (n: number) => `${n} stops`,
     people: "Who's going",
     placeholder: "Not on Fogline yet",
     leaveByHidden: "Join to see when everyone has to leave.",
@@ -67,7 +69,7 @@ export const plans = {
     },
     arrivals: "Arrival order",
     noArrivals: "Nobody has checked in yet.",
-    end: "End the night",
+    end: "End night",
     ending: "Ending",
     ended: "This plan has ended.",
     notFound: {
@@ -111,8 +113,34 @@ export const plans = {
     walk: (meters: number) => `about ${Math.max(1, Math.round(meters / 80))} min walk`,
     noTrain: (name: string, at: Date) => `No train home for ${name} after ${clock(at)}.`,
     noTrainAtAll: (name: string, walk: number) =>
-      `No train gets ${name} home tonight. Walk is about ${walk} min; a rideshare may be easier.`,
+      `No train gets ${name} home tonight. Split a ride, or walk ${walk} min.`,
     noTimetable: "No schedule for that night.",
+    mode: "Plan",
+    modes: { spot: "One spot", crawl: "Crawl" },
+    crawl: {
+      stops: "Stops",
+      stop: (n: number) => `Stop ${n}`,
+      title: (names: readonly string[]) => names.join(" → "),
+      leg: (mode: "walk" | "T", minutes: number) =>
+        mode === "walk" ? `${minutes} min walk` : `${minutes} min on the T`,
+      hours: { closed: "Closed then", unknown: "Hours unknown" },
+      toFirst: (minutes: number) => `${minutes} min to the first stop`,
+      planTitle: (station: string) => `Crawl from ${station}`,
+      blocker: {
+        time: "Someone's ride to the first stop is over 75 min, or no train runs then",
+        "no-trains": "No trains run at that time",
+        spots: "No open spots line up within 10 min of each other",
+        "last-train": "The crawl would end after someone's last train",
+      },
+    },
+    dinner: {
+      offer: (title: string) => `Dinner before ${title}`,
+      body: "The fairest spot within 10 min of the venue, then the event.",
+      find: "Find dinner",
+      title: "Dinner before",
+      planTitle: (title: string) => `Dinner before ${title}`,
+      unknownEvent: "That event isn't listed anymore.",
+    },
     choose: "Make this the plan",
     creating: "Making the plan",
     planTitle: (station: string) => `Night at ${station}`,
@@ -128,6 +156,7 @@ export const plans = {
         spots: "No spot is open near the fair stations",
       } satisfies Record<Blocker, string>,
       relax: "Allow every kind of spot",
+      relaxGrade: "Allow any grade",
     },
     errors: {
       noProfile: "Make a profile first.",
