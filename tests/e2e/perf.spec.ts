@@ -70,7 +70,7 @@ test("[NFR] the map home meets the budgets, with the map and 3D after first pain
   page,
 }) => {
   test.setTimeout(120_000);
-  // Known overrun, logged for A in PROGRESS (2026-11-22): the map home's app shell is about 263 KB
+  // Known overrun, deferred (D-079): the map home's app shell is about 263 KB
   // gzip with a cold cache. About 30 KB is Zod reaching the client and 38 KB a polyfill-style
   // chunk. This runs every time and reports as fixed once the page fits the budget.
   test.fail();

@@ -212,7 +212,7 @@ B owns this phase and can start it alongside Phase 9. Its gate runs after Phase 
 6. **Visual baselines** for `/design` at 390×844 and 1440×900 in both themes (deferred from Phase 1, D-060).
 7. **Ship kit:** README (what it is, how to run it, architecture summary, data credits), Devpost text, a 1-minute video script, screenshots, Open Graph images.
 
-**Gate:** every standing check passes on production, every WALKTHROUGH entry is verified, the README is complete, and both humans sign off.
+**Gate:** every standing check passes on production, every WALKTHROUGH entry is verified, the README is complete, and both humans sign off. The map home's JavaScript budget is deferred (D-079): its check stays marked as a known failure and doesn't block this gate.
 
 ## Ship kit
 

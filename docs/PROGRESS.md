@@ -322,7 +322,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - **Performance:** `tests/e2e/perf.spec.ts` uses Lighthouse's mobile throttling with a cold cache.
     - The welcome page passes: app shell 194 KB gzip, LCP under 2.5 s.
     - The map home is over budget at about 263 KB gzip. Its check is marked `test.fail()` until fixed.
-    - The Phase 10 gate can't pass until the map home fits the budget, or a deferral is recorded in PHASES and DECISIONS. Rechecked after #53: the welcome page still passes.
+    - Deferred by B's human (D-079): the map home's JavaScript budget doesn't block the Phase 10 gate, and its check stays `test.fail()`. Rechecked after #53: the welcome page still passes.
     - The toaster now loads after first paint, saving about 16 KB on every page.
   - **For A (Phase 9):**
     - Map home JS: about 30 KB of Zod reaches the client through a value import of a module with a schema (`@/lib/places/types` is one path; there's at least one more), plus a 38 KB polyfill-style chunk. The map and three.js already load after first paint.

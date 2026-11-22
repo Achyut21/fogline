@@ -660,3 +660,11 @@ Decision:
 - **No rate limiter** (D-077). The review's rate-limit findings are left for a later release: profile-code restore (M1), demo seeding (M3), profile creation (M4), and unbounded check-in and replay writes (L1).
 Why: the Phase 10 security review found no data exposure or takeover. It found the CPU amplification, the squad privacy gap and the smaller items above.
 Consequences: for A, the global demo cap can be used up by one client. Find doesn't check the photo's type from its bytes, and the sensory query isn't cached. All are logged in PROGRESS.
+
+**D-079 · 2026-11-22 · The map home's JavaScript budget is deferred (Phase 10, B's human).**
+Decision: the map home's app shell is about 263 KB gzip, against PRD section 7's 200 KB. B's human chose to defer the fix: the Phase 10 gate doesn't require the map home to meet the JavaScript budget. Its LCP is within budget (about 0.7 s under Lighthouse mobile throttling), and the welcome page meets both budgets (194 KB).
+Why: the hackathon deadline. The excess is about 30 KB of Zod reaching the client through a value import of a module with a schema (at least two paths), plus a 38 KB polyfill-style chunk. Finding and cutting both is more than the prototype needs.
+Consequences:
+- `tests/e2e/perf.spec.ts` keeps the map home check marked `test.fail()`, so it runs every time and reports when the page fits.
+- PRD section 7 is unchanged; the budget is still the target.
+- The fix (keeping schema modules out of client components, finding the polyfill chunk's source) is logged for a later release.
