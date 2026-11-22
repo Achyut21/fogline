@@ -38,14 +38,19 @@ Status: Planned
 
 ## F2. Fog map
 
-Status: Planned
+Status: Built (F2.1–F2.7 except F2.4's neighborhoods sheet, which the list view covers for now). Not yet verified on a real phone.
 - **Why:** see what you've uncovered and where the lines lead.
-- **Entry:** Map tab (home).
-- **Steps:** look at the header percentage → tap a station → the sheet shows lines, live departures, the stop card if seen, nearby spots → open the neighborhoods sheet → toggle the list view.
-- **Edge cases:** WebGL off (2D fog); stale feed (age shown); offline (cached map).
-- **How to demo:** drag a finger across the fog and watch it part; tap Kenmore.
-- **Tests:**
-- **Screenshots:**
+- **Entry:** Map tab (home), after onboarding.
+- **Steps:**
+  1. The header shows Boston's uncovered share ("0.3%", "of Boston uncovered"). The map centers on the home station, its cells showing through thinned fog. A card says "Your home station is clear." until Got it.
+  2. Tap a station on the map, or switch to **List** and tap a station row. Its sheet opens halfway: name, line badges, and "N min from home" (or "Your home station").
+  3. **Next trains** loads live from the MBTA within about a second: trains grouped Westbound/Eastbound (Green, Blue), Northbound/Southbound (Red, Orange) or Inbound/Outbound (Mattapan), each with its line, the station it ends at and minutes away. A chip says how old the data is; past 90 s it turns amber. It refreshes every 30 s while open.
+  4. Tap the grabber or drag up for the full sheet: the **Stop card** (a Wikipedia fact, its source and the photo credit) once the station is uncovered, then **Nearby**: the three closest spots with category, walk and grade. Under-21 profiles never see bars or clubs here.
+  5. The list view shows each neighborhood's share and every station's lines and whether it's uncovered or in fog.
+- **Edge cases:** WebGL off or GPU tier 0–1 (2D fog); MBTA feed down (the last good times with their age, or "Train times didn't load" with Try again); offline (last times from the service worker, with their age); late at night ("No trains listed").
+- **How to demo:** onboard with home Boston University Central, tap Kenmore in the list, pull the sheet up.
+- **Tests:** `[F2.1]` `[F2.2]` fog mask and home cells (`tests/unit/fog.test.ts`, `tests/integration/profile.test.ts`); `[F2.4]` `[F2.7]` `[F2.3]` (`tests/component/map-screen.test.tsx`); `[F2.5]` parser, route, sheet data, sheet states and the end-to-end sheet (`tests/unit/predictions*.test.ts`, `tests/unit/station-sheet.test.ts`, `tests/component/station-sheet.test.tsx`, `tests/e2e/station-sheet.spec.ts`) and offline train times (`tests/e2e/pwa.spec.ts`); `[F2.6]` (`tests/e2e/fog.spec.ts`).
+- **Screenshots:** checked at 390×844 in day and night on a local build against the test database (2026-11-22). Saved screenshots: not yet.
 
 ## F3. Ride mode
 

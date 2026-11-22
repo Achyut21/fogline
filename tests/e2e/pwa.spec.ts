@@ -215,6 +215,27 @@ test.describe("service worker", () => {
     expect(outcome).toBe("failed");
   });
 
+  test("[F2.5] answers train times from the last response when offline", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/");
+    await waitForServiceWorker(page);
+    const url = "/api/mbta/predictions?station=place-kencl";
+    const warmup = await page.evaluate((u) => fetch(u).then((r) => r.status), url);
+    expect(warmup, "the MBTA feed must answer for this check").toBe(200);
+    await context.setOffline(true);
+    const offline = await page.evaluate(
+      (u) =>
+        fetch(u).then(
+          (r) => r.json().then((body: { station?: string }) => body.station ?? "no station"),
+          () => "failed",
+        ),
+      url,
+    );
+    expect(offline).toBe("place-kencl");
+  });
+
   test("precaches the preloaded fonts and the icons", async ({ page }) => {
     await page.goto("/");
     await waitForServiceWorker(page);

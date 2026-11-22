@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { cardSchema } from "@/lib/cards";
 import { eventSchema, wordsFileSchema } from "@/lib/events";
 import { graphSchema, stationSchema, timetableSchema } from "@/lib/gtfs/types";
 import { placeSchema } from "@/lib/places/types";
@@ -25,4 +26,5 @@ export const data = {
   places: load("places.json", z.array(placeSchema)),
   events: load("events.json", z.array(eventSchema)),
   words: load("words.json", wordsFileSchema),
+  cards: load("station-cards.json", z.array(cardSchema)),
 };
