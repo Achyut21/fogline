@@ -336,7 +336,7 @@ Why: the approved Phase 1 plan (item 5 and flag 4), and the item 5 review: desig
 Consequences:
 - PHASES standing checks, CLAUDE.md and `/phase-gate` now name the Vitest check instead of the grep.
 - The plan named the test file `tests/unit/tokens.test.ts`. It is `design-tokens.test.ts`, because it covers more than the scan.
-- Changes to the approved plan, pending A's yes: two type families became one; the D-037 exemption for `src/components/ui/` stays until item 6 instead of ending here; the custom line and station glyphs land with LineBadge and StationDot in item 6.
+- Changes to the approved plan, which A approved on 2026-11-21: two type families became one; the D-037 exemption for `src/components/ui/` stays until item 6 instead of ending here; the custom line and station glyphs land with LineBadge and StationDot in item 6.
 - Item 6 restyles `src/components/ui/`, then removes that exemption. Input uses `--field` and `--field-border`, SegmentedControl bolds the selected label (and becomes a radiogroup), and the app shell adds safe-area padding.
 - The canvas still shows `#B25E00`, `#1E7F4F` and off-scale sizes. New artboards use the token values.
 - `--layer-*` tokens are used as `z-(--layer-sheet)`. The stock shadcn Drawer still uses `z-50` until item 6.
