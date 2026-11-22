@@ -244,3 +244,32 @@ Consequences: the gate re-runs code-critic and test-auditor on these fixes. Maki
 - **The alias isn't tied to a commit**, so before dispatching, the builder checks that `vercel inspect fogline-mu.vercel.app` shows the deployment `vercel ls --meta githubCommitSha=<sha>` lists (TEAM.md). Without that check, a run started before the new build is live would test the old deployment and post a green status on the new commit. A check inside the run would need `/api/health` to report the commit, and that route returns only booleans by design (PHASES item 5).
 Why: the check should test what users open. The generated URL fails for a reason users never hit.
 Consequences: if Vercel's `repository_dispatch` event starts arriving, its production runs will target the generated URL and fail the same way. The workflow would then have to send production events to the production domain. This is listed under Open questions in PROGRESS.md.
+
+**D-045 · 2026-11-21 · Builder B confirms D-013 to D-044, with two amendments.**
+Decision: B (Anand283) confirms D-013 to D-044, including the PRD and PHASES changes in D-014 to D-033.
+- D-031 is amended by D-046: demo copies write `checkins` and `ride_events` rows, so those tables carry `is_demo`, and F15's counts and the continuous aggregates leave demo rows out.
+- D-018's school-to-station suggestion list belongs to B. It ships as `data/schools.json` in Phase 2.
+- Notes, not objections:
+  - D-019 deletes rows that may sit in compressed hypertable chunks. An integration test proves that works on TimescaleDB 2.32 before F1.7 is built.
+  - D-022 needs Postgres 15 or later on Tiger. Applying the schema migration confirms it.
+  - D-015's calendar alarms are fixed when the file is saved. The event text should say that and link to the plan (Phase 4).
+Why: F16.2 says demo data never shows up in real stats, but nothing marked demo rows in the hypertables. D-018 asked for a list without naming who builds it.
+Consequences: every "A agreed, B to confirm" entry is now agreed by both builders.
+
+**D-046 · 2026-11-21 · Phase 2 data model.**
+Decision:
+- Places and events live in `data/places.json` and `data/events.json`, not in database tables. `plan_stops.place_id`, `checkins.place_id` and `daily_puzzles.event_id` hold the files' stable text IDs.
+- Each place lists every station within 600 m walking, each with its `walk_m`.
+- `checkins` and `ride_events` get `is_demo` (default false).
+- `ride_events` gets a nullable `plan_id` and an `on_train` event for the "I'm on the train" tap. Phase 4 derives friend status (F6.1) from those rows and from check-ins.
+- Duplicate check-ins: a hypertable's unique indexes must include `ts`, so the check-in action skips a second valid check-in for the same person and stop, and queries use each person's earliest valid check-in per stop.
+Why: ARCHITECTURE listed `places` and `events` tables while DATA built JSON files, and nothing loaded one into the other. A's kickoff review found that a place stored only its nearest station, and that friend status and on-train taps had nowhere to go.
+Consequences: ARCHITECTURE section 6 and DATA section 2 updated. Plan and check-in rows can't use a foreign key to a place; the server checks place IDs against `places.json`.
+
+**D-047 · 2026-11-21 · Travel-time graph, service-date cutoff and demo lines.**
+Decision:
+- `graph.json` stores ride edges (median run time per day type and hour bucket), headways and transfer edges. Travel time runs a shortest-path search on request and returns minutes plus the lines and transfer stations on the path. This replaces DATA 3.1's all-pairs precompute.
+- A moment from midnight to before 3:00 AM New York time belongs to the previous service date.
+- The demo lines are the Red Line and Green Line E (the judge path's Priya and Sam), plus the line of the recorded replay.
+Why: an all-pairs matrix gives minutes but not the lines and transfers F4.4 shows. The service-date rule needed a cutoff. PHASES' Phase 2 gate named demo lines that no doc defined.
+Consequences: DATA sections 2, 3.1 and 3.3 updated.

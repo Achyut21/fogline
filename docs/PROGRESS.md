@@ -8,7 +8,7 @@ This is the shared status board for both builders. Update it after every finishe
 |---|---|---|
 | 0 Foundations | Passed 2026-11-21 (gate table below) | A |
 | 1 Design | Next | A (both approve) |
-| 2 Data and domain logic | Ready to start (needs the Phase 0 scaffold, now on `main`) | B |
+| 2 Data and domain logic | In progress (plan approved 2026-11-21) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
 | 5 Daily puzzle and demo mode | Not started | B + A |
@@ -28,12 +28,60 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none.
 
 ### Builder B
-- **Now:**
-- **Next:** Phase 2 data scripts. `main` has the scaffold, Vitest, Drizzle and the CI TimescaleDB container. First read D-013 to D-044 in DECISIONS.md and confirm or object here, especially the PRD and PHASES changes in D-014 to D-033.
-- **Blocked:**
+- **Now:** Phase 2, approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
+  1. **Time, geo and H3 helpers** (`b/time-geo`; F2.1, F2.4, F3.3, F4.5, F5.1, F6.3, F7.3)
+     - `src/lib/time.ts`: New York clock time to and from GTFS service-day seconds (noon minus 12 h, times past 24:00:00), the service date of a moment, day type and hour bucket.
+     - `src/lib/geo/`: haversine, `walk_m = straight line × 1.25`, minutes at 80 m/min, H3 res-9 reveals (k=1 seen, k=2 visited, visited wins), neighborhood and Boston percent.
+     - Unit tests `[F5.1]`, `[F4.5]`, `[F2.1]`, `[F3.3]`, `[F6.3]`, `[F7.3]`, `[F2.4]`, including the DST days 2026-03-08 and 2026-11-01 and times like 25:30:00.
+     - h3-js and the date library checked in Context7 before use.
+  2. **Schema and migrations** (`b/schema-tables`, then `b/schema-hypertables`; F3.8, F6.3, F8.6, F13.2, F15.1)
+     - Regular tables from ARCHITECTURE section 6 in `src/server/db/schema.ts`, migration from `pnpm db:generate`. `badges_awarded` unique `NULLS NOT DISTINCT` (D-022).
+     - Custom SQL: four hypertables, three continuous aggregates `WITH NO DATA` plus refresh policies, compression (`vehicle_positions` after 1 day, the rest after 7) and 30-day retention on `vehicle_positions`.
+     - A Vitest `globalSetup` migrates the test database. Integration tests: the four hypertables exist, `[F8.6]` a duplicate badge is rejected, the aggregates refresh, migrating twice is a no-op.
+     - Each migration PR merges on its own. B applies it to `fogline-db` from B's own terminal, then we check `timescaledb_information.hypertables`.
+  3. **GTFS pipeline and travel time** (`b/gtfs`; F4.2)
+     - `pnpm data:gtfs`: download the feed, keep `route_type` 0 and 1, write `stations.json`, `graph.json`, `timetable.json` and `shapes.json`, and log counts.
+     - `src/lib/gtfs/` loads them. `src/lib/solver/travel.ts` returns `t(o, d, dayType, hour)` plus the lines and transfers on the path.
+     - A small GTFS fixture in `tests/fixtures/gtfs/`: Park Street child stops, the Green trunk and branches, Mattapan, a trip past 24:00:00, a `calendar_dates` exception.
+     - Tests `[F4.2]`. Five known trips against the MBTA schedule recorded here (gate). A second run must produce identical files.
+  4. **Last train** (`b/last-train`; F5.1, F5.2, F5.3, F5.5, F5.7)
+     - `src/lib/lasttrain/`: backward round-based search with at most 2 transfers. It returns the latest departure from `d` that reaches `h`, with trips and transfer stations, or nothing.
+     - `leave_by = departure − walk − 5 min` and the margin. Crawls use the last stop.
+     - Tests `[F5.1]` (after midnight, DST, Green branches, child stops), `[F5.2]`, `[F5.3]`, `[F5.5]`, `[F5.7]`.
+     - Three known last trains against the published timetable recorded here (gate).
+  5. **Fair solver and miles** (`b/fair-solver`; F1.5, F3.4, F4.3, F4.4, F4.5, F4.6)
+     - `src/lib/solver/fair.ts`: `S(d)`, the `sum(t_i)` tie-break, exclusion over 75 min or unreachable, top 3 distinct stations, spots within 600 m that match filters and the age rule, and the blocking constraint when nothing fits.
+     - `src/lib/geo/miles.ts`: board and alight stops projected onto the shape, rounded to 0.1 mi.
+     - Tests `[F4.3]`, `[F4.4]`, `[F4.5]`, `[F4.6]`, `[F1.5]`, `[F3.4]`, plus one participant, no home station and ties.
+  6. **Places and grades** (`b/places-grades`; F1.5, F4.5, F11.1, F11.3, F11.4)
+     - `pnpm data:places`: one Overpass query, raw response cached, normalized and deduped, every station within 600 m walking (not only the nearest), `age_rule`.
+     - `pnpm data:grades`: Analyze Boston inspections, `src/lib/grades.ts` (points and cutoffs after checking the real `viol_level` values) and matching (address, else Jaro-Winkler ≥ 0.8 within 50 m).
+     - Fixture tests `[F11.1]`, `[F11.4]`, `[F1.5]`. Citywide grade distribution in DECISIONS (gate).
+  7. **Neighborhoods** (`b/neighborhoods`; F2.4)
+     - `pnpm data:neighborhoods`: Boston neighborhoods plus Cambridge, Somerville and Brookline as regions, filled with res-9 cells into `neighborhoods-h3.json`.
+     - Tests `[F2.4]`: each cell in one region, and "Beyond" has no percent.
+  8. **Events, words and puzzle** (`b/puzzle-data`; F7.1, F7.2, F7.5, F7.6, F7.7)
+     - `pnpm data:events` validates a hand-written list that B checks event by event (all-ages, real link), adds the nearest station and writes `events.json`.
+     - `pnpm data:words` from an openly licensed list, with the license recorded in DATA.md.
+     - `src/lib/puzzle.ts`: the answer for a New York date, guess validation, feedback with repeated letters, the share grid, streaks.
+     - Tests `[F7.1]` (midnight Eastern, DST), `[F7.2]`, `[F7.5]`, `[F7.6]`, `[F7.7]`.
+  9. **Station cards** (`b/station-cards`; F3.3)
+     - `pnpm data:cards`: Wikipedia geosearch within 600 m, the extract, the page image with author and license, one Gemini sentence of 140 characters or fewer that uses only the extract, and one nearby spot (grade A first).
+     - Gemini output cached so a rerun makes no new calls. Fixture tests for article choice, length and license fields.
+     - copy-critic on the sentences. Demo-line cards listed here for B's check (gate).
+  10. **Check-ins, badges and stats** (`b/badges-stats`; F6.2, F8.1, F8.2, F8.3, F8.6, F12.1)
+      - `src/lib/checkin.ts` (150 m, accuracy 100 m or better, time window), `src/lib/badges.ts` (night and explorer rules), `src/lib/stats.ts`.
+      - Tests `[F6.2]`, `[F8.1]` for each badge (30 s tie, 2-person minimum), `[F8.2]`, `[F8.3]`, `[F12.1]`.
+  - Then `/phase-gate 2`.
+- **Decisions:** B confirms D-013 to D-044, with D-031 amended (demo rows flagged in the hypertables) and D-018's school list taken by B (D-045). B's Phase 2 answers are D-046 (data model) and D-047 (graph, service-date cutoff, demo lines).
+- **Asks for A:**
+  - B's session has no Vercel login, so B can't run `vercel ls` or `vercel inspect`. After each of B's merges, please run the production deployment check in TEAM.md's merge checklist. B starts the preview check from the PR's Vercel status URL with `gh workflow run`.
+  - The recorder: move it from Phase 3 into Phase 2, right after the hypertable migration, so replay has more recorded trips? It changes PHASES and adds a cron to `vercel.json`, so both humans decide. B agrees.
+- **Blocked:** none.
 
 ## Open questions
 
+- Move the recorder into Phase 2? See Asks for A under Builder B.
 - Anonymous profiles (D-005) or a sign-in step? A is weighing it. Decide before Phase 3, which builds F1.
 - GoDaddy Registry domain: not registered yet.
 - The Tiger trial credit runs 29 days. Check the Tiger billing page for what happens when it ends, and decide before then.
@@ -42,7 +90,7 @@ This is the shared status board for both builders. Update it after every finishe
 - If Vercel's `repository_dispatch` event starts arriving, its production runs will target the protected generated URL and fail. The workflow would then have to send production events to `fogline-mu.vercel.app` (D-044). A guard in `tests/e2e/deployment-url.ts` that accepts only that domain for `production` would turn those 14 confusing failures into one clear error (code-critic NIT).
 - Branch protection doesn't require branches to be up to date before merging. #7 and #8 merged a minute apart without being tested together. Turn on "require up to date" if that keeps happening (A's call: it adds a rebase before each merge).
 - **For Builder B** (from A's kickoff review and the Phase 0 gate):
-  - `places` stores only the nearest station. A spot 300 m from Park Street but closer to Downtown Crossing never shows up for Park Street. Store every station within 600 m walking.
+  - `places` stores only the nearest station. A spot 300 m from Park Street but closer to Downtown Crossing never shows up for Park Street. Store every station within 600 m walking. (Done in D-046.)
   - Drizzle runs all pending migrations in one transaction (confirmed in `drizzle-orm/pg-core/dialect.js`, 0.45), and creating a continuous aggregate `WITH DATA` fails inside a transaction. Use `WITH NO DATA` plus a refresh policy.
   - Drizzle decides what's pending by migration timestamp only, not content. Never edit a migration that has been applied anywhere shared; add a new one.
   - Your tables go in `src/server/db/schema.ts`, which is empty for now.
@@ -51,8 +99,8 @@ This is the shared status board for both builders. Update it after every finishe
     - `MIGRATE_DATABASE_URL=<target> pnpm db:migrate` applies migrations. Keep that key out of `.env`, because drizzle-kit loads `.env` (D-043, TEAM.md git flow).
     - Integration tests run against `DATABASE_URL_TEST`: a TimescaleDB container in CI, or locally `docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 54329:5432 timescale/timescaledb:2.32.1-pg18` with `DATABASE_URL_TEST=postgres://postgres:postgres@localhost:54329/postgres`.
     - Your first table test needs migrations applied to the test database first, for example a Vitest `globalSetup` for the integration project that runs `migrate()`.
-  - Unique indexes on hypertables must include `ts`, so a unique constraint on `checkins` can't stop duplicate check-ins.
-  - The schema has nowhere to store friend status (F6.1) or "I'm on the train" taps (Closest Call, last trains caught).
+  - Unique indexes on hypertables must include `ts`, so a unique constraint on `checkins` can't stop duplicate check-ins. (Handled in D-046.)
+  - The schema has nowhere to store friend status (F6.1) or "I'm on the train" taps (Closest Call, last trains caught). (Handled in D-046.)
   - The recorder samples once a minute, so trains move several stops between samples. "Passed" should cover every stop between two observed stop sequences (F3.3, F3.5). A and B agree on this before Phase 3.
   - "Beyond" has no fixed number of cells, so it shouldn't show a percentage.
   - F10.4 mentions "crawl templates", but nothing defines them.
