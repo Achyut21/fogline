@@ -305,6 +305,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 08:05 ET · Builder B · Phase 10 under way on `b/phase10`:
+  - Security: `CRON_SECRET` is compared in constant time through `src/server/cron.ts` in all four cron routes. No rate limiter (D-077, B's human). The whole-app security review is running.
+  - Ship kit: `README.md` (what it is, how to run it, architecture, data credits) and `docs/SHIP.md` (Devpost text and a 1-minute video script from the judge path). Numbers in the video script are checked against the app before recording.
+  - Copy pass over all of `src/copy/` is running.
+  - #50 (weekly fixes) re-review PASS; waiting on A with #47.
+
 - 2026-11-22 06:00 ET · Builder B · Phase 4 leftovers on `b/leftovers` (stacked on `b/crawls`, #44):
   - Checked A's work first: server-side puzzle results (`puzzle_results`) and the countdown's 20/5-minute colors are done. Nothing else from B's Phase 4/5 list was built.
   - **F6.4 plan end:** `/api/cron/end-plans` every 15 minutes (`endDuePlans`), with `ended_at` at the rule's time; badges awarded. DATA 3.19.
