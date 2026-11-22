@@ -29,6 +29,8 @@ async function onboard(page: Page) {
 
 /** Types a word, sends it, and waits until its row is scored. */
 async function guess(page: Page, word: string, row: number) {
+  // Keys typed while the last guess is still being checked are ignored.
+  await expect(page.getByRole("button", { name: daily.enter })).toBeEnabled();
   await page.keyboard.type(word);
   await page.keyboard.press("Enter");
   await expect(

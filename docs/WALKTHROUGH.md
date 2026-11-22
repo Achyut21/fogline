@@ -164,24 +164,24 @@ Status: Planned
 
 ## F13. Calm mode
 
-Status: Planned
+Status: Measuring a named stretch, the measured list and the sensory preview built (F13.1, F13.2, F13.5, F13.3 as a list); calm routing (F13.4) not built
 - **Why:** quieter routes and spots for people who need them.
 - **Entry:** Settings → Calm mode; the map's calm layer; the calm toggle in plans.
 - **Steps:** opt in → microphone primer → ride with sampling → calm layer updates → plan with calm on → sensory preview on a station sheet.
 - **Edge cases:** microphone denied; a station with no data; checking that no audio leaves the device.
 - **How to demo:** the calm layer on the Green Line near Park Street.
-- **Tests:**
+- **Tests:** `tests/unit/noise.test.ts` (`[F13.1]` `[F13.3]`), `tests/integration/noise.test.ts` (`[F13.1]` `[F13.2]` `[F13.5]`), `[F13.5]` in `tests/component/station-sheet.test.tsx`, `tests/e2e/calm.spec.ts` (fake microphone; checks no request carries audio or leaves the origin).
 - **Screenshots:**
 
 ## F14. Find it and taste of home
 
-Status: Planned
+Status: Built (F14.1–F14.3); needs a Gemini key with quota
 - **Why:** turn a food screenshot or a craving for home into a place you can reach.
 - **Entry:** Map → Find it.
 - **Steps:** upload a screenshot → dish identified → up to 3 spots pinned; or enter a cuisine or hometown → results with review quotes.
 - **Edge cases:** not food; no matches; under-21 and grade filters.
 - **How to demo:** a judge's own food screenshot.
-- **Tests:**
+- **Tests:** `tests/unit/find.test.ts` (`[F14.1]` `[F14.2]` `[F14.3]`), `tests/integration/find.test.ts` (Gemini mocked: photo to spots, cache, refusals, unavailable), `tests/e2e/find.spec.ts`.
 - **Screenshots:**
 
 ## F15. How it works

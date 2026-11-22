@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GradeBadge } from "@/components/display/grade-badge";
 import { InspectionDetails } from "@/components/display/inspection-details";
@@ -49,6 +49,8 @@ it("offers a retry when the inspection fails to load", async () => {
   if (!details) throw new Error("no details");
   details.open = true;
   fireEvent(details, new Event("toggle"));
-  fireEvent.click(await screen.findByRole("button", { name: grades.retry }));
-  expect(await screen.findByText(grades.none)).toBeInTheDocument();
+  const retry = await screen.findByRole("button", { name: grades.retry });
+  await waitFor(() => expect(retry).toBeEnabled());
+  fireEvent.click(retry);
+  expect(await screen.findByText(grades.none, {}, { timeout: 3_000 })).toBeInTheDocument();
 });

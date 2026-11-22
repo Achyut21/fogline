@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { StationSheet } from "@/components/map/station-sheet";
-import { grades, legal, map, system } from "@/copy";
+import { calm, grades, legal, map, system } from "@/copy";
 import type { MapData } from "@/server/map-data";
 import { server } from "../msw/server";
+
+const sensory = vi.hoisted(() => vi.fn());
+vi.mock("@/server/actions/noise", () => ({ stationSensory: sensory }));
 
 type Station = MapData["stations"][number];
 
@@ -128,4 +131,20 @@ it("[F2.5] drops trains that already left, even when the times are old", async (
   open();
   expect(await screen.findByText(map.sheet.agedOut)).toBeInTheDocument();
   expect(screen.queryByText("Riverside")).toBeNull();
+});
+
+it("[F13.5] shows measured sound and says what has no data yet", async () => {
+  sensory.mockResolvedValueOnce({ sound: { loudness: "quieter", readings: 4 }, quietestHour: 14 });
+  server.use(http.get("*/api/mbta/predictions", () => new HttpResponse(null, { status: 502 })));
+  open();
+  expect(await screen.findByText(calm.sensory.sound("quieter", 4))).toBeInTheDocument();
+  expect(screen.getByText(calm.sensory.crowds)).toBeInTheDocument();
+  expect(screen.getByText(calm.sensory.waiting)).toBeInTheDocument();
+});
+
+it("[F13.5] says a station without readings has none yet", async () => {
+  sensory.mockResolvedValueOnce({ sound: null, quietestHour: null });
+  server.use(http.get("*/api/mbta/predictions", () => new HttpResponse(null, { status: 502 })));
+  open();
+  expect(await screen.findByText(calm.sensory.noSound)).toBeInTheDocument();
 });
