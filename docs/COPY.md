@@ -33,6 +33,8 @@ unlock, unleash, elevate, seamless, seamlessly, effortless, effortlessly, journe
 | Clock time | 12-hour, no leading zero, AM/PM after a no-break space (U+00A0), so the two never split across lines | 12:14 AM |
 | Date | short weekday, month, day | Fri, Nov 27 |
 | Percent | whole number | 38% |
+| Ratio | one decimal, "×" and what it measures | 7.6× smaller |
+| Milliseconds | whole number with a thousands separator, "ms" | 21 ms |
 | Counts | thousands separator | 1,204 |
 | Lines | full name on first mention, then the color | Green Line E, then "the E" |
 
@@ -82,11 +84,11 @@ Numbers in the UI use tabular figures.
 | Fashionably Late | Walked in 14 min after the start. (Uses the real number.) |
 | On the Dot | Arrived within 2 min of the start. |
 | Long Haul | Longest ride of the night: 31 min. |
-| Closest Call | Made the last train with 2 min to spare. |
+| Closest Call | Made the last train with 2 min to spare. (Under 1 min: "Made the last train with under 1 min to spare.") |
 | Night Owl | Still out after midnight. |
 | Ghost | Said yes. Never showed. |
 | Planner | Got everyone in one place. |
-| First Light | First in the squad to uncover half of Allston. |
+| First Light | Squad's first to uncover half of Allston. (Fits the longest name, South Boston Waterfront, in 60 characters.) |
 | All Four Lines | Rode the Red, Orange, Blue and Green. |
 | 50 Stations | 50 stations down. |
 | Every Green Branch | B, C, D and E. All of them. |
