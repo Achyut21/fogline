@@ -93,7 +93,9 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none.
 
 ### Builder B
-- **Now:** Phase 2, approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
+- **Now (2026-11-22 00:20):** Phase 2 code is done and its gate passes (two human checks open). The prototype track (D-062) server side is on `b/core-loop` (#31). B is waiting for A to merge the stack and build the screens.
+- **Next:** when A's screens land, wire them to the actions in #31 and fix what the click-through shows; then Phase 4's remaining server work (Closest Call rerun, live friend status).
+- **Earlier plan (Phase 2):** approved by B on 2026-11-21. One branch and one PR per item, in this order. Phase 2 has no UI: the 390×844, both-themes and reduced-motion check and e2e don't apply to these items. Each item is checked by running its script or function on real data and recording the result here.
   1. **Time, geo and H3 helpers** (`b/time-geo`; F2.1, F2.4, F3.3, F4.5, F5.1, F6.3, F7.3)
      - `src/lib/time.ts`: New York clock time to and from GTFS service-day seconds (noon minus 12 h, times past 24:00:00), the service date of a moment, day type and hour bucket.
      - `src/lib/geo/`: haversine, `walk_m = straight line × 1.25`, minutes at 80 m/min, H3 res-9 reveals (k=1 seen, k=2 visited, visited wins), neighborhood and Boston percent.
@@ -222,7 +224,35 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
-- 2026-11-22 00:25 ET · Builder B · **Phase 2 gate** on `b/core-loop` (the whole stack, items 1–10, plus the core-loop server work):
+- 2026-11-22 00:20 ET · Builder B · **Handoff**
+  - **Finished this session.** Each item is a stacked PR into the one before it; merge in this order, retargeting each to `main` as the one below it merges:
+    1. #16 hypertables
+    2. #17 GTFS
+    3. #18 last train
+    4. #19 fair solver
+    5. #21 places and grades (`ab581ee`)
+    6. #22 neighborhoods (`94a7041`)
+    7. #23 check-ins, badges, stats (`b844786`)
+    8. #26 puzzle (`fe194c2`, `983b3a2`)
+    9. #30 station cards (`eb98cd9`, rebased)
+    10. #31 core-loop Server Actions and the recorder
+  - **In progress:** none half-done. Every branch is pushed and its checks pass.
+  - **Blocked:**
+    - B's PRs need A's admin merge (Vercel won't build B-authored commits, D-052).
+    - The prototype needs A's screens. B's human chose to wait for A rather than have B build UI.
+  - **For A:**
+    - Shared files changed:
+      - `package.json`: `data:events`, `data:words` and `data:cards` scripts; `ai` and `@ai-sdk/google` dependencies.
+      - `vercel.json`: a `record-vehicles` cron every minute.
+      - `.env.example`: `GEMINI_MODEL` is now `gemini-3.1-flash-lite`.
+      - PHASES Phase 7 reading list, PRD F8.1.
+    - Environment variables (names only): `CRON_SECRET` (already listed), `GEMINI_MODEL`.
+    - Migrations: 0002 and 0003 (in #16); B's human applies them to fogline-db.
+    - New data files: `events.json`, `words.json`, `station-cards.json`. `places.json` was regenerated.
+    - Needed on Vercel: `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
+    - Decisions to read: D-059 to D-062.
+  - **Tests:** 253 pass and 1 is skipped (the live Tiger check). `pnpm build` passes. No e2e for B's work (no UI). The database Server Actions haven't run against Tiger yet.
+- 2026-11-22 00:18 ET · Builder B · **Phase 2 gate** on `b/core-loop` (the whole stack, items 1–10, plus the core-loop server work):
   - `pnpm typecheck` and `pnpm lint` pass. `pnpm test` with the test database: 253 passed, 1 skipped (the live Tiger check), with integration tests running; `src/lib` line coverage 99.85%. `pnpm build` passes.
   - Evidence:
     - known trips within 3 minutes (item 3);
@@ -233,7 +263,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Still open, both for B's human:
     - apply migrations 0002 and 0003 to fogline-db once #16 merges, so the hypertables exist on Tiger;
     - check the 47 demo-line station cards listed in the item 9 entry.
-- 2026-11-22 00:25 ET · Builder B · Prototype track (D-062), server side on `b/core-loop`:
+- 2026-11-22 00:18 ET · Builder B · Prototype track (D-062), server side on `b/core-loop`:
   - `src/server/actions/core-loop.ts`: `findMeetup` (fair options with each friend's trip and leave-by time), `todaysPuzzle`, `playPuzzle` (the answer never leaves the server).
   - `src/server/actions/plans.ts`: `createProfile` (cookie, no auth), `myProfile`, `createPlan`, `planByInvite` (with everyone's leave-by), `joinPlan`.
   - `src/server/actions/live.ts`: `checkIn` (validity rules, reveals 2 rings of cells), `endPlan` (awards night badges).
@@ -241,7 +271,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - `/api/cron/record-vehicles` every minute (`vercel.json`), protected by `CRON_SECRET`.
   - Data loads from `data/*.json` through `process.cwd()`. **Ask for A:** on Vercel, add `outputFileTracingIncludes` for `data/**` in `next.config.ts`.
   - Tests: 6 unit tests (meetup, puzzle, recorder). The database actions haven't been run against Tiger yet; they need migrations 0002 and 0003.
-- 2026-11-22 00:15 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
+- 2026-11-22 00:10 ET · Builder B · Phase 2 item 9, station cards, on `b/station-cards` (stacked on `b/puzzle-data`):
   - `pnpm data:cards` writes `data/station-cards.json`. All 125 stations have a card: 119 with a fact, 100 with a freely licensed image, and 123 with an all-ages spot (D-061).
   - The Gemini sentences come from `gemini-3.1-flash-lite`, and code checks them: 140 characters, one sentence, no banned words, and every number must be in the Wikipedia intro. Articles about bars, nightclubs and violent events are left out (F1.5).
   - Tests: 11 unit tests, including the committed file (one card per station, all-ages spots).
