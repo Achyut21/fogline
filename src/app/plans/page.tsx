@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/app/bottom-nav";
 import { EmptyState } from "@/components/system/empty-state";
 import { Button } from "@/components/ui/button";
-import { plans } from "@/copy";
+import { find, plans } from "@/copy";
 import { getDb } from "@/server/db/client";
 import { myPlans, type PlanSummary } from "@/server/plans";
 import { currentProfile } from "@/server/profile";
@@ -47,6 +47,9 @@ export default async function PlansPage() {
       <main className="flex flex-1 flex-col gap-6 px-4 pt-safe pb-6">
         <div className="flex items-center justify-between gap-3 pt-4">
           <h1 className="text-2xl font-extrabold tracking-tight">{l.title}</h1>
+          <Button asChild variant="ghost">
+            <Link href="/find">{find.open}</Link>
+          </Button>
           <Button asChild>
             <Link href="/plans/new">
               <CalendarPlus aria-hidden="true" />
