@@ -294,8 +294,6 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
-<<<<<<< HEAD
-=======
 - 2026-11-22 08:23 ET · Builder A · Ship kit pieces (not code):
   - Devpost thumbnail: `docs/media/devpost-thumbnail.png` (1500×1000, from real app screenshots; not committed yet, goes in with the README rewrite).
   - Pitch deck, 10 slides with speaker notes: https://claude.ai/artifact/XyD5y9phVXKUtrJM1N4kcz (private to A until shared). A exported `Fogline pitch.pdf` to the repo root; it isn't committed. Slide 2's "50 minutes from Tufts" and "the T stops around 12:30" are estimates to check. **For B (Phase 10 ship kit):** these cover the thumbnail and the presentation; the README and Devpost text are still open.
@@ -335,7 +333,6 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Copy pass over all of `src/copy/` is running.
   - #50 (weekly fixes) re-review PASS; waiting on A with #47.
 
->>>>>>> 70c6fd6 (docs: log the devpost thumbnail and pitch deck)
 - 2026-11-22 07:15 ET · Builder A · #55 (design pass) review fixes, #54 review, launch video:
   - code-critic on #55: FAIL with one BLOCKING item. RideProgress's moving dot widened the page, so the riding view scrolled sideways. Fixed: the dot layer is clipped inside a box padded by the dot's radius, and the ride e2e asserts no sideways scroll mid-ride. The line fill no longer sits 2 px high, its color comes from `LineBadge`'s map, and its stats use the Stat role (`text-xl`).
   - Also from the review: recap stages are inert until they appear, so a tap can't land on an unseen Share; a tap or key press anywhere skips (listeners on `document`); stages always start hidden, which removes the reduced-motion hydration mismatch. `planByInvite` now keeps demo and real plans apart (F16.2), and the invite-token pattern lives once in `src/lib/invite-token.ts`. The Demo chip now shows on status pages and the empty ride, plan and squad screens. The welcome hero is drawn on the server, which keeps `h3-js` and the shapes out of `/welcome`'s client bundle. The tab bar's spacer matches its border, and the demo row has a fixed height. WALKTHROUGH F9 is updated with screenshots.
