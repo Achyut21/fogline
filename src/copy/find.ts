@@ -19,7 +19,7 @@ export const find = {
     submit: "Search",
   },
   filters: { grade: "Food grade", budget: "Budget", any: "Any" },
-  searching: "Searching",
+  searching: "Searching Google Maps reviews. This can take a minute.",
   dish: (dish: string) => `Looks like ${dish}.`,
   results: "Spots",
   none: "No spots near the T matched. Try another dish or loosen the filters.",

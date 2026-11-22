@@ -6,16 +6,19 @@ import { adultCategories, gradedCategories, type Place } from "@/lib/places/type
 
 export type Grounded = { name: string; quote: string };
 
-/** Lines like `Name | "quote"` from the model. Lines without both parts are dropped. */
+/**
+ * Lines like `Name | "quote"` from the model. Only text inside quotation marks counts as a quote,
+ * so a paraphrase ("Highly praised for…") is dropped with its place.
+ */
 export function parseGrounded(text: string): Grounded[] {
   return text.split("\n").flatMap((line) => {
     const [rawName, ...rest] = line.split("|");
     const name = rawName?.replace(/^[\s*\-\d.)]+/, "").trim() ?? "";
-    const quote = rest
+    const quoted = rest
       .join("|")
       .trim()
-      .replace(/^["“]|["”]$/g, "")
-      .trim();
+      .match(/^["“](.+)["”]$/);
+    const quote = quoted?.[1].trim() ?? "";
     return name.length > 1 && quote.length > 3 ? [{ name, quote }] : [];
   });
 }

@@ -15,15 +15,24 @@ import { stationById } from "@/server/stations";
 // Answers are cached in `ai_cache` by model and prompt, so a repeat search makes no new call.
 
 const model = () => process.env.GEMINI_MODEL ?? "gemini-3.7-flash";
+// Maps grounding runs on gemini-3.5-flash and 3.6-flash; Flash-Lite answers from memory without
+// grounding data (checked 2026-11-22), so grounded search has its own model.
+const groundingModel = () => process.env.GEMINI_GROUNDING_MODEL ?? "gemini-3.5-flash";
 const boston = { latitude: 42.3555, longitude: -71.0603 };
 
-async function cached<T>(db: Db, prompt: string, schema: z.ZodType<T>, run: () => Promise<T>) {
-  const key = createHash("sha256").update(`${model()}\n${prompt}`).digest("hex");
+async function cached<T>(
+  db: Db,
+  name: string,
+  prompt: string,
+  schema: z.ZodType<T>,
+  run: () => Promise<T>,
+) {
+  const key = createHash("sha256").update(`${name}\n${prompt}`).digest("hex");
   const [hit] = await db.select().from(aiCache).where(eq(aiCache.key, key)).limit(1);
   const parsed = hit ? schema.safeParse(hit.output) : null;
   if (parsed?.success) return parsed.data;
   const output = await run();
-  await db.insert(aiCache).values({ key, model: model(), output }).onConflictDoNothing();
+  await db.insert(aiCache).values({ key, model: name, output }).onConflictDoNothing();
   return output;
 }
 
@@ -88,9 +97,9 @@ export async function allowSearch(db: Db, profileId: string, now = new Date()): 
 /** Places that serve `what` near Boston, each with a review quote, from Maps grounding (F14.2). */
 export async function groundedPlaces(db: Db, what: string) {
   const prompt = `List up to 8 restaurants or cafes in Boston, Cambridge, Somerville or Brookline for: ${what}. One per line, exactly: Name | a short quote from a Google Maps review that mentions it. Only places with such a review. No other text.`;
-  return cached(db, prompt, groundedSchema, async () => {
+  return cached(db, groundingModel(), prompt, groundedSchema, async () => {
     const { text, providerMetadata } = await generateText({
-      model: google(model()),
+      model: google(groundingModel()),
       tools: { google_maps: google.tools.googleMaps({}) },
       providerOptions: { google: { retrievalConfig: { latLng: boston } } },
       prompt,
@@ -98,7 +107,9 @@ export async function groundedPlaces(db: Db, what: string) {
     const chunks = groundingSchema.safeParse(providerMetadata?.google);
     const titles = new Set(
       (chunks.success ? (chunks.data.groundingMetadata?.groundingChunks ?? []) : []).flatMap(
-        (chunk) => (chunk.maps ? [nameKey(chunk.maps.title)] : []),
+        // Titles come as "Dynasty - Google Maps".
+        (chunk) =>
+          chunk.maps ? [nameKey(chunk.maps.title.replace(/\s+-\s+Google Maps$/, ""))] : [],
       ),
     );
     return parseGrounded(text).filter((entry) => titles.has(nameKey(entry.name)));

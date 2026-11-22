@@ -22,6 +22,7 @@ describe("find it and taste of home", () => {
     const text = [
       "1. Gene's Chinese Flatbread Cafe | \"The hand-pulled noodles taste like Xi'an.\"",
       "2. Some Place |",
+      "3. Paraphrase Place | Highly praised for its authentic dumplings.",
       "Intro line without a separator",
       '- Bell in Hand Tavern | "Great pints."',
     ].join("\n");

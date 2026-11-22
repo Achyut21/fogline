@@ -76,7 +76,11 @@ describe.skipIf(testUrl === "")("find it and taste of home", () => {
       .mockResolvedValueOnce({
         text: grounded,
         // Cafe Luna is in the text but not in the grounding data, so it's dropped.
-        providerMetadata: maps(["Wusong Road Tiki Bar", "Studio No 3", "Nowhere Noodles"]),
+        providerMetadata: maps([
+          "Wusong Road Tiki Bar - Google Maps",
+          "Studio No 3 - Google Maps",
+          "Nowhere Noodles - Google Maps",
+        ]),
       });
     const result = await findFromPhoto(null, photoForm());
     if (result.kind !== "spots") throw new Error(`got ${result.kind}`);
