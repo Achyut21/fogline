@@ -208,7 +208,7 @@ See `.env.example`. Secrets stay server-side. Only `NEXT_PUBLIC_*` values reach 
   - `record-vehicles` every minute (Phase 3, Pro plan);
   - `end-plans` every 15 minutes (Phase 4);
   - `cleanup-demo` daily (Phase 5);
-  - `weekly-plans` at 10:00 and 11:00 UTC on Mondays (Phase 7). The handler runs only when it's 6 AM in New York, which covers both EST and EDT.
+  - `weekly-plans` hourly from 10:00 to 16:00 UTC on Mondays (Phase 7, D-076). The handler works from 6 to 11 AM in New York, which covers 6 AM in both EST and EDT; the later runs are retries, and a run that finds the week's plans already made stops.
 - Every generated deployment URL, preview or production, is behind Vercel Authentication. Only the production domain `fogline-mu.vercel.app` is public. Automated checks against a protected URL send the Protection Bypass for Automation secret, stored as a GitHub Actions secret.
 - After a deployment, the read-only e2e specs run against it in GitHub Actions (TESTING.md, CI). Vercel's `vercel.deployment.success` `repository_dispatch` event is meant to start that run, but it hasn't arrived for this repo yet. Until it does, a builder starts the run with `gh workflow run deployment.yml` (D-043).
 - `main` is protected: changes arrive through PRs, the CI `check` job and the Vercel build must pass, the history stays linear (squash merges), and force-pushes and deletion are blocked. Admins can override in an emergency.

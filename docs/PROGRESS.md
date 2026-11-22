@@ -294,6 +294,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 07:50 ET · Builder B · Weekly plan fixes from A's notes ([#50](https://github.com/Achyut21/fogline/pull/50), `b/weekly-fixes`, D-076):
+  - "Invite friends" on a weekly plan makes one copy per person and returns it again on a repeat tap. An advisory lock stops simultaneous taps; the 8-at-once test fails without the lock and passes with it.
+  - The weekly cron runs Mondays 6–11 AM New York time (`0 10-16 * * 1`), so a failed 6 AM run is retried; a run that finds the week made stops.
+  - Docs: DATA 3.17, ARCHITECTURE section 11, D-076 (replaces D-025's single run).
+  - code-critic: FAIL (stale docs, a race test that didn't exercise the lock), fixed; re-check running.
+  - Also open: #47 (invite preview, retargeted to `main`). Phase 10 started on `b/phase10` (plan on the board; the timing-safe cron secret is done).
 - 2026-11-22 06:45 ET · Builder B · F4.8 invite link preview on `b/og-plan` (stacked on `b/leftovers`, #45):
   - `/api/og/plan/[planId]?t=` (1200×630) shows the title, time, first stop, "+N more stops" and how many are going. DATA 3.20.
   - The image is the same for every link holder, so a 21+ plan always hides its title and venue.

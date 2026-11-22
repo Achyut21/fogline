@@ -77,7 +77,7 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     expect(await weeklyPlansFor(db, new Date("2026-12-01T12:00:00-05:00"))).toEqual([]);
   });
 
-  it("[F10.5] copies a weekly plan into the viewer's own crawl with its own invite link", async () => {
+  it("[F10.5] copies a weekly plan into the viewer's own crawl once, with its own invite link", async () => {
     const [maya] = await db
       .insert(profiles)
       .values({
@@ -92,7 +92,8 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     const first = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     const second = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
     if (!first || !second) throw new Error("expected copies");
-    expect(first.inviteToken).not.toBe(second.inviteToken);
+    // A second tap gives back the same copy.
+    expect(second).toEqual(first);
     expect(first.inviteToken).toMatch(/^[A-HJ-NP-Z2-9]{12}$/);
 
     const [plan] = await db.select().from(plans).where(eq(plans.id, first.id));
@@ -116,6 +117,28 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
       weekly.stops.map((s) => s.leg?.mode === "walk"),
     );
     expect(await copyWeeklyPlan(db, crypto.randomUUID(), maya, monday6am)).toBeNull();
+  });
+
+  it("[F10.5] makes one copy when several taps arrive at once (D-076)", async () => {
+    const [sam] = await db
+      .insert(profiles)
+      .values({
+        displayName: "Sam",
+        school: "Tufts",
+        homeStationId: "place-mdftf",
+        ageBand: "under21",
+        profileCode: "SAMX2345",
+      })
+      .returning();
+    const [weekly] = await weeklyPlansFor(db, monday6am);
+    // Eight at once, over a pool of three connections, so several transactions overlap.
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () => copyWeeklyPlan(db, weekly.id, sam, monday6am)),
+    );
+    expect(results[0]).not.toBeNull();
+    for (const result of results) expect(result).toEqual(results[0]);
+    const copies = await db.select().from(plans).where(eq(plans.createdBy, sam.id));
+    expect(copies).toHaveLength(1);
   });
 
   it("[F10.5] copies only this week's plans, and only while every stop is all-ages", async () => {

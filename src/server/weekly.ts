@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { weekly as copy } from "@/copy";
 import { inviteToken } from "@/lib/invite-token";
@@ -19,6 +19,14 @@ const storedStops = z.array(storedStopSchema).min(2);
  */
 export async function makeWeeklyPlans(db: Db, now: Date): Promise<number> {
   const weekOf = mondayOf(serviceDateOf(now));
+  // The cron runs hourly through Monday morning so one failed run is retried; once the week has
+  // its plans, later runs stop here without drafting again.
+  const [made] = await db
+    .select({ id: weeklyPlans.id })
+    .from(weeklyPlans)
+    .where(eq(weeklyPlans.weekOf, weekOf))
+    .limit(1);
+  if (made) return 0;
   const drafts = draftWeek(
     {
       stations: data.stations(),
@@ -114,8 +122,9 @@ export async function weeklyPlansFor(db: Db, now: Date): Promise<WeeklyPlan[]> {
 
 /**
  * "Invite friends" on one of this week's plans (F10.5): a copy as the viewer's own crawl with its
- * own invite link. Leave-by times are worked out for the people who join, like any plan. Null for
- * a plan from another week or one that can't be shown any more.
+ * own invite link, made once per person; asking again returns the same copy (D-076). Leave-by
+ * times are worked out for the people who join, like any plan. Null for a plan from another week
+ * or one that can't be shown any more.
  */
 export async function copyWeeklyPlan(
   db: Db,
@@ -129,7 +138,26 @@ export async function copyWeeklyPlan(
   if (!plan) return null;
   const stops = storedStops.parse(row.stops);
   const token = inviteToken();
-  const id = await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
+    // A double tap, or two taps from two tabs, gives back the copy already made. The lock makes
+    // the second wait for the first, so they can't both find nothing and both insert.
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${`weekly-copy:${creator.id}:${row.id}`}))`,
+    );
+    const [existing] = await tx
+      .select({ id: plans.id, inviteToken: plans.inviteToken })
+      .from(plans)
+      .where(
+        and(
+          eq(plans.createdBy, creator.id),
+          eq(plans.kind, "crawl"),
+          eq(plans.title, plan.title),
+          eq(plans.startsAt, row.startsAt),
+          ne(plans.status, "ended"),
+        ),
+      )
+      .limit(1);
+    if (existing) return existing;
     const [created] = await tx
       .insert(plans)
       .values({
@@ -155,7 +183,6 @@ export async function copyWeeklyPlan(
         walkedFromPrevious: s.leg?.mode === "walk",
       })),
     );
-    return created.id;
+    return { id: created.id, inviteToken: token };
   });
-  return { id, inviteToken: token };
 }
