@@ -541,3 +541,8 @@ Decision:
 Why: everyone shares one answer per date (F7.1), so the date must not depend on the server's zone. A human check is the only way to know a real event's date, venue and age policy are right (DATA 2.6).
 Consequences: DATA 2.6 and 2.7 and the ARCHITECTURE lib tree and static-data note updated. Rerun `data:events` weekly with a new checked list (DATA 5).
 
+
+**D-065 · 2026-11-22 · Profile-code restore ships without a rate limit for now (Phase 3 item 1).**
+Decision: `restoreProfile` checks the code but doesn't yet limit attempts. D-005 asks for a limit and ARCHITECTURE puts a token-bucket table with restore. That table needs a new migration on B's schema and B applying it to `fogline-db`, so it lands as a follow-up, not in item 1.
+Why: the hackathon deadline (D-060). Codes have about 39.6 bits of randomness (8 characters from 31), so guessing one takes on the order of 10^11 tries per existing profile.
+Consequences: the limit stays open on the Phase 9 hardening list until it ships. Needs A's sign-off as an accepted risk until then.

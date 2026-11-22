@@ -276,7 +276,8 @@ describe("lastTrain", () => {
     expect(() => lastTrain(tt, "Z", "C", "2026-11-20")).toThrow("Unknown station: Z or C");
   });
 
-  it("[F5.1] returns only possible routes on the real timetable", () => {
+  // Searches the full timetable; CI runners took over 5 s, so it gets 20.
+  it("[F5.1] returns only possible routes on the real timetable", { timeout: 20_000 }, () => {
     const real = timetableSchema.parse(
       JSON.parse(readFileSync(path.join(import.meta.dirname, "../../data/timetable.json"), "utf8")),
     );
