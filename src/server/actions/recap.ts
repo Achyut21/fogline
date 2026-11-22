@@ -9,8 +9,8 @@ import { isParticipant, recapOf, type Recap } from "@/server/recap";
 
 // Who sees what of a night's recap (F9.4, F4.8, F4.9, F16.2):
 // - a participant, or anyone holding the invite token, sees the recap;
-// - only participants see routes, which start at home stations;
-// - a bar or club is hidden from anyone not known to be 21+;
+// - only participants see routes and cleared cells, which start at home stations;
+// - a bar or club, and the title that may name it, is hidden from anyone not known to be 21+;
 // - demo and real never mix.
 
 const inviteToken = z.union([
@@ -25,7 +25,14 @@ async function shown(recap: Recap | null, viaInvite: boolean): Promise<Recap | n
   const member = viewer !== null && (await isParticipant(getDb(), recap.planId, viewer.id));
   if (!member && !viaInvite) return null;
   const hideSpot = recap.adultsOnly && viewer?.ageBand !== "21plus";
-  return { ...recap, spot: hideSpot ? null : recap.spot, routes: member ? recap.routes : [] };
+  return {
+    ...recap,
+    title: hideSpot ? null : recap.title,
+    spot: hideSpot ? null : recap.spot,
+    routes: member ? recap.routes : [],
+    // Cleared cells trace riders' lines from home, so they're for members too (F4.8).
+    clearedCells: member ? recap.clearedCells : [],
+  };
 }
 
 export async function recapByInvite(token: unknown): Promise<Recap | null> {

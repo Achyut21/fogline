@@ -26,7 +26,8 @@ const earlyMs = 30 * 60_000;
 
 export type Recap = {
   planId: string;
-  title: string;
+  /** Null when hidden with a 21+ venue: a title can name the bar (F4.9). */
+  title: string | null;
   startsAt: string;
   isDemo: boolean;
   /** The spot is a bar or club: hide it from anyone not known to be 21+ (F4.9). */
@@ -47,12 +48,12 @@ export type Recap = {
 export async function recapOf(db: Db, planId: string): Promise<Recap | null> {
   const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
   if (!plan || plan.status !== "ended" || !plan.endedAt) return null;
-  const [stop] = await db
+  const stops = await db
     .select()
     .from(planStops)
     .where(eq(planStops.planId, planId))
-    .orderBy(asc(planStops.seq))
-    .limit(1);
+    .orderBy(asc(planStops.seq));
+  const [stop] = stops;
   if (!stop) return null;
   const place = data.places().find((p) => p.id === stop.placeId);
 
@@ -113,9 +114,11 @@ export async function recapOf(db: Db, planId: string): Promise<Recap | null> {
     title: plan.title,
     startsAt: plan.startsAt.toISOString(),
     isDemo: plan.isDemo,
-    adultsOnly:
-      place !== undefined &&
-      (place.ageRule === "21plus" || adultCategories.includes(place.category)),
+    // Any 21+ stop makes the night 21+, a crawl's later stops included.
+    adultsOnly: stops.some((st) => {
+      const at = data.places().find((p) => p.id === st.placeId);
+      return at !== undefined && (at.ageRule === "21plus" || adultCategories.includes(at.category));
+    }),
     spot: place
       ? {
           id: place.id,

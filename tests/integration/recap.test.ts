@@ -106,6 +106,7 @@ describe.skipIf(testUrl === "")("night recap", () => {
     const viaLink = await recapByInvite(token);
     expect(viaLink?.arrivals.length).toBe(3);
     expect(viaLink?.routes).toEqual([]);
+    expect(viaLink?.clearedCells).toEqual([]);
     session.viewer = null;
     expect(await recapForPlan(planId)).toBeNull();
     expect(await recapByInvite("not-a-token")).toBeNull();
@@ -125,6 +126,8 @@ describe.skipIf(testUrl === "")("night recap", () => {
       .where(eq(planStops.planId, planId));
     session.viewer = { ...maya, ageBand: "under21" };
     expect((await recapForPlan(planId))?.spot).toBeNull();
+    // The title can name the bar, so it's hidden with it.
+    expect((await recapForPlan(planId))?.title).toBeNull();
     session.viewer = { ...maya, ageBand: "21plus" };
     expect((await recapForPlan(planId))?.spot?.id).toBe(bar.id);
     await db.update(plans).set({ status: "live", endedAt: null }).where(eq(plans.id, planId));
