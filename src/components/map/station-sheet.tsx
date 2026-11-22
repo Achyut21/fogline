@@ -26,6 +26,7 @@ import { predictionsSchema, type Predictions } from "@/lib/predictions";
 import type { MapData } from "@/server/map-data";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SensoryPreview } from "./sensory-preview";
 import { StopCard } from "./stop-card";
 
 type Station = MapData["stations"][number];
@@ -222,6 +223,7 @@ export function StationSheet({
               <Link href={`/ride?from=${encodeURIComponent(view.id)}`}>{ride.startFrom}</Link>
             </Button>
             {view.card && <StopCard card={view.card} />}
+            <SensoryPreview station={view.id} />
             <Spots spots={view.spots} />
           </div>
         </DrawerContent>
