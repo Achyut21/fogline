@@ -33,6 +33,8 @@ unlock, unleash, elevate, seamless, seamlessly, effortless, effortlessly, journe
 | Clock time | 12-hour, no leading zero, AM/PM after a no-break space (U+00A0), so the two never split across lines | 12:14 AM |
 | Date | short weekday, month, day | Fri, Nov 27 |
 | Percent | whole number | 38% |
+| Ratio | one decimal, "×" and what it measures | 7.6× smaller |
+| Milliseconds | whole number with a thousands separator, "ms" | 21 ms |
 | Counts | thousands separator | 1,204 |
 | Lines | full name on first mention, then the color | Green Line E, then "the E" |
 

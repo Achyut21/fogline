@@ -17,6 +17,11 @@ const recordedAt = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+// COPY.md joins a time and its AM or PM with a no-break space. Intl puts a narrow one there.
+function clockDate(at: Date) {
+  return recordedAt.format(at).replace(/\s(?=[AP]M)/u, "\u00a0");
+}
+
 // F15.1: live numbers from the hypertables, cached for at most 60 s (F15.2), and every data
 // source with its credit.
 export default async function HowItWorksPage() {
@@ -45,7 +50,7 @@ export default async function HowItWorksPage() {
               <dd className="text-sm font-bold tabular-nums">
                 {numbers.compressionRatio === null
                   ? copy.compressionNone
-                  : `${numbers.compressionRatio.toFixed(1)}×`}
+                  : copy.ratio(numbers.compressionRatio)}
               </dd>
             </div>
             <div className="flex justify-between gap-3">
@@ -53,7 +58,7 @@ export default async function HowItWorksPage() {
               <dd className="text-sm font-bold tabular-nums">
                 {numbers.lastRecorderRun === null
                   ? copy.lastRunNone
-                  : recordedAt.format(numbers.lastRecorderRun)}
+                  : clockDate(numbers.lastRecorderRun)}
               </dd>
             </div>
             <div className="flex justify-between gap-3">
@@ -62,7 +67,7 @@ export default async function HowItWorksPage() {
                 <span className="block text-xs">{copy.solverNote}</span>
               </dt>
               <dd className="text-sm font-bold tabular-nums">
-                {numbers.solverMs === null ? copy.solverNone : `${numbers.solverMs} ms`}
+                {numbers.solverMs === null ? copy.solverNone : copy.milliseconds(numbers.solverMs)}
               </dd>
             </div>
           </dl>

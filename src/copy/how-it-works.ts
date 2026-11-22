@@ -1,4 +1,6 @@
-// The How it works page (F15.1). Credits follow DATA.md section 1.
+import { legal } from "./legal";
+
+// The How it works page (F15.1). Credits follow DATA.md section 1 and COPY.md's legal lines.
 export const howItWorks = {
   title: "How it works",
   intro:
@@ -12,16 +14,18 @@ export const howItWorks = {
   },
   compression: "Compression",
   compressionNone: "No compressed data yet",
+  ratio: (ratio: number) => `${ratio.toFixed(1)}× smaller`,
   lastRun: "Last train recorded",
   lastRunNone: "No trains recorded yet",
   solver: "Fair meetup solver",
-  solverNone: "Not timed right now",
-  solverNote: "Three campuses, next Friday at 7 PM.",
+  solverNone: "Test plan found no spots",
+  milliseconds: (ms: number) => `${ms.toLocaleString("en-US")} ms`,
+  solverNote: "BU, Harvard and Tufts, next Friday at 7:00 PM.",
   sourcesHeading: "Data sources",
   sources: [
     {
       name: "MBTA schedules and live trains",
-      credit: "Data: MBTA",
+      credit: legal.mbta,
       url: "https://www.mbta.com/developers",
     },
     {
@@ -36,12 +40,12 @@ export const howItWorks = {
     },
     {
       name: "Stop card facts and photos",
-      credit: "Wikipedia and Wikimedia Commons, credited on each card",
+      credit: "Text: Wikipedia, CC BY-SA. Photos credited on each card.",
       url: "https://www.wikipedia.org/",
     },
     {
       name: "Map tiles",
-      credit: "OpenFreeMap, © OpenStreetMap contributors",
+      credit: legal.mapData,
       url: "https://openfreemap.org/",
     },
     {
@@ -55,8 +59,13 @@ export const howItWorks = {
       url: "https://ai.google.dev/",
     },
     {
+      name: "Puzzle events",
+      credit: "Checked by hand, linked on each puzzle",
+      url: "https://www.boston.gov/calendar",
+    },
+    {
       name: "Puzzle word list",
-      credit: "dwyl/english-words, public domain",
+      credit: "dwyl/english-words, The Unlicense",
       url: "https://github.com/dwyl/english-words",
     },
   ],
