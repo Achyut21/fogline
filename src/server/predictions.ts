@@ -16,18 +16,22 @@ let pending: Promise<Trips> | null = null;
 class FeedError extends Error {}
 
 async function fetchTrips(): Promise<Trips> {
-  const response = await fetch(tripUpdatesUrl, {
+  const body = await fetch(tripUpdatesUrl, {
     cache: "no-store",
     signal: AbortSignal.timeout(4_000),
-  }).catch((error: unknown) => {
-    throw new FeedError("TripUpdates unreachable", { cause: error });
-  });
-  if (!response.ok) throw new FeedError(`TripUpdates answered ${response.status}`);
-  return parseTrips(await response.json());
+  })
+    .then((response) => {
+      if (!response.ok) throw new FeedError(`TripUpdates answered ${response.status}`);
+      return response.json();
+    })
+    .catch((error: unknown) => {
+      if (error instanceof FeedError) throw error;
+      throw new FeedError("TripUpdates unreachable or cut off", { cause: error });
+    });
+  return parseTrips(body);
 }
 
-const isFeedFailure = (error: unknown) =>
-  error instanceof FeedError || error instanceof SyntaxError || error instanceof z.ZodError;
+const isFeedFailure = (error: unknown) => error instanceof FeedError || error instanceof z.ZodError;
 
 /** The current trips, the last good ones when the feed is down, or null if it never answered. */
 export async function currentTrips(now = Date.now()): Promise<Trips | null> {
@@ -50,7 +54,7 @@ export async function currentTrips(now = Date.now()): Promise<Trips | null> {
           servingAgeMs: last ? now - last.fetchedAt : null,
         });
       }
-      failedAt = now;
+      failedAt = Date.now();
       return last?.trips ?? null;
     },
   );

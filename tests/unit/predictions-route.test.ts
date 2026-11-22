@@ -82,6 +82,23 @@ describe("GET /api/mbta/predictions", () => {
     expect((await response.json()).updatedAt).toBe(feed.header.timestamp);
   });
 
+  it("[F2.5] serves the last good feed when the body is cut off mid-read", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    server.use(http.get(tripUpdatesUrl, () => HttpResponse.json(feed), { once: true }));
+    await ask("place-kencl");
+    const cutOff = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"header": {"timesta'));
+        controller.error(new TypeError("terminated"));
+      },
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(cutOff, { status: 200 }));
+    vi.setSystemTime(snapshot + 6_000);
+    const response = await ask("place-kencl");
+    expect(response.status).toBe(200);
+    expect((await response.json()).updatedAt).toBe(feed.header.timestamp);
+  });
+
   it("answers 502 when the feed has never answered, and 400 for an unknown station", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     server.use(http.get(tripUpdatesUrl, () => HttpResponse.error()));

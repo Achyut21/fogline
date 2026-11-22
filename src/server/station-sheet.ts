@@ -48,16 +48,17 @@ export function nearbySpots(station: string, adult: boolean): SheetSpot[] {
     }));
 }
 
-// The subway runs from about 05:00 to about 01:00 (25:00 in service time). Outside that the
-// solver's buckets still return times, so the sheet makes no claim then.
-const serviceStart = 5 * 3600;
+// The subway runs from about 05:00 (06:00 on Sundays) to about 01:00, 25:00 in service time.
+// Outside that the solver's buckets still return times, so the sheet makes no claim then.
+const serviceStart = (dayType: string) => (dayType === "sunday" ? 6 : 5) * 3600;
 const serviceEnd = 25 * 3600;
 
 /** Whole minutes by T from home to every station it reaches now (DATA 3.1), none overnight. */
 export function minutesFromHome(home: string, at: Date): Map<string, number> {
   const { serviceDate, seconds } = toServiceTime(at);
-  if (seconds < serviceStart || seconds >= serviceEnd) return new Map();
-  const times = travelTimesFrom(data.graph(), home, dayTypeOf(serviceDate), hourBucketOf(seconds));
+  const dayType = dayTypeOf(serviceDate);
+  if (seconds < serviceStart(dayType) || seconds >= serviceEnd) return new Map();
+  const times = travelTimesFrom(data.graph(), home, dayType, hourBucketOf(seconds));
   return new Map([...times].map(([id, t]) => [id, Math.round(t.seconds / 60)]));
 }
 

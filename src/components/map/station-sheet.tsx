@@ -196,7 +196,7 @@ export function StationSheet({
   const [snap, setSnap] = useState<number | string | null>(sheetSnaps[1]);
   // The last station stays rendered while the sheet slides away, and each open starts halfway.
   const [shown, setShown] = useState<Station | null>(null);
-  if (station && station !== shown) {
+  if (station && station.id !== shown?.id) {
     setShown(station);
     setSnap(sheetSnaps[1]);
   }
