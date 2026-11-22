@@ -14,14 +14,14 @@ describe("system pages", () => {
     pathname.current = "/somewhere";
   });
 
-  it("offline page says what failed and offers a retry of the same address", () => {
+  it("offline page says what failed, offers a retry of the same address and links to the map", () => {
     render(<OfflinePage />);
     expect(
       screen.getByRole("heading", { level: 1, name: system.offline.title }),
     ).toBeInTheDocument();
     expect(screen.getByText(system.offline.body)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: system.offline.retry })).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: system.offline.map })).toHaveAttribute("href", "/");
   });
 
   it("404 page names the problem and links to the home page", () => {
