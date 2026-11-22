@@ -221,10 +221,10 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - `rankStations`: S(d), with the sum and then the station as tie-breaks, and the 75-minute cut. Unknown stations throw.
     - `spotsNear`: grades, and no bars, clubs or 21+ spots for under-21 groups.
     - `fairOptions`: 3 stations that have matching spots. When nothing fits it names a blocker, a pair of blockers, or no trains.
-  - `src/lib/gtfs/service.ts`: `trainsRunning` checks that a train leaves in the hour before the plan, on its service date or its day type's representative date (D-048).
+  - `src/lib/gtfs/service.ts`: `trainsRunning` checks that every participant's station has a train to board in the hour before the plan, on its service date or its day type's representative date (D-048).
   - `src/lib/solver/travel.ts` searches once per origin (`travelTimesFrom`). `src/lib/geo/miles.ts` gives ride miles along canonical shapes. `src/lib/places/types.ts` holds the place schema for item 6.
   - Real data: the demo plan (BU, Harvard, Tufts, Friday 7 PM) ranks Government Center first (26, 19 and 25 min), then Aquarium, Bowdoin and Park Street (23, 11 and 28 min). Miles: Harvard → Park Street 3.3, Medford/Tufts → Park Street 5.1, JFK/UMass → Braintree 8.7.
-  - Tests: 17 unit tests on hand-built networks whose scores were worked out by hand.
+  - Tests: 18 unit tests on hand-built networks whose scores were worked out by hand.
     - `[F4.2]` per-friend times, the plan's day type, hour bucket and after-midnight service date.
     - `[F4.3]` ranking, both tie-breaks, exactly 75 minutes, a lone participant, unknown stations.
     - `[F4.4]` 3 options, and skipping a well-ranked station with no spot. `[F4.5]` 600 m exactly, nearest first, budget.
@@ -240,7 +240,11 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - A date past the feed is checked against its representative date instead of skipped.
     - Tests now cover trains only earlier in the evening, and a covered date (Thanksgiving) whose services don't run.
     Nits fixed: station and spot ID tie-break tests, naming only filters that were set and needed, and one bar-and-club list.
-  - Next: code-critic third pass, then item 6 (places and grades).
+  - Third pass: PASS. Real data: Tuesday 3:30 and 4:30 AM give no trains; 4:50 AM gives options (first train 4:45). Its two SHOULD FIX items are fixed:
+    - Any train in the system counted. Now every friend's own station needs one, so a 2:30 AM Harvard and Tufts plan gives no trains.
+    - The named filters could fail together. Greedy pruning now always leaves a set that works.
+    Nits fixed: a departure exactly at the start doesn't count, the uncovered-date error is tested, and the weekend after-3-AM limit is noted in DATA 3.2.
+  - Next: item 6 (places and grades).
 
 - 2026-11-21 20:42 ET · Builder B · Phase 2 item 4, last train, on `b/last-train`:
   - `src/lib/lasttrain/search.ts`: backward round-based search with two times per station (board, arrive by train), at most two transfers, walks into home and between stations, and no-pickup or no-drop-off stops skipped.

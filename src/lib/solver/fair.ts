@@ -142,8 +142,9 @@ function pick(ranked: RankedStation[], places: Place[], filters: SpotFilters): F
 /**
  * Up to three fair options at different stations, each with its matching spots (F4.3–F4.5).
  * When none exists, names what to relax (F4.6): one filter at a time first, in the order budget,
- * minimum grade, category, then the same filters together, naming only the ones that were set
- * and needed. The age rule is never relaxed.
+ * minimum grade, category, then the fewest of them that work together. The age rule is never
+ * relaxed. "time" when no station is within 75 minutes for everyone; "no-trains" when someone's
+ * station has no train in the hour before the start.
  */
 export function fairOptions(
   graph: Graph,
@@ -154,27 +155,22 @@ export function fairOptions(
   filters: SpotFilters,
 ): FairResult {
   const ranked = rankStations(graph, participants, startsAt);
+  if (ranked.length === 0) return { kind: "none", blockedBy: ["time"] };
   const { serviceDate, seconds } = toServiceTime(startsAt);
   const checkedDate =
     serviceDate in timetable.dates ? serviceDate : graph.dates[dayTypeOf(serviceDate)];
-  if (!trainsRunning(timetable, checkedDate, seconds)) {
+  const homes = participants.map((p) => p.station);
+  if (!trainsRunning(timetable, checkedDate, seconds, homes)) {
     return { kind: "none", blockedBy: ["no-trains"] };
   }
-  if (ranked.length === 0) return { kind: "none", blockedBy: ["time"] };
   const options = pick(ranked, places, filters);
   if (options.length > 0) return { kind: "options", options };
 
-  const relaxations = (
-    [
-      ["budget", { budget: null }, filters.budget !== null],
-      ["minGrade", { minGrade: null }, filters.minGrade !== null],
-      [
-        "categories",
-        { categories: placeCategories },
-        filters.categories.length < placeCategories.length,
-      ],
-    ] satisfies [Blocker, Partial<SpotFilters>, boolean][]
-  ).filter(([, , changes]) => changes);
+  const relaxations: [Blocker, Partial<SpotFilters>][] = [
+    ["budget", { budget: null }],
+    ["minGrade", { minGrade: null }],
+    ["categories", { categories: placeCategories }],
+  ];
   const works = (blockers: Blocker[]) => {
     let loosened = filters;
     for (const [blocker, change] of relaxations) {
@@ -186,8 +182,12 @@ export function fairOptions(
   for (const [blocker] of relaxations) {
     if (works([blocker])) return { kind: "none", blockedBy: [blocker] };
   }
-  const all = relaxations.map(([blocker]) => blocker);
-  if (!works(all)) return { kind: "none", blockedBy: ["spots"] };
-  const needed = all.filter((blocker) => !works(all.filter((other) => other !== blocker)));
-  return { kind: "none", blockedBy: needed.length > 0 ? needed : all };
+  let needed = relaxations.map(([blocker]) => blocker);
+  if (!works(needed)) return { kind: "none", blockedBy: ["spots"] };
+  // Drop filters from the end (categories first) while the rest still give options.
+  for (const blocker of [...needed].reverse()) {
+    const without = needed.filter((other) => other !== blocker);
+    if (works(without)) needed = without;
+  }
+  return { kind: "none", blockedBy: needed };
 }

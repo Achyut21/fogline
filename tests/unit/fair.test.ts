@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { rideMiles } from "@/lib/geo/miles";
-import { bucketKeys, type Graph, type Leg, type ShapeLine, type Timetable } from "@/lib/gtfs/types";
+import { trainsRunning } from "@/lib/gtfs/service";
+import {
+  bucketKeys,
+  type Graph,
+  type Leg,
+  type ShapeLine,
+  type Timetable,
+  type TimetableTrip,
+} from "@/lib/gtfs/types";
 import { placeSchema, type Place } from "@/lib/places/types";
 import { fairOptions, rankStations, spotsNear, type SpotFilters } from "@/lib/solver/fair";
 import { travelTimesFrom } from "@/lib/solver/travel";
@@ -45,8 +53,19 @@ const graph: Graph = {
   },
 };
 
-// One weekday train at 5:30 PM: trains run in the hour before a 6 PM plan on Tuesday 2026-11-17,
-// but not before 7 PM, 4:30 AM, or on Thanksgiving (Sunday service, no trains in this table).
+// Weekday trains from Harvard, Tufts and BU at 5:30 PM and exactly 7 PM: trains run in the hour
+// before a 6 PM plan on Tuesday 2026-11-17, but not before 7 PM, 4:30 AM, or on Thanksgiving
+// (Sunday service, no trains in this table). Kenmore never has a train to board.
+const routes = ["HP", "TP", "BK"];
+const departure = (id: string, route: string, start: number): TimetableTrip => ({
+  id,
+  route: "Red",
+  direction: 0,
+  service: 0,
+  pattern: routes.indexOf(route),
+  start,
+  offsets: [0, 600],
+});
 const timetable: Timetable = {
   feedVersion: "test",
   stations,
@@ -54,17 +73,18 @@ const timetable: Timetable = {
   walks: [],
   services: ["WKD", "SUN"],
   dates: { "2026-11-17": [0], "2026-11-26": [1] },
-  patterns: [[at("H"), at("P")]],
+  patterns: [
+    [at("H"), at("P")],
+    [at("T"), at("P")],
+    [at("B"), at("K")],
+  ],
   trips: [
-    {
-      id: "hp",
-      route: "Red",
-      direction: 0,
-      service: 0,
-      pattern: 0,
-      start: 17.5 * 3600,
-      offsets: [0, 600],
-    },
+    departure("hp-1730", "HP", 17.5 * 3600),
+    departure("tp-1730", "TP", 17.5 * 3600),
+    departure("bk-1730", "BK", 17.5 * 3600),
+    departure("hp-1900", "HP", 19 * 3600),
+    departure("tp-1900", "TP", 19 * 3600),
+    departure("bk-1900", "BK", 19 * 3600),
   ],
 };
 
@@ -322,6 +342,13 @@ describe("fairOptions", () => {
     expect(
       options({ ...eat, categories: ["coffee"], budget: 1, minGrade: "A" }, friends, dessertB),
     ).toEqual({ kind: "none", blockedBy: ["minGrade", "categories"] });
+    const neither = [
+      place("pricey-food-b", "food", "P", 100, { price: 3, grade: gradeB }),
+      place("pricey-dessert-a", "dessert", "X", 100, { price: 3, grade: gradeA }),
+    ];
+    expect(
+      options({ ...eat, categories: ["food"], budget: 1, minGrade: "A" }, friends, neither),
+    ).toEqual({ kind: "none", blockedBy: ["budget", "minGrade"] });
   });
 
   it("[F4.6] reports time, no trains or no spots, and never relaxes the age rule", () => {
@@ -353,6 +380,18 @@ describe("fairOptions", () => {
       kind: "none",
       blockedBy: ["no-trains"],
     });
+  });
+});
+
+describe("trainsRunning", () => {
+  it("[F4.6] needs a train to board at every friend's station in the hour before the start", () => {
+    expect(trainsRunning(timetable, "2026-11-17", 18 * 3600, ["H", "T", "B"])).toBe(true);
+    expect(trainsRunning(timetable, "2026-11-17", 18 * 3600, ["H", "K"])).toBe(false);
+    expect(trainsRunning(timetable, "2026-11-17", 19 * 3600, ["H"])).toBe(false);
+    expect(trainsRunning(timetable, "2026-11-17", 19 * 3600 + 1, ["H"])).toBe(true);
+    expect(() => trainsRunning(timetable, "2026-12-25", 18 * 3600, ["H"])).toThrow(
+      "The timetable doesn't cover 2026-12-25",
+    );
   });
 });
 
