@@ -82,7 +82,7 @@ Numbers in the UI use tabular figures.
 | Fashionably Late | Walked in 14 min after the start. (Uses the real number.) |
 | On the Dot | Arrived within 2 min of the start. |
 | Long Haul | Longest ride of the night: 31 min. |
-| Closest Call | Made the last train with 2 min to spare. |
+| Closest Call | Made the last train with 2 min to spare. (Under 1 min: "Made the last train with under 1 min to spare.") |
 | Night Owl | Still out after midnight. |
 | Ghost | Said yes. Never showed. |
 | Planner | Got everyone in one place. |

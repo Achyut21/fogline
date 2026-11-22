@@ -24,10 +24,12 @@ describe("badge copy", () => {
     for (const id of ids) expect(badges[id].name.length).toBeGreaterThan(0);
   });
 
-  it("[F8.5] uses the real number, and says just in time when nothing was to spare", () => {
+  it("[F8.5] uses the real number, and says under 1 min when the margin is that small", () => {
     expect(badges["fashionably-late"].description(14)).toBe("Walked in 14 min after the start.");
     expect(badges["long-haul"].description(31)).toBe("Longest ride of the night: 31 min.");
     expect(badges["closest-call"].description(2)).toBe("Made the last train with 2 min to spare.");
-    expect(badges["closest-call"].description(0)).toBe("Made the last train just in time.");
+    expect(badges["closest-call"].description(0)).toBe(
+      "Made the last train with under 1 min to spare.",
+    );
   });
 });

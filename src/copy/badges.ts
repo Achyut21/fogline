@@ -15,7 +15,7 @@ export const badges = {
     name: "Closest Call",
     description: (minutesToSpare: number) =>
       minutesToSpare < 1
-        ? "Made the last train just in time."
+        ? "Made the last train with under 1 min to spare."
         : `Made the last train with ${minutesToSpare} min to spare.`,
   },
   "night-owl": { name: "Night Owl", description: () => "Still out after midnight." },
