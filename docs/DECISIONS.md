@@ -414,3 +414,32 @@ Consequences:
 - `data:neighborhoods` refuses to write a file in which a region has no cell.
 - A rerun reproduces the file byte for byte. DATA section 1 now lists TIGERweb and credits the US Census Bureau.
 
+**D-059 · 2026-11-21 · Check-ins, badges, stats and squads (Phase 2 item 10).**
+Decision:
+- Check-in validity (DATA 3.9) checks time, then accuracy, then distance, and returns the first failure with its number rounded up. A fuzzy position is reported as fuzzy, not as far away, and a refused 150.3 m never reads "150 m".
+- A night badge that compares people needs at least 2 people in its own comparison, not only 2 people checked in anywhere on the plan. First In compares arrivals at the first stop, Long Haul people with a travel time, Closest Call people who caught their last train. Exact ties share.
+- Ties: First In goes to everyone within 30 s of the earliest arrival. Fashionably Late goes to everyone within 30 s of the latest who is also 10 minutes late, except people who got First In. Night Owl means a check-in from 12:00 AM to before 5:00 AM New York time.
+- The ride home is the first live "I'm on the train" tap or board event after both the person's last valid check-in and the last stop's scheduled time, so neither the ride to the plan nor a ride between crawl stops counts. It counts as catching the last train when it comes before the first train of the last-train trip leaves, or up to 10 minutes after on that same trip (or with a tap that names no trip), with 0 to spare. Closest Call is the smallest of those margins, awarded only once every last train has left plus 10 minutes: night badges are computed at the plan's end and again then, adding awards only.
+- Ghost needs at least one person checked in, so a plan called off before anyone arrived gives nobody Ghost.
+- A ride's own summary counts its events, replay or not (F3.5). Night and lifetime totals and badges count live ride events only. First Light and percent uncovered follow `revealed_cells`, which replays write under F3.5, so they count replay reveals until Phase 3 decides (Open questions).
+- Every Green Branch counts a branch at a station that branch alone serves, from a board, pass or alight event.
+- Miles walked counts a walking leg between two checked-in crawl stops instead of both station walks. DATA 3.11 had added the leg on top of `2 × walk_m` for each stop, counting the same street twice. Nights are summed in meters and converted once. Miles on the T sums each ride's miles already rounded to 0.1 mi.
+- First Light compares when each person's share of a region reached 50%, from `revealed_cells.first_at`; mates within 30 s share it. Cells revealed by the home station don't count: picking Longwood Medical Area as home would otherwise reach 50% of Longwood at onboarding. A profile with no squad is its own first, and regions under 3 cells don't count (D-058). Awards are only ever added (F8.6), so mates who each earned it before meeting both keep it.
+- Squad membership is pairwise and not transitive.
+- All of this is pure functions in `src/lib/` (`checkin.ts`, `rides.ts`, `badges.ts`, `stats.ts`, `squad.ts`). Phase 6 reads the rows and writes `badges_awarded`.
+Why:
+- "First In" among one person, or "Closest Call" with one margin, says nothing.
+- The last train often runs late at night, and people tap once seated; a rule of strictly before the timetable would deny the badge to the people it is for.
+- A ride from stop 1 to stop 2 of a crawl isn't the ride home.
+- A replay is watching a recorded trip, not riding it, so its miles and lines would be false lifetime numbers; its own summary is the trip's.
+- A board up to 10 minutes late on a different trip isn't the last train: it can miss the connection home.
+- Most rides home happen after the organizer ends the plan, so Closest Call computed at the end would see none.
+- Every Green Branch is about the branches; any B, C, D or E train between Kenmore and Government Center would otherwise earn it.
+- Taking a badge back after showing it is worse than two people holding a "first".
+Consequences:
+- DATA 3.9 to 3.11 updated, and DATA 3.12 (squad) added.
+- `ride_events.stop_id` may hold a station ID or a platform stop ID; both map to the station through `stations.json`.
+- The crawl builder (F10, Phase 7) must store whether each leg between stops is walked, since `plan_stops` doesn't say. Until then, miles walked is exact only for one-stop plans.
+- A squad streak (F12.3) needs its own definition of the squad, since mates are pairwise. Decide in Phase 7.
+- F8.1 now says the `end-plans` cron recomputes a night's badges once every last train has left plus 10 minutes (Phase 6 builds it).
+- Phase 6 shows each badge's number (minutes late, minutes to spare) from the same inputs it passed to `nightAwards`. A late last train has 0 to spare, so the copy needs a wording for it (copy-critic).

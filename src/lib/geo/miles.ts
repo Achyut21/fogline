@@ -2,6 +2,11 @@ import type { ShapeLine } from "@/lib/gtfs/types";
 
 const metersPerMile = 1609.344;
 
+/** Meters as miles, to 0.1 mi. */
+export function toMiles(meters: number): number {
+  return Math.round((meters / metersPerMile) * 10) / 10;
+}
+
 /**
  * Miles ridden on a route between two stations, along the route's shape, to 0.1 mi (F3.4,
  * DATA 3.4). Null when no canonical pattern of the route passes both stations in that order.
@@ -17,8 +22,7 @@ export function rideMiles(
     const board = line.stops.findIndex((s) => s.station === from);
     const alight = line.stops.findIndex((s) => s.station === to);
     if (board === -1 || alight <= board) continue;
-    const meters = line.stops[alight].meters - line.stops[board].meters;
-    return Math.round((meters / metersPerMile) * 10) / 10;
+    return toMiles(line.stops[alight].meters - line.stops[board].meters);
   }
   return null;
 }

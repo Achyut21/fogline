@@ -80,7 +80,9 @@ src/
     places/        # place schema for data/places.json
     lasttrain/     # backward timetable search
     geo/           # haversine, ride miles, walking estimate, H3 helpers
-    grades.ts  badges.ts  stats.ts  puzzle.ts  flags.ts  motion.ts  log.ts
+    checkin.ts     # check-in validity
+    rides.ts       # rides, lines and stations from ride events
+    grades.ts  badges.ts  stats.ts  squad.ts  puzzle.ts  flags.ts  motion.ts  log.ts
   server/
     db/            # drizzle schema, client, queries
     actions/       # Server Actions (Zod-validated)

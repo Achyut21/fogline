@@ -196,7 +196,7 @@ The train's position comes from the MBTA vehicle feed matched by trip ID, so no 
 ### F8. Badges and stats
 
 **Acceptance criteria**
-- **F8.1** Night badges are computed on the server when a plan ends, from valid check-ins, using the rules in `docs/DATA.md`: First In, Fashionably Late, On the Dot, Long Haul, Closest Call, Night Owl, Ghost, Planner.
+- **F8.1** Night badges are computed on the server when a plan ends, from valid check-ins, using the rules in `docs/DATA.md`: First In, Fashionably Late, On the Dot, Long Haul, Closest Call, Night Owl, Ghost, Planner. Closest Call needs the rides home, so the `end-plans` cron computes the night's badges again once every participant's last train home has left plus 10 minutes, adding only new awards (D-059).
 - **F8.2** Explorer badges: First Light (first in the squad to uncover 50% of a neighborhood), All Four Lines (Red, Orange, Blue and Green ridden), 50 Stations, Every Green Branch (B, C, D and E ridden).
 - **F8.3** Stats are kept per ride, per night and lifetime: miles on the T, miles walked (labeled "about"), stops, stations visited out of the total, percent of Boston uncovered, lines ridden, nights out, last trains caught.
 - **F8.4** Numbers count up into place, except with reduced motion, where they appear at their final value.

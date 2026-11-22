@@ -118,44 +118,50 @@ Project the board and alight stops onto the route's shape and sum the haversine 
 
 ### 3.9 Check-in validity (F6.2)
 
-Valid when the distance from the reported position to the spot is 150 m or less, the reported accuracy is 100 m or better, and the time falls between 30 minutes before the plan's start and the plan's end.
+Valid when the distance from the reported position to the spot is 150 m or less, the reported accuracy is 100 m or better, and the time falls between 30 minutes before the plan's start and the plan's end. A refusal names the first failed rule, in the order time, accuracy, distance, with its number rounded up (151 m, never "150 m" for a refused 150.3 m), so the app can explain it (`src/lib/checkin.ts`).
 
 ### 3.10 Badge rules (F8)
 
-**Night badges**, computed when a plan ends. Valid check-ins only. Badges that compare people need at least 2 people checked in.
+**Night badges**, computed when a plan ends and again once every participant's last train home has left plus 10 minutes, when the rides home are in (awards are only added, F8.6). Valid check-ins only. A badge that compares people (First In, Fashionably Late, Long Haul, Closest Call) needs at least 2 people in its comparison. Exact ties share a badge. Times are New York times (`src/lib/badges.ts`, D-059).
 
 | Badge | Rule |
 |---|---|
-| First In | earliest check-in at the first stop. Check-ins within 30 s of each other share it |
-| Fashionably Late | latest check-in at the first stop, if 10 minutes or more after the start time |
-| On the Dot | check-in within 2 minutes of the start time, either side (more than one person can get it) |
+| First In | earliest check-in at the first stop. Everyone within 30 s of the earliest shares it. Each person counts with their first valid check-in there |
+| Fashionably Late | latest check-in at the first stop, if 10 minutes or more after the start time. Everyone within 30 s of the latest who is also 10 minutes or more late shares it, except people who got First In |
+| On the Dot | check-in at the first stop within 2 minutes of the start time, either side (more than one person can get it) |
 | Long Haul | the largest `t_i` to the first stop among people who checked in |
-| Closest Call | the smallest positive margin between "I'm on the train" (a tap in live mode, or a recorded board event) and that person's last-train departure |
-| Night Owl | any check-in after 12:00 AM |
-| Ghost | said yes, never checked in. Shown only inside the plan's recap |
+| Closest Call | the smallest margin among people who caught their last train (see "last trains caught" in 3.11): the departure of the first train of their last-train trip home minus their ride home's first "I'm on the train" tap or board event. Late on the last train counts as 0 to spare. Awarded only once every last train has left plus 10 minutes |
+| Night Owl | any check-in from 12:00 AM to before 5:00 AM |
+| Ghost | said yes, never checked in, on a plan where at least one person checked in. Shown only inside the plan's recap |
 | Planner | the creator, when the plan ends with at least 2 people checked in |
 
-**Explorer badges**, computed whenever cells, ride events or check-ins change:
+**Explorer badges**, computed whenever cells, ride events or check-ins change. Only live ride events count, not replays (`is_replay`), because the person didn't ride. First Light follows the fog, and F3.5 lets a replay clear fog, so it counts replay reveals until Phase 3 decides (D-059).
 
 | Badge | Rule |
 |---|---|
-| First Light | first squad member to reach 50% uncovered in a neighborhood (one per neighborhood). Regions under 3 cells don't count (D-058) |
+| First Light | first squad member to reach 50% uncovered in a neighborhood (one per neighborhood). The moment is the `first_at` of the cell that took the share to 50%. Cells revealed by the home station (`source = 'home'`) don't count, so choosing a home earns nothing. Mates who reached it within 30 s of each other share it, and a profile without a squad is its own first. Awards are never taken back, so two people who each got it before becoming mates both keep it. Regions under 3 cells don't count (D-058) |
 | All Four Lines | board events on Red, Orange, Blue and Green |
-| 50 Stations | 50 distinct stations boarded, passed, alighted, or nearest to a valid check-in |
-| Every Green Branch | board or pass events on Green-B, Green-C, Green-D and Green-E |
+| 50 Stations | 50 distinct stations boarded, passed, alighted, or nearest to a valid check-in (a platform stop ID counts as its station) |
+| Every Green Branch | board, pass or alight events on Green-B, Green-C, Green-D and Green-E, each at a station only that branch serves (not on the shared trunk) |
 
 ### 3.11 Stats (F8.3)
 
 | Stat | Definition |
 |---|---|
-| miles on the T | sum of ride miles (section 3.4) |
-| miles walked (about) | for each stop with a valid check-in, `2 × walk_m` from the station, plus walking legs between crawl stops |
+| miles on the T | sum of ride miles (section 3.4), each rounded to 0.1 mi first so the total matches the ride summaries. A ride runs from a board event to the last pass or alight event of the same trip |
+| miles walked (about) | for each stop with a valid check-in, `walk_m` from its station and back. A walking leg between two checked-in crawl stops replaces the walk back to the station from the first and the walk out to the second. Whether a leg is walked comes from the crawl builder (F10), which must store it with the plan's stops. Sum in meters, then convert once |
 | stops | board, pass and alight events |
-| stations visited | as in 50 Stations, out of the total in `stations.json` |
+| stations visited | as in 50 Stations (live rides only), out of the total in `stations.json`. A night and lifetime stat; a ride's summary shows stops instead |
 | percent uncovered | section 3.8 |
-| lines ridden | distinct Red, Orange, Blue, Green, Mattapan |
+| lines ridden | distinct Red, Orange, Blue, Green, Mattapan, from board events |
 | nights out | ended plans with a valid check-in by the profile |
-| last trains caught | "I'm on the train" events before the last-train departure |
+| last trains caught | nights where the person's ride home began before the first train of their last-train trip home left, or up to 10 minutes after on that same trip (or with a tap that names no trip), since the last train often runs late. The ride home is their first live "I'm on the train" tap or board event after both their last valid check-in and the last stop's scheduled time, so a ride between crawl stops never counts. Read the profile's events from then on, with or without the plan's ID |
+
+A ride's own summary (F3.4, F3.5) counts its events, replay or not, so a replay shows the same numbers as the live ride. Night and lifetime totals count live events only. Percent uncovered follows the fog, which replays clear under F3.5 (D-059). Each stat is a function in `src/lib/stats.ts` applied to one ride's, one night's or a lifetime's rows; percent uncovered is `bostonShare` in `src/lib/geo/regions.ts`.
+
+### 3.12 Squad (F12.1)
+
+Two profiles are squad mates once both have a valid check-in on the same ended plan (`src/lib/squad.ts`). The relation isn't transitive: a mate's mate is not a mate.
 
 ## 4. Edge cases every algorithm test covers
 

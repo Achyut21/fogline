@@ -147,6 +147,7 @@ This is the shared status board for both builders. Update it after every finishe
 ## Open questions
 
 - Move the recorder into Phase 2? See Asks for A under Builder B.
+- Replays and fog (Phase 3, D-059): F3.5 says replay reveals cells like a live ride, so replays clear fog without riding. A replay's own ride summary counts its events, as F3.5 asks, but its events earn no badges and don't count in night or lifetime totals. The cells it clears do count toward percent uncovered and First Light. Keep that, or make replays reveal nothing? Decide before Phase 3's ride work.
 - Prices (Phase 2 item 6, D-057): OpenStreetMap has no price tags for these spots, so only fast food, food courts, ice cream and cafes count as "$" and every other price is unknown. The budget filter therefore excludes nothing today. A real price source (for example Google Places price levels through Gemini Maps grounding, shown as the place's data, not AI's) would make the budget filter (F4.5) meaningful. Decide by Phase 4.
 - Vibe and the F4 category list (Phase 2 item 5, D-056): the plan builder (F4 flow) asks for food, coffee, dessert, bar, club or event, and for a vibe. The place data has `culture` and `park` too (for crawls, F10.2), and no vibe tags yet. F4.5 doesn't require vibe, so the solver ignores it for now. Decide in Phase 4 whether vibe comes from Gemini vibe tags (ARCHITECTURE section 9) or is dropped from the flow.
 - Rail-replacement shuttles (Phase 2 item 4, D-055): on diversion nights the MBTA replaces subway segments with `Shuttle-*` bus routes (Fri 2026-11-20: Broadway to JFK/UMass and North Quincy). The last-train search is subway-only (D-006), so it says "no train home" there. B proposes adding shuttle routes whose stops are subway stations to `timetable.json` for the last-train search only. Both humans decide, since it touches D-006. **Deferred (B, 2026-11-22):** not a priority now; revisit at the end if needed.
@@ -217,6 +218,35 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-21 22:20 ET · Builder B · Phase 2 item 10, check-ins, badges and stats, on `b/badges-stats` (stacked on `b/neighborhoods`):
+  - `src/lib/checkin.ts`: check-in validity with the reason and number for a refusal (F6.2, DATA 3.9).
+  - `src/lib/rides.ts`: rides, lines and visited stations from ride events, and `live()` to leave replays out of totals and badges.
+  - `src/lib/badges.ts`: the 8 night badges and 4 explorer badges, including when a region reached 50% for First Light (F8.1, F8.2).
+  - `src/lib/stats.ts`: miles on the T, stops, lines, miles walked, nights out, last trains caught (F8.3). `src/lib/squad.ts`: squad mates (F12.1).
+  - Rules the docs left open are in D-059:
+    - comparing badges need 2 people in their own comparison, and how ties share
+    - the ride home starts after the last check-in and the last stop's time
+    - a late last train counts within 10 minutes
+    - replays, and Green branches off the trunk
+    - walks between crawl stops counted once
+    - First Light awards are never taken back
+  - Tests: 40 unit tests.
+    - `[F6.2]`: 150 m, 100 m accuracy, the time window and the order of refusal reasons.
+    - `[F8.1]`: each badge, the 30 s ties, the 2-person minimum, Night Owl under a UTC server clock and on the DST day, the late last train, crawl rides.
+    - `[F8.6]`: no duplicate awards.
+    - `[F8.2]`: each explorer badge, the 50% moment and the 3-cell minimum.
+    - `[F8.3]`: rides, miles, stops, lines, walking, nights out, last trains.
+    - `[F12.1]`: squads.
+  - Full suite 199 passed; `src/lib` line coverage 99.8%.
+  - code-critic: the first pass failed. The docs said replays never count, though First Light and percent uncovered follow fog that replays clear; the ride home could be a crawl ride; a late last train didn't count; and the Night Owl test passed with a server-time bug. All fixed, with tests (D-059).
+  - code-critic, second pass: failed. F3.5 needs a replay's own ride summary to count, the 10-minute grace accepted a different trip, and Closest Call ran before the rides home. Now:
+    - a ride summary counts replays; totals and badges use live events;
+    - the grace needs the last train's trip;
+    - Closest Call waits for every last train plus 10 minutes;
+    - Every Green Branch counts alights;
+    - more tests for the ride home, ride boundaries and summer Night Owl.
+  - code-critic, third pass: PASS. Its notes are done too: home-station cells don't count for First Light, F8.1 names the cron rerun for Closest Call, and stale replay notes are fixed.
+  - Next: item 8 (events, words and puzzle).
 - 2026-11-21 21:34 ET · Builder B · Phase 2 item 7, neighborhoods, on `b/neighborhoods` (stacked on `b/places-grades`):
   - `pnpm data:neighborhoods` writes `data/neighborhoods-h3.json`: Boston's 26 BPDA neighborhoods (Analyze Boston) plus Cambridge, Somerville and Brookline (TIGERweb), 29 regions and 1,593 resolution-9 cells, 1,158 in Boston. Each cell is in one region. Cells outside all of them are "Beyond", with no percentage (D-058).
   - `src/lib/geo/regions.ts`: region lookup, each region's uncovered share, and Boston's share as the union of its neighborhoods (F2.4).

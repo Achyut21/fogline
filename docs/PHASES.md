@@ -162,7 +162,7 @@ Phase 0 UI is placeholder (a home stub and the offline page). `design-critic` st
 
 ## Phase 7: Crawls, weekly plans, grades, squad (B leads; A on UI)
 
-**Read:** `PRD.md` F10–F12, `DATA.md` sections 3.6–3.7.
+**Read:** `PRD.md` F10–F12, `DATA.md` sections 3.6–3.7 and 3.10–3.12 (the crawl builder stores whether each leg is walked; squad streaks need a squad definition, D-059).
 
 **Items:** F10 crawls and the weekly cron, including "Dinner before" from a puzzle event (F10.6), F11 grade badges with plain-English summaries, F12 squad map and streaks.
 
