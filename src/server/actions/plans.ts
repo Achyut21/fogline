@@ -4,6 +4,8 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { inviteToken } from "@/lib/invite-token";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
+import { alertsOnRoute } from "@/lib/alerts";
+import { currentAlerts, passes } from "@/server/alerts";
 import { data } from "@/server/data";
 import { stopSpot } from "@/server/stop-spot";
 import { getDb } from "@/server/db/client";
@@ -114,6 +116,8 @@ export async function planByInvite(token: unknown) {
   const db = getDb();
   const [plan] = await db.select().from(plans).where(eq(plans.inviteToken, parsed.data));
   if (!plan) return null;
+  // F5.6: ask for the alerts feed now so it loads while the queries below run (it's cached).
+  const alertsSoon = currentAlerts();
   const viewer = await currentProfile();
   const stops = await db
     .select()
@@ -160,6 +164,9 @@ export async function planByInvite(token: unknown) {
       },
     ];
   });
+  // Only members see trips home (F5.1).
+  const feed = await alertsSoon;
+  const alerts = member && route.length > 0 ? feed : null;
   return {
     id: plan.id,
     // A 21+ plan's title may name its venue, so it's hidden with the venue (F4.9).
@@ -209,6 +216,11 @@ export async function planByInvite(token: unknown) {
           rsvp: p.rsvp,
           station: home?.id ?? null,
           leaveBy,
+          // F5.6: what MBTA alerts say about this person's trip home; null when the feed is down.
+          alerts:
+            leaveBy?.kind === "train" && alerts
+              ? alertsOnRoute(alerts, leaveBy.legs, leaveBy.departs, passes)
+              : null,
         },
       ];
     }),

@@ -1,0 +1,128 @@
+{
+  "header": {
+    "timestamp": 1795340402,
+    "gtfs_realtime_version": "2.0",
+    "incrementality": "FULL_DATASET"
+  },
+  "entity": [
+    {
+      "id": "1026060",
+      "alert": {
+        "effect": "NO_SERVICE",
+        "effect_detail": "STATION_CLOSURE",
+        "severity": 7,
+        "active_period": [
+          {
+            "start": 1780729200
+          }
+        ],
+        "informed_entity": [
+          {
+            "route_id": "Green-E",
+            "stop_id": "70241",
+            "route_type": 0
+          },
+          {
+            "route_id": "Green-E",
+            "stop_id": "70242",
+            "route_type": 0
+          },
+          {
+            "route_id": "Green-E",
+            "stop_id": "place-symcl",
+            "route_type": 0
+          }
+        ],
+        "header_text": {
+          "translation": [
+            {
+              "text": "Green Line E Branch: Symphony station is closed for major accessibility upgrades. Riders can use Prudential or Northeastern to access E Branch service. The station is expected to reopen in 2029.",
+              "language": "en"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1001817",
+      "alert": {
+        "effect": "ACCESSIBILITY_ISSUE",
+        "effect_detail": "ESCALATOR_CLOSURE",
+        "severity": 1,
+        "active_period": [
+          {
+            "start": 1647353580
+          }
+        ],
+        "informed_entity": [
+          {
+            "route_id": "Blue",
+            "stop_id": "70038",
+            "route_type": 1
+          },
+          {
+            "route_id": "Blue",
+            "stop_id": "70838",
+            "route_type": 1
+          },
+          {
+            "route_id": "Blue",
+            "stop_id": "door-bomnl-main",
+            "route_type": 1
+          },
+          {
+            "route_id": "Blue",
+            "stop_id": "place-bomnl",
+            "route_type": 1
+          }
+        ],
+        "header_text": {
+          "translation": [
+            {
+              "text": "Bowdoin Escalator 125 (Lobby to street) is unavailable until further notice, pending replacement.",
+              "language": "en"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1001814",
+      "alert": {
+        "effect": "UNKNOWN_EFFECT",
+        "effect_detail": "STATION_ISSUE",
+        "severity": 1,
+        "active_period": [
+          {
+            "start": 1758956400
+          }
+        ],
+        "informed_entity": [
+          {
+            "route_id": "Orange",
+            "stop_id": "70006",
+            "route_type": 1
+          },
+          {
+            "route_id": "Orange",
+            "stop_id": "70007",
+            "route_type": 1
+          },
+          {
+            "route_id": "Orange",
+            "stop_id": "place-jaksn",
+            "route_type": 1
+          }
+        ],
+        "header_text": {
+          "translation": [
+            {
+              "text": "The platform at Jackson Square is undergoing renovations to improve safety and accessibility. Sections of the platform are unlevel, which may make it difficult for some riders to board and exit trains.",
+              "language": "en"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

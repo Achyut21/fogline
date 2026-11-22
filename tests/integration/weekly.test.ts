@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import type { Alert } from "@/lib/alerts";
 import { z } from "zod";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { storedStopSchema } from "@/lib/weekly";
@@ -15,7 +16,11 @@ import { createScratchDatabase } from "./scratch-database";
 
 type Profile = typeof profiles.$inferSelect;
 
-const session = vi.hoisted(() => ({ db: null as unknown, viewer: null as Profile | null }));
+const session = vi.hoisted(() => ({
+  db: null as unknown,
+  viewer: null as Profile | null,
+  alerts: [] as Alert[] | null,
+}));
 vi.mock("@/server/db/client", async (original) => ({
   ...(await original<typeof import("@/server/db/client")>()),
   getDb: () => session.db,
@@ -23,6 +28,10 @@ vi.mock("@/server/db/client", async (original) => ({
 vi.mock("@/server/profile", async (original) => ({
   ...(await original<typeof import("@/server/profile")>()),
   currentProfile: async () => session.viewer,
+}));
+vi.mock("@/server/alerts", async (original) => ({
+  ...(await original<typeof import("@/server/alerts")>()),
+  currentAlerts: async () => session.alerts,
 }));
 vi.mock("@/server/session", async (original) => ({
   ...(await original<typeof import("@/server/session")>()),
@@ -180,5 +189,40 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
       accuracyM: 10,
     });
     expect(result).not.toEqual({ valid: false, reason: "not-found" });
+  });
+
+  it("[F5.6] tells members about an alert on their way home, and nobody else", async () => {
+    const [maya] = await db.select().from(profiles).where(eq(profiles.profileCode, "MAYA2345"));
+    const [weekly] = await weeklyPlansFor(db, monday6am);
+    const copy = await copyWeeklyPlan(db, weekly.id, maya, monday6am);
+    if (!copy) throw new Error("expected a copy");
+    session.viewer = maya;
+    session.alerts = null;
+    const quiet = await planByInvite(copy.inviteToken);
+    expect(quiet?.people.find((p) => p.you)?.alerts).toBeNull();
+
+    const before = await planByInvite(copy.inviteToken);
+    const leaveBy = before?.people.find((p) => p.you)?.leaveBy;
+    if (leaveBy?.kind !== "train") throw new Error("expected a train home");
+    const [firstRide] = leaveBy.legs.filter((l) => l.kind === "ride");
+    if (firstRide?.kind !== "ride") throw new Error("expected a ride");
+    session.alerts = [
+      {
+        id: "a",
+        text: "Shuttle buses replace trains.",
+        lines: new Set([firstRide.route]),
+        stations: new Map(),
+        periods: [{ start: 0, end: null }],
+      },
+    ];
+    const page = await planByInvite(copy.inviteToken);
+    expect(page?.people.find((p) => p.you)?.alerts).toEqual({
+      kind: "disrupted",
+      texts: ["Shuttle buses replace trains."],
+    });
+    session.viewer = null;
+    const outside = await planByInvite(copy.inviteToken);
+    expect(outside?.people.every((p) => p.alerts === null)).toBe(true);
+    session.alerts = [];
   });
 });

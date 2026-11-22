@@ -18,3 +18,5 @@ export { howItWorks } from "./how-it-works";
 export { recap } from "./recap";
 export { calm } from "./calm";
 export { find } from "./find";
+export { reminder } from "./reminder";
+export { alerts } from "./alerts";
