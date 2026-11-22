@@ -10,4 +10,6 @@ export { demo } from "./demo";
 export { ride } from "./ride";
 export { plans } from "./plans";
 export { daily } from "./daily";
+export { squad } from "./squad";
+export { grades } from "./grades";
 export { weekly } from "./weekly";

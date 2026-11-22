@@ -15,8 +15,6 @@ import { currentProfile } from "@/server/profile";
 
 const tokenInput = z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/);
 
-const placeById = (id: string) => data.places().find((p) => p.id === id);
-
 /** A plan with any bar or club stop is 21+ (F4.9). */
 const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>
   stops.some((s) => stopSpot(s.placeId, s.stationId)?.ageRule === "21plus");
@@ -24,6 +22,11 @@ const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>
 function knownStation(id: string): boolean {
   return data.stations().some((s) => s.id === id);
 }
+
+const stopInput = z.object({
+  placeId: z.string().min(1),
+  stationId: z.string().refine(knownStation),
+});
 
 const planInput = z.object({
   title: z.string().trim().min(1).max(80),
@@ -36,26 +39,41 @@ const planInput = z.object({
       }),
     )
     .max(7),
-  stop: z.object({ placeId: z.string().min(1), stationId: z.string().refine(knownStation) }),
+  stop: stopInput.optional(),
+  /** A crawl's 2–4 stops in order (F10.1), each with its own time. */
+  stops: z
+    .array(stopInput.extend({ scheduledAt: z.iso.datetime({ offset: true }) }))
+    .min(1)
+    .max(4)
+    .optional(),
 });
 
 export async function createPlan(input: unknown) {
   const plan = planInput.parse(input);
   const creator = await currentProfile();
   if (!creator) return { kind: "no-profile" as const };
-  const place = placeById(plan.stop.placeId);
-  if (!place?.stations.some((s) => s.id === plan.stop.stationId))
-    return { kind: "unknown-spot" as const };
-  if (place.ageRule === "21plus" && creator.ageBand !== "21plus")
-    return { kind: "adults-only" as const };
-  const token = inviteToken();
   const startsAt = new Date(plan.startsAt);
+  const chosen = plan.stops ?? (plan.stop ? [{ ...plan.stop, scheduledAt: plan.startsAt }] : []);
+  if (chosen.length === 0) return { kind: "unknown-spot" as const };
+  // A crawl's stops run in order within one night from the plan's start.
+  const times = chosen.map((stop) => new Date(stop.scheduledAt).getTime());
+  const night = startsAt.getTime() + 12 * 60 * 60_000;
+  if (times.some((t, i) => t < startsAt.getTime() || t > night || (i > 0 && t < times[i - 1])))
+    return { kind: "unknown-spot" as const };
+  // A stop is a spot near its station, or a puzzle event at its own station (Dinner before).
+  for (const stop of chosen) {
+    const spot = stopSpot(stop.placeId, stop.stationId);
+    if (!spot || spot.walkM === null) return { kind: "unknown-spot" as const };
+    if (spot.ageRule === "21plus" && creator.ageBand !== "21plus")
+      return { kind: "adults-only" as const };
+  }
+  const token = inviteToken();
   const id = await getDb().transaction(async (tx) => {
     const [row] = await tx
       .insert(plans)
       .values({
         createdBy: creator.id,
-        kind: "meetup",
+        kind: chosen.length > 1 ? "crawl" : "meetup",
         title: plan.title,
         startsAt,
         status: "planned",
@@ -71,13 +89,15 @@ export async function createPlan(input: unknown) {
         originStationId: f.station,
       })),
     ]);
-    await tx.insert(planStops).values({
-      planId: row.id,
-      seq: 0,
-      placeId: plan.stop.placeId,
-      stationId: plan.stop.stationId,
-      scheduledAt: startsAt,
-    });
+    await tx.insert(planStops).values(
+      chosen.map((stop, seq) => ({
+        planId: row.id,
+        seq,
+        placeId: stop.placeId,
+        stationId: stop.stationId,
+        scheduledAt: new Date(stop.scheduledAt),
+      })),
+    );
     return row.id;
   });
   return { kind: "created" as const, id, inviteToken: token };
@@ -125,14 +145,25 @@ export async function planByInvite(token: unknown) {
   const stations = new Map(data.stations().map((s) => [s.id, s]));
   const stop = stops.at(0);
   const place = stop ? stopSpot(stop.placeId, stop.stationId) : null;
-  // Every stop in order: a crawl has 2 to 4, and leave-by runs from the last (F5.5, F10.3).
-  const route = stops.flatMap((s) => {
-    const spot = stopSpot(s.placeId, s.stationId);
-    return spot ? [{ stop: s, spot }] : [];
+  // Leave-by uses the last stop (F5.5), so a crawl's riders leave from where the night ends. A
+  // stop can be a puzzle event's venue (Dinner before, weekly plans).
+  const route = stops.flatMap((st) => {
+    const at = stopSpot(st.placeId, st.stationId);
+    if (!at) return [];
+    return [
+      {
+        station: st.stationId,
+        at,
+        walkM: at.walkM ?? 0,
+        name: at.name,
+        scheduledAt: st.scheduledAt,
+      },
+    ];
   });
   return {
     id: plan.id,
-    title: plan.title,
+    // A 21+ plan's title may name its venue, so it's hidden with the venue (F4.9).
+    title: hidden ? null : plan.title,
     inviteToken: member ? plan.inviteToken : null,
     viewer: { member, organizer: viewer !== null && plan.createdBy === viewer.id },
     arrivals: (member ? arrived : []).flatMap((a) => {
@@ -149,14 +180,11 @@ export async function planByInvite(token: unknown) {
     station: stop && !hidden ? (stations.get(stop.stationId) ?? null) : null,
     stops: hidden
       ? []
-      : route.map(({ stop: s, spot }) => ({
-          id: spot.id,
-          name: spot.name,
-          lat: spot.lat,
-          lon: spot.lon,
-          station: stations.get(s.stationId) ?? null,
-          scheduledAt: s.scheduledAt.toISOString(),
-          walkedFromPrevious: s.walkedFromPrevious,
+      : route.map((r) => ({
+          id: r.at.id,
+          name: r.name,
+          station: stations.get(r.station)?.name ?? r.station,
+          scheduledAt: r.scheduledAt.toISOString(),
         })),
     people: people.flatMap((p) => {
       const name = p.displayName ?? p.placeholderName;
@@ -167,12 +195,8 @@ export async function planByInvite(token: unknown) {
         home && route.length > 0
           ? leaveByFor(
               data.timetable(),
-              plan.startsAt,
-              route.map(({ stop: s, spot }) => ({
-                station: s.stationId,
-                at: spot,
-                walkM: spot.walkM ?? 0,
-              })),
+              route.at(-1)?.scheduledAt ?? plan.startsAt,
+              route.map(({ station, at, walkM }) => ({ station, at, walkM })),
               { station: home.id, at: home },
             )
           : null;

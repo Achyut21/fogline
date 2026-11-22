@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LeaveByLine } from "@/components/plans/option-card";
 import { PlanBuilder } from "@/components/plans/plan-builder";
-import { map, plans } from "@/copy";
+import { grades, map, plans } from "@/copy";
 
 const find = vi.hoisted(() => vi.fn());
 vi.mock("@/server/actions/core-loop", () => ({ findMeetup: find }));
@@ -19,6 +19,7 @@ function renderBuilder(under21 = true) {
       under21={under21}
       stations={[{ id: "place-davis", name: "Davis", lines: ["Red"] }]}
       times={[at]}
+      event={null}
     />,
   );
 }
@@ -42,6 +43,20 @@ describe("PlanBuilder", () => {
     expect(await screen.findByText(b.none.blocker.time)).toBeInTheDocument();
     expect(find.mock.calls[1][0].categories).not.toContain("bar");
     expect(find.mock.calls[1][0].categories).toContain("park");
+  });
+
+  it("[F11.5] sends the minimum food grade and offers to drop it when it blocks", async () => {
+    find.mockResolvedValueOnce({ kind: "none", blockedBy: ["minGrade"] });
+    find.mockResolvedValueOnce({ kind: "none", blockedBy: ["time"] });
+    renderBuilder();
+    fillFriend();
+    fireEvent.click(screen.getByRole("radio", { name: grades.minGradeOptions.A }));
+    fireEvent.click(screen.getByRole("button", { name: b.find }));
+    expect(await screen.findByText(b.none.blocker.minGrade)).toBeInTheDocument();
+    expect(find.mock.calls[0][0].minGrade).toBe("A");
+    fireEvent.click(screen.getByRole("button", { name: b.none.relaxGrade }));
+    expect(await screen.findByText(b.none.blocker.time)).toBeInTheDocument();
+    expect(find.mock.calls[1][0].minGrade).toBeNull();
   });
 
   it("[F4.9] hides bars and clubs from an under-21 profile", () => {
@@ -74,7 +89,8 @@ describe("LeaveByLine", () => {
         }}
       />,
     );
-    expect(screen.getByText(b.noTrain("Sam", leaveBy))).toBeInTheDocument();
+    // Testing Library reads the no-break space before AM/PM as a plain one.
+    expect(screen.getByText(b.noTrain("Sam", leaveBy).replace(/\s/g, " "))).toBeInTheDocument();
   });
 
   it("[F5.7] shows the walk home and a rideshare when no train runs", () => {

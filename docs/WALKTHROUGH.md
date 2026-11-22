@@ -65,46 +65,46 @@ Status: Replay built (F3.3, F3.4, F3.5, F3.7, F3.8); live trains and train lost 
 
 ## F4. Fair plans
 
-Status: Planned
+Status: Builder, options and invite link built (F4.1 placeholders, F4.3–F4.6, F4.8, F4.9); agent text (F4.7) and Open Graph images not built
 - **Why:** a spot that's fair by T time for friends at different campuses.
 - **Entry:** Plans → New plan, or Plan it from the puzzle.
 - **Steps:** when → who (invite link or placeholder with a station) → what, budget, vibe, grade → Find spots → compare options (fairness bars) → choose → share the invite link.
 - **Edge cases:** no option (constraint named); under-21 participant (bars and clubs off); under-21 profile opening a 21+ plan's link; one participant; a station with no service at that hour.
 - **How to demo:** BU + Harvard + Tufts on Friday at 7 PM.
-- **Tests:**
+- **Tests:** `tests/component/plan-builder.test.tsx` (`[F4.1]` `[F4.6]` `[F4.9]`), `tests/e2e/plans.spec.ts` (`[F4.1]` `[F4.4]` `[F4.8]`, Phase 4 gate run), B's `tests/integration/plans.test.ts`.
 - **Screenshots:**
 
 ## F5. Last train
 
-Status: Planned
+Status: Leave-by, warnings, no-train path and the live countdown built (F5.1–F5.3, F5.7); 20 and 5 minute alerts (F5.4), alert text (F5.6) and Remind me (F5.8) not built
 - **Why:** everyone knows when to leave.
 - **Entry:** plan detail and live mode.
 - **Steps:** see each person's leave-by → Remind me saves a calendar event with alarms → in live mode, the countdown → alerts at 20 and 5 minutes.
 - **Edge cases:** plan after the last train (warning); no train home (neutral options); after-midnight service date; an alert on the route home.
 - **How to demo:** set the plan time to 11:45 PM and show the warnings.
-- **Tests:**
+- **Tests:** `tests/component/plan-builder.test.tsx` (`[F5.3]` `[F5.7]`), `tests/e2e/plans.spec.ts` (`[F5.2]`), B's last-train unit tests.
 - **Screenshots:**
 
 ## F6. Live night and check-ins
 
-Status: Planned
+Status: Live mode from 30 min before the start, check-in, arrival order and End built (F6.2–F6.4 organizer end); directions (F6.1) and the auto-end cron not built
 - **Why:** get there, prove it, see who's where.
 - **Entry:** plan detail → Go.
 - **Steps:** directions → countdown → friends' statuses → Check in at the spot → arrival order updates for everyone → End night.
 - **Edge cases:** too far; low accuracy; permission denied; two check-ins at once; offline check-in queued.
 - **How to demo:** mocked location in demo mode.
-- **Tests:**
+- **Tests:** `tests/e2e/plans.spec.ts` (`[F6.2]` `[F6.3]` `[F6.4]`: join in a second browser, check in with a mocked location, the organizer sees the arrival within 10 s, End).
 - **Screenshots:**
 
 ## F7. Daily puzzle
 
-Status: Planned
+Status: Built (F7.1–F7.7); Plan it fills in the time, not the venue
 - **Why:** a 30-second daily habit that points to something real to do.
 - **Entry:** Daily tab.
 - **Steps:** guess → feedback → solve → event card → pin and fog reveal → Plan it or Share.
 - **Edge cases:** invalid word; six misses (event still revealed); already played today; midnight Eastern rollover; streak reset.
 - **How to demo:** the demo puzzle.
-- **Tests:**
+- **Tests:** `tests/e2e/daily.spec.ts` (`[F7.2]` `[F7.3]` `[F7.4]` `[F7.5]` `[F7.7]`), `tests/integration/daily.test.ts` (`[F7.2]` parallel guesses), B's `tests/unit/puzzle.test.ts`.
 - **Screenshots:**
 
 ## F8. Badges and stats
@@ -197,10 +197,10 @@ Status: Planned
 
 ## F16. Demo mode
 
-Status: Planned
+Status: `/demo` start page, a separate copy per start and the Demo chip built (F16.1–F16.3)
 - **Why:** a reliable 3-minute path for judges, with no real data mixed in.
 - **Entry:** `/demo` (QR code at the table).
 - **Steps:** the judge path above.
 - **Edge cases:** Gemini unavailable (cached output used); MBTA feed down (replay used); demo data never showing in real views; two judges at once (each visit gets its own copy).
-- **Tests:**
+- **Tests:** `tests/e2e/demo.spec.ts` (`[F16.1]` `[F16.3]`, a second visitor gets a separate copy), B's `tests/integration/demo.test.ts`.
 - **Screenshots:**

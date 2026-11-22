@@ -15,6 +15,8 @@ export type SheetSpot = {
   category: Place["category"];
   walkM: number;
   grade: string | null;
+  /** The matched inspection's date (F11.1), null when unmatched. */
+  inspected: string | null;
 };
 
 let byStation: Map<string, (Place & { walkM: number })[]> | null = null;
@@ -45,6 +47,7 @@ export function nearbySpots(station: string, adult: boolean): SheetSpot[] {
       category: p.category,
       walkM: p.walkM,
       grade: p.grade?.letter ?? null,
+      inspected: p.grade?.date ?? null,
     }));
 }
 

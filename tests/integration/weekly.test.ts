@@ -142,7 +142,7 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     if (!dinner) throw new Error("no dinner spot");
     const expected = leaveByFor(
       data.timetable(),
-      new Date(weekly.startsAt),
+      new Date(weekly.stops[weekly.stops.length - 1].scheduledAt),
       [
         {
           station: first.station.id,
