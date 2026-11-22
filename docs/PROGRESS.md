@@ -294,6 +294,12 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 05:39 ET · Builder A · Phase 9 item 2, Me and Settings (`a/me`):
+  - Me shows stats (share of Boston to one decimal, miles on the T, stations of the total, stops, lines, nights out) and earned badges from B's `myStats`. Badges whose line needs a number show their name only, because awards don't store the number. **For B:** fill `badges_awarded.meta` (minutes late, ride minutes, minutes to spare, neighborhood) so those lines can show; `myStats` now also returns `shareUncovered`.
+  - `/me/settings`: theme, Automatic or Always 2D map (per device; `useFogRenderer` reads it), age band (`updateAgeBand`), and delete my data with a confirmation (`deleteMyData`, `endSession`; F1.7). A deleted person's seat shows as "Former member" with no name or station (`planByInvite` returns `former`).
+  - Location primer before the first check-in until the browser has granted location (F1.4).
+  - Tests: `tests/integration/settings.test.ts` (`[F1.5]` `[F1.7]`), `tests/e2e/me.spec.ts` (`[F8.3]` `[F1.7]`); 458 pass; me and plans e2e 6/6. Screenshots at 390×844 in both themes.
+
 - 2026-11-22 05:33 ET · Builder A · Phase 9 item 1, app shell and navigation (`a/shell`):
   - `PageHeader` (one back-link pattern) on Calm, Find food, the ride list, the plan builder, the plan page and Squad; Calm goes back to Me.
   - Me links Squad, Calm mode and How it works, so every feature has a way in; the map has a Ride button (DESIGN section 5) to recorded trips from the home station.
