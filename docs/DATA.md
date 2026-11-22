@@ -62,22 +62,27 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.2 Fair meetup score (F4.3)
 
-- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`.
+- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`, then by station ID. `t_i` uses the plan's day type and hour bucket (section 3.1).
 - Exclude `d` when any participant can't reach it or any `t_i` is over 75 minutes.
-- Take the top 3 distinct stations, then pick spots within 600 m walking distance (section 3.5) that match the filters.
+- Walk down the ranking and keep the first 3 stations that have at least one spot within 600 m walking (section 3.5) matching the filters (D-056). Spots are listed nearest first.
+- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B): a spot with a grade must meet it, and a spot with no inspection match fails it only in food, coffee and dessert; and the age rule (no bars, clubs or other 21+ spots once any joined participant is under 21, F1.5, F4.9).
+- **No trains:** check that every participant's station has a train to board in the hour before the plan's start on its service date, when friends would ride there (D-048). When one doesn't, the answer is "no trains". A date the timetable doesn't cover is checked against its day type's representative date. Only the plan's own service date is read, so a weekend plan just after 3 AM says "no trains" even if the previous night's last trains are still running; that errs on the safe side.
+- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. If none does alone, relax all three and drop them again from the end (category first) while the rest still give options, and name what's left. When no station is within 75 minutes for everyone, the blocker is time; when everything relaxed still gives no spots, it's spots. The age rule is never relaxed. An unknown station is an error.
 
 ### 3.3 Last train (F5)
 
-- Build a compact timetable for each service type: trips as stop sequences with times in seconds since the service-day origin. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
+- `timetable.json` holds every subway trip as a station pattern with times in seconds since the service-day origin, the services running on each date the feed covers, and the same transfer times and walks as `graph.json`. GTFS times can pass 86,400 (24:00:00) for after-midnight trips.
 - Per the GTFS spec, times count from "noon minus 12 hours" of the service date. That keeps DST-change days correct. Use it when converting to wall-clock time in `America/New_York`.
 - **Search:** a backward round-based search (reverse RAPTOR, at most 2 transfers) from the participant's home station `h`, with the end of the service day as the arrival deadline. It finds the latest departure from the plan's station `d` that still reaches `h`. Return the departure time, the trips and the transfer stations.
-- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`. `margin = leave_by − now`.
+- Each round keeps two times per station: the latest train to board there, and the latest arrival by train there. The arrival time is the board time minus the station's transfer time, a walk on to another station's board time, or any time when home is that station or a walk from it. Stops marked no pickup or no drop-off are skipped. The route returned is traced through the same rounds, so every connection in it was checked.
+- **Results:** a train (the last moment to leave the plan's station, which is the start of a walk when the trip begins with one, the first train's departure, the rides, walks and transfer stations); no train needed (home is the same station or a walk away); no timetable (the date is outside the feed, so the last train isn't known); or none (no train reaches home that night, and the plan shows the walk home, F5.7).
+- `leave_by = latest_departure − walk_time(spot → station) − 5 minutes`, using the plan's last stop (F5.5). The builder warns when the plan starts after a participant's leave-by (F5.3). `margin = leave_by − now`.
 - A plan whose start time is after midnight and before 3:00 AM belongs to the previous service date (D-047).
-- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. Record them in `PROGRESS.md`.
+- **Check:** three known last trains (for example the last Green Line E from Park Street toward Medford/Tufts on a weekday, the last Red Line from Harvard toward Ashmont, the last Orange Line from Downtown Crossing toward Forest Hills) must match the published timetable. `pnpm check:last-trains [date]` compares them with the MBTA's published schedule (V3 API). Record them in `PROGRESS.md`.
 
 ### 3.4 Miles on the T (F3.4, F8.3)
 
-Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile.
+Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile. `shapes.json` stores each station's distance along each canonical pattern, so a ride's miles are the difference between the alighting and boarding stations on a pattern of that route that passes both in that order (`src/lib/geo/miles.ts`).
 
 ### 3.5 Walking distance
 

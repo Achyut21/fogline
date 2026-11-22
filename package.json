@@ -23,6 +23,7 @@
     "db:migrate": "drizzle-kit migrate",
     "data:gtfs": "tsx scripts/gtfs.ts",
     "check:trips": "tsx scripts/check-trips.ts",
+    "check:last-trains": "tsx scripts/check-last-trains.ts",
     "data:places": "node -e \"console.error('data:places arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
     "data:grades": "node -e \"console.error('data:grades arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
     "data:cards": "node -e \"console.error('data:cards arrives in Phase 2 (Builder B). See docs/DATA.md.'); process.exit(1)\"",
