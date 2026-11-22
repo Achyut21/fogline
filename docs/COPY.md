@@ -86,7 +86,7 @@ Numbers in the UI use tabular figures.
 | Night Owl | Still out after midnight. |
 | Ghost | Said yes. Never showed. |
 | Planner | Got everyone in one place. |
-| First Light | First in the squad to uncover half of Allston. |
+| First Light | Squad's first to uncover half of Allston. (Fits the longest name, South Boston Waterfront, in 60 characters.) |
 | All Four Lines | Rode the Red, Orange, Blue and Green. |
 | 50 Stations | 50 stations down. |
 | Every Green Branch | B, C, D and E. All of them. |

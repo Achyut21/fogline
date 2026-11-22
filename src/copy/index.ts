@@ -7,3 +7,4 @@ export { map } from "./map";
 export { onboarding } from "./onboarding";
 export { system } from "./system";
 export { demo } from "./demo";
+export { badges } from "./badges";
