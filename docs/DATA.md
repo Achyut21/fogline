@@ -62,9 +62,12 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.2 Fair meetup score (F4.3)
 
-- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`.
+- `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`, then by station ID. `t_i` uses the plan's day type and hour bucket (section 3.1).
 - Exclude `d` when any participant can't reach it or any `t_i` is over 75 minutes.
-- Take the top 3 distinct stations, then pick spots within 600 m walking distance (section 3.5) that match the filters.
+- Walk down the ranking and keep the first 3 stations that have at least one spot within 600 m walking (section 3.5) matching the filters (D-056). Spots are listed nearest first.
+- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B): a spot with a grade must meet it, and a spot with no inspection match fails it only in food, coffee and dessert; and the age rule (no bars, clubs or other 21+ spots once any joined participant is under 21, F1.5, F4.9).
+- **No trains:** check that every participant's station has a train to board in the hour before the plan's start on its service date, when friends would ride there (D-048). When one doesn't, the answer is "no trains". A date the timetable doesn't cover is checked against its day type's representative date. Only the plan's own service date is read, so a weekend plan just after 3 AM says "no trains" even if the previous night's last trains are still running; that errs on the safe side.
+- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. If none does alone, relax all three and drop them again from the end (category first) while the rest still give options, and name what's left. When no station is within 75 minutes for everyone, the blocker is time; when everything relaxed still gives no spots, it's spots. The age rule is never relaxed. An unknown station is an error.
 
 ### 3.3 Last train (F5)
 
@@ -79,7 +82,7 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 
 ### 3.4 Miles on the T (F3.4, F8.3)
 
-Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile.
+Project the board and alight stops onto the route's shape and sum the haversine distances between consecutive shape points between them. Round to 0.1 mile. `shapes.json` stores each station's distance along each canonical pattern, so a ride's miles are the difference between the alighting and boarding stations on a pattern of that route that passes both in that order (`src/lib/geo/miles.ts`).
 
 ### 3.5 Walking distance
 
