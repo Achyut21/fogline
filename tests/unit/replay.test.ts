@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { cumulativeMeters } from "@/lib/geo/along";
 import type { ShapeLine } from "@/lib/gtfs/types";
 import { rideStops, shapeFor, stationTimes, type Sample } from "@/lib/replay";
 import shapesFile from "../../data/shapes.json";
+import { pointAt } from "../support/recorded-trip";
 
 const shapes = shapesFile as ShapeLine[];
 const greenD = shapes.find((s) => s.route === "Green-D" && s.direction === 0);
@@ -10,18 +10,10 @@ const t0 = new Date("2026-11-24T19:00:00-05:00").getTime();
 const minute = 60_000;
 
 /** A recorded position this many meters along the shape, `minutes` after t0. */
-function sampleAt(line: ShapeLine, meters: number, minutes: number): Sample {
-  const cumulative = cumulativeMeters(line.points);
-  const i = Math.max(0, cumulative.findIndex((m) => m >= meters) - 1);
-  const share = (meters - cumulative[i]) / (cumulative[i + 1] - cumulative[i]);
-  const [lat1, lon1] = line.points[i];
-  const [lat2, lon2] = line.points[i + 1];
-  return {
-    ts: new Date(t0 + minutes * minute),
-    lat: lat1 + share * (lat2 - lat1),
-    lon: lon1 + share * (lon2 - lon1),
-  };
-}
+const sampleAt = (line: ShapeLine, meters: number, minutes: number): Sample => ({
+  ts: new Date(t0 + minutes * minute),
+  ...pointAt(line, meters),
+});
 
 describe("replay", () => {
   if (!greenD) throw new Error("Green-D westbound missing from data/shapes.json");
