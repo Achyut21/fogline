@@ -50,7 +50,7 @@ export const calm = {
   sensory: {
     title: "Sensory preview",
     sound: (loudness: Loudness, readings: number) =>
-      `${{ quieter: "Quieter", typical: "Typical", louder: "Louder" }[loudness]} than most stretches, measured by riders (${readings === 1 ? "1 reading" : `${readings} readings`}).`,
+      `${{ quieter: "Quieter than most stretches", typical: "About as loud as most stretches", louder: "Louder than most stretches" }[loudness]}, measured by riders (${readings === 1 ? "1 reading" : `${readings} readings`}).`,
     noSound: "No rides measured here yet.",
     quietest: (hour: string) => `Quietest rides measured around ${hour}.`,
     crowds: "No entry counts for this station yet.",

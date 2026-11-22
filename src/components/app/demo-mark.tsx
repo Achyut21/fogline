@@ -21,8 +21,9 @@ export function DemoMark() {
   const demo = useSyncExternalStore(subscribe, isDemo, () => false);
   if (!demo) return null;
   return (
-    <div className="pointer-events-none fixed top-0 right-0 z-(--layer-chips) pt-safe pr-4">
-      <div className="pt-2">
+    // Bottom left, above the tab bar: clear of every header's buttons.
+    <div className="pointer-events-none fixed bottom-0 left-0 z-(--layer-chips) pb-safe pl-4">
+      <div className="mb-18">
         <DemoChip />
       </div>
     </div>

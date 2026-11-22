@@ -118,7 +118,7 @@ This is the shared status board for both builders. Update it after every finishe
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
   - For canvas batches from another Claude account: share the canvas with edit access to that account from the page's Share menu. Until then, only the account that made it can draw new artboards.
-- **Now (2026-11-22 05:24 ET): Phase 9, PWA polish and UI/UX** (D-075). Plan, waiting for A's yes. One branch and PR per item, code-critic per PR, design-critic on the screens it touches; copy goes to B's Phase 10 copy pass.
+- **Now (2026-11-22 06:20 ET, handoff): Phase 9, PWA polish and UI/UX** (D-075, approved by A). Items 1–4 merged (#49 shell, #51 Me and Settings, #52 plans extras, #53 PWA polish). Item 5, the design pass, is in progress on `a/design-pass` (WIP, not a PR yet). **First task next session (from A's human): rewrite `README.md`** — see the 06:20 handoff entry. Plan as approved:
   1. **App shell and navigation** (`a/shell`): one header and back pattern; every feature reachable (Ride from the map, Find food and weekly plans from Plans, Calm, Squad, Settings and How it works from Me); OfflineBanner and loading, empty and error states on every route; the first-reveal card shown once; theme changes restyle the map; fog updates after reveals; readable pins.
   2. **Me** (`a/me`): stats and badges (F8) from B's `myStats` and badge copy, Settings (theme, force 2D, calm mode, age band) with delete my data (F1.7), the location primer (F1.4) before the first check-in.
   3. **Plans** (`a/plan-extras`): weekly plans list and copy (F10.4, F10.5), Remind me only when a train runs home (F5.8), route alerts (F5.6), the 20 and 5 minute in-app leave-by alerts with vibration on Android (F5.4), and the night recap screen with its share image (F9).
@@ -132,7 +132,7 @@ This is the shared status board for both builders. Update it after every finishe
   3. **Squad screen under Me** (F12.2, F12.3) on B's `src/server/squad.ts`.
   4. **Weekly plans** on the Plans tab (F10.4, F10.5) once the weekly cron exists.
   - Done before this: Phases 3–5 core-loop screens, merged as #35 ride replay, #37 plans, #38 daily puzzle, #39 demo mode (production checks passed for #35, #37, #38).
-- **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
+- **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production). Waiting on the humans: the PWA.md real-device checks (install on an iPhone and an Android phone).
 
 ### Builder B
 - **Now (2026-11-22 04:05):** Phase 7 server side on `b/crawls`, from `main` (independent of #36). B's human said to start the parts with no dependency and keep merging as A lands work. Plan:
@@ -293,6 +293,28 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 ## Log
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
+
+- 2026-11-22 06:20 ET · Builder A · Handoff (session limit; the next session runs under A's personal Claude account):
+  - **First task, from A's human: rewrite `README.md`.** Order:
+    1. A promotional video at the top, made with the `brag` skill (`/brag`; it reads the code and builds a short launch video with Hyperframes). Embed or link it first.
+    2. An index.
+    3. The first half, non-technical: every feature in plain language (onboarding, fog map, station sheet, ride replay, plans and crawls, last train and leave-by alerts, live night and check-in, recap, daily puzzle, badges and stats, squad, grades, calm mode, Find food, weekly plans, demo mode, install), each with a short "how to use it" GIF recorded at 390×844 (Playwright video or screenshots stitched, from `/demo` on production or a local build against the test DB).
+    4. Then the technical half: architecture, data sources and credits, the algorithms (fairness, last train, fog cells), stack, setup and scripts, tests, deployment. Keep it in COPY.md's voice; README is the ship kit's start (Phase 10 item 7 is B's, so tell B).
+  - **Finished this session (all on `main`, production checks passed where run):**
+    - Phase 3 item 4 ride replay #35; Phase 4–5 screens #37 plans, #38 daily puzzle, #39 demo; Phase 7 #40 grades, #41 crawls and squad (with B's `b/crawls`); Phase 8 #43 calm and Find food, #46 Find food quotes Google's review summaries.
+    - B's #36 recap, #44 weekly plans, #45 plan end cron, Remind me and alerts (admin-merged per D-052 after A's fixes for code-critic's blockers).
+    - #48 phase split (D-075). Phase 9 items 1–4: #49 `20f09fd`, #51 `0f7e426`, #52 `1155de8`, #53 `024ae81`.
+    - `fogline.boston` → `www.fogline.boston` live (Porkbun DNS, Vercel); Find food verified on production through `/demo` (3 Sichuan spots with Google review-summary quotes).
+  - **In progress: Phase 9 item 5, design pass, on `a/design-pass` (WIP commit, pushed, no PR; do not merge as is).** design-critic FAIL on the local build; fixes so far (not yet tested together):
+    - Done: demo invite tokens accepted by `planByInvite` (ended demo plan said "doesn't exist"); `myPlans` people count (said 0); Demo chip moved bottom-left above the tab bar; honest offline banner copy and a map link on /offline; welcome fog hero (2D map); `RideProgress` on the riding view (line, moving dot, previous/next, running stops, miles, cells); `Podium` and a large cells number on the recap (`src/components/recap/podium.tsx`; the page edit was mid-way — check `src/app/p/[id]/recap/page.tsx` compiles and still has the miles/stops tiles); status page titles; calm copy ("Typical than most" was broken); "In fog" no longer wraps; restore keeps a mistyped code; puzzle legend contrast; styled photo picker.
+    - Still to do from the critic's BLOCKING list: recap staged choreography check with reduced motion; nothing else blocking. SHOULD FIX worth doing: one section-heading style, back-link labels by parent screen name, MapLibre attribution at night, one primary action per screen (/plans/new option buttons, /p owner, /find), label the builder's grade control and the last-train time, scroll to results, centered column at 1440 px, Long Haul badge line, squad numbers' unit, demo seed rides.
+    - Exact next steps: `pnpm typecheck && pnpm lint && pnpm test`, rebuild and run the full e2e, rerun `design-critic` on a local build (`.claude/launch.json` entry `design-pass`: `pnpm start -p 3300` with `DATABASE_URL` = the local test DB, never `.env`'s), fix, PR, code-critic, merge, then `/phase-gate 9`.
+  - **For B:**
+    - #47 (invite link preview) and #50 (weekly fixes): code-critic PASS, `main` merged in (A pushed `4c3159b`, `6ec893d`), CI was running; A stopped before admin-merging. Merge them per D-052 when CI is green. Notes: #50's copy lookup matches title and time (store `weekly_plan_id`); #47 needs an integration test with a real bar stop, and `metadataBase` in the root layout.
+    - Phase 10 is yours (D-075). From reviews: timing-safe cron secrets; direction-specific alerts; fill `badges_awarded.meta` so badge lines with numbers can show; `myStats` now returns `shareUncovered`.
+    - New this session: `scripts/pwa-splash.ts` (`pnpm splash`), `public/splash/*`, `src/styles/splash-screens.ts`; `GEMINI_GROUNDING_MODEL` (optional, defaults to `gemini-3.5-flash`; Maps grounding needs a billed key); no migrations, no design tokens changed.
+  - **Tests:** `main` passes CI (unit, component, integration, e2e on desktop-chrome, iphone, pixel). `a/design-pass` WIP: typecheck and lint clean at the last check; the full suite and e2e not rerun since the design fixes.
+  - **Local:** a scratch worktree `.claude/worktrees/b-merge` (branches `b/og-plan-merge`, `b/weekly-fixes-merge`) — remove with `git worktree remove .claude/worktrees/b-merge` and delete those two local branches. Local `pnpm dev` points at production `fogline-db`; use the test DB for anything that writes.
 
 - 2026-11-22 05:53 ET · Builder A · Phase 9 item 4, PWA polish (`a/pwa-polish`, stacked on `a/plan-extras`):
   - "Update ready" toast with Refresh when a new service worker waits (Serwist `waiting` and `messageSkipWaiting`; `skipWaiting` stays off, so nothing reloads by itself); `navigator.storage.persist()` on load.

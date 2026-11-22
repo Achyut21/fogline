@@ -41,6 +41,7 @@ export const ride = {
     passed: "Passed",
     here: "Here",
   },
+  progress: { label: "Ride progress" },
   summary: {
     title: "Ride summary",
     stops: "stops passed",

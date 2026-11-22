@@ -30,7 +30,10 @@ export function SensoryPreview({ station }: { station: string }) {
         <li className="text-ink-muted">{s.crowds}</li>
         <li className="text-ink-muted">{s.waiting}</li>
       </ul>
-      <Link href="/calm?from=map" className="text-sm font-semibold text-accent underline">
+      <Link
+        href="/calm?from=map"
+        className="flex min-h-11 items-center self-start text-sm font-semibold text-accent underline"
+      >
         {s.measure}
       </Link>
     </section>

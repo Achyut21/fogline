@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isLine } from "@/components/display/line-badge";
 import { onboarding } from "@/copy";
 import { haversineM } from "@/lib/geo/distance";
+import { mapLines, mapStations } from "@/server/network";
 import { currentProfile } from "@/server/profile";
 import { schools } from "@/server/schools";
 import { stations } from "@/server/stations";
@@ -29,5 +30,12 @@ const allStations = [...stations]
 
 export default async function WelcomePage() {
   if (await currentProfile()) redirect("/");
-  return <Onboarding schools={choices} allStations={allStations} />;
+  return (
+    <Onboarding
+      schools={choices}
+      allStations={allStations}
+      lines={mapLines}
+      stations={mapStations}
+    />
+  );
 }

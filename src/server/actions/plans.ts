@@ -15,7 +15,11 @@ import { currentProfile } from "@/server/profile";
 // Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
 // an invite link, and joining it (F4.7, F4.8). The profile comes from the signed session (F1).
 
-const tokenInput = z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/);
+// Real invite tokens, and the demo seed's (F16), which `planByInvite` and the recap both accept.
+const tokenInput = z.union([
+  z.string().regex(/^[A-HJ-NP-Z2-9]{12}$/),
+  z.string().regex(/^demo-(?:[2-9A-HJ-NP-Z]{16})$/),
+]);
 
 /** A plan with any bar or club stop is 21+ (F4.9). */
 const adultsOnly = (stops: readonly { placeId: string; stationId: string }[]) =>

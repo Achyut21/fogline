@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { BadgeChip } from "@/components/display/badge-chip";
 import { StatTile } from "@/components/display/stat-tile";
+import { Podium } from "@/components/recap/podium";
 import { ShareRecap } from "@/components/recap/share-recap";
+import { StatCounter } from "@/components/display/stat-counter";
 import { EmptyState } from "@/components/system/empty-state";
 import { badges, plans, recap } from "@/copy";
-import { clock } from "@/copy/plans";
 import { recapByInvite } from "@/server/actions/recap";
 import { getDb } from "@/server/db/client";
 import { currentProfile } from "@/server/profile";
@@ -70,22 +71,7 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
           {podium.length === 0 ? (
             <p className="text-sm">{recap.noArrivals}</p>
           ) : (
-            <ol
-              aria-labelledby="arrivals"
-              className="flex flex-col divide-y divide-rule rounded-lg bg-surface shadow-sm"
-            >
-              {podium.map((a, i) => (
-                <li key={a.profileId} className="flex min-h-12 items-center gap-3 px-4">
-                  <span className="w-10 text-sm font-extrabold text-accent">
-                    {recap.places[podium.length === 3 || i < 2 ? i : 2]}
-                  </span>
-                  <span className="flex-1 font-semibold">{a.name}</span>
-                  <span className="text-sm text-ink-muted tabular-nums">
-                    {clock(new Date(a.at))}
-                  </span>
-                </li>
-              ))}
-            </ol>
+            <Podium arrivals={podium} />
           )}
         </section>
 
@@ -93,6 +79,13 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
           <h2 id="numbers" className="text-sm font-bold text-ink-muted">
             {r.numbers}
           </h2>
+          <p className="flex items-baseline gap-2">
+            <StatCounter
+              value={night.numbers.newCells}
+              className="text-4xl font-extrabold tracking-tight text-accent"
+            />
+            <span className="text-ink-muted">{recap.cells(night.numbers.newCells)}</span>
+          </p>
           <dl className="grid grid-cols-2 gap-2">
             <StatTile
               label={recap.onT}
@@ -107,11 +100,6 @@ export default async function RecapPage({ params, searchParams }: PageProps<"/p/
               suffix={` ${recap.mi}`}
             />
             <StatTile label={recap.stops(night.numbers.stops)} value={night.numbers.stops} />
-            <StatTile
-              label={recap.cells(night.numbers.newCells)}
-              value={night.numbers.newCells}
-              accent
-            />
           </dl>
         </section>
 

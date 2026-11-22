@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { isLine, LineBadge } from "@/components/display/line-badge";
 import { StatTile } from "@/components/display/stat-tile";
 import { StopCard } from "@/components/map/stop-card";
+import { RideProgress } from "./ride-progress";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { ride } from "@/copy";
@@ -155,6 +156,16 @@ export function RideReplay({
             : ride.replay.arrived}
         </p>
       </header>
+
+      <RideProgress
+        route={route}
+        progress={(clock - stops[0].at) / Math.max(1, stops[last].at - stops[0].at)}
+        previous={here.name}
+        upcoming={next?.name ?? null}
+        stops={Math.max(reached, 0)}
+        miles={here.miles}
+        cells={newCells}
+      />
 
       <div className="flex items-center gap-3">
         <SegmentedControl
