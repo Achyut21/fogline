@@ -9,6 +9,7 @@ import { OfflineBanner } from "@/components/system/offline-banner";
 import { ThemeProvider } from "@/components/system/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { app } from "@/copy";
+import { startupImages } from "@/styles/splash-screens";
 import { themeColor } from "@/styles/theme-color";
 import "./globals.css";
 
@@ -21,7 +22,12 @@ export const metadata: Metadata = {
   applicationName: app.name,
   title: app.name,
   description: app.description,
-  appleWebApp: { capable: true, title: app.name, statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true,
+    title: app.name,
+    statusBarStyle: "black-translucent",
+    startupImage: [...startupImages],
+  },
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],

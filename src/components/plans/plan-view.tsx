@@ -13,6 +13,7 @@ import { dueLeaveAlert } from "@/lib/leave-alerts";
 import { clock as clockTime } from "@/copy/plans";
 import { checkIn, endPlan } from "@/server/actions/live";
 import { joinPlan, type planByInvite } from "@/server/actions/plans";
+import { InstallPrompt } from "@/components/system/install";
 import { LeaveByLine } from "./option-card";
 
 const p = plans.plan;
@@ -340,6 +341,8 @@ export function PlanView({
           </ul>
           {!plan.viewer.member && <p className="text-sm text-ink-muted">{p.leaveByHidden}</p>}
         </section>
+
+        {plan.viewer.organizer && !ended && <InstallPrompt />}
 
         <div className="mt-auto flex flex-col gap-3 pb-4">
           {!plan.viewer.member &&
