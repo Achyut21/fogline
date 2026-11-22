@@ -217,7 +217,7 @@ Run 2026-11-21 by Builder A. Code at `main` `957c3c4` (local runs on `2ed9c2c`, 
 | docs current | PASS | This log covers items 1, 4, 5 and 6 and the D-060 cut of items 2, 3, 7 and 8. DECISIONS has D-050 to D-064 (B's numbers renumbered at merge). WALKTHROUGH: Phase 1 ships no PRD feature, so no entry is due. DATA: no data source or algorithm changed in Phase 1. |
 | Fog frame rate and 2D fallback | PASS | D-058: tier 3 and tier 2 mean 1.3 ms, p95 3 ms under 4× CPU throttle with Pixel 7 emulation (M4 Pro, vsync off). The real phone check waits on A's Android phone. `[F2.6]` e2e renders the SVG fog with WebGL disabled. |
 | Visual baselines | DEFERRED | Moved to Phase 9 (D-060). |
-| Both humans approve the canvas (as cut) and `/design` | WAITING | A, and B's human, approve here. B's human also confirms direction C. Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR |
+| Both humans approve the canvas (as cut) and `/design` | A: PASS. B: WAITING | A approved `/design` and the canvas as cut on 2026-11-21 23:58 ET, in chat. B's human approves here and confirms direction C. Canvas: https://claude.ai/artifact/4o3hJj7QBSBavvV4LburQR |
 | Production works at phone size | WAITING | Runs on the production deployment after this PR merges (the first A-authored commit after Phase 2, D-052). |
 
 ### Phase 0 gate
