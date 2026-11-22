@@ -1,7 +1,6 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { checkInValidity, type CheckinResult } from "@/lib/checkin";
 import { revealAround } from "@/lib/geo/cells";
@@ -9,6 +8,7 @@ import { awardNightBadges } from "@/server/badges";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { checkins, planStops, plans, revealedCells } from "@/server/db/schema";
+import { sessionProfileId } from "@/server/session";
 
 // Live night for the prototype (D-067): checking in at a plan's spot (F6.2, F6.3) and the
 // organizer ending the plan (F6.4).
@@ -21,16 +21,11 @@ const checkinInput = z.object({
   accuracyM: z.number().nonnegative(),
 });
 
-async function profileId(): Promise<string | null> {
-  const id = (await cookies()).get("fogline_profile")?.value;
-  return id && z.uuid().safeParse(id).success ? id : null;
-}
-
 export async function checkIn(
   input: unknown,
 ): Promise<CheckinResult | { valid: false; reason: "no-profile" | "not-found" }> {
   const attempt = checkinInput.parse(input);
-  const me = await profileId();
+  const me = await sessionProfileId();
   if (!me) return { valid: false, reason: "no-profile" };
   const db = getDb();
   const [row] = await db
@@ -70,7 +65,7 @@ export async function checkIn(
 
 export async function endPlan(input: unknown) {
   const { planId } = z.object({ planId: z.uuid() }).parse(input);
-  const me = await profileId();
+  const me = await sessionProfileId();
   if (!me) return { kind: "no-profile" as const };
   const ended = await getDb()
     .update(plans)

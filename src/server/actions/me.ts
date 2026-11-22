@@ -1,7 +1,6 @@
 "use server";
 
 import { desc, eq } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import type { CellState } from "@/lib/geo/cells";
 import { bostonShare, regionSchema, regionShares } from "@/lib/geo/regions";
@@ -13,6 +12,7 @@ import path from "node:path";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
 import { badgesAwarded, checkins, plans, revealedCells, rideEvents } from "@/server/db/schema";
+import { sessionProfileId } from "@/server/session";
 
 // The Me screen's numbers for the prototype (F8.3, D-067): lifetime stats from the profile's
 // rows, its badges, and how much of Boston it has uncovered.
@@ -23,8 +23,8 @@ let regions: z.infer<typeof regionSchema>[] | null = null;
 let shapes: z.infer<typeof shapeLineSchema>[] | null = null;
 
 export async function myStats() {
-  const id = (await cookies()).get("fogline_profile")?.value;
-  if (!id || !z.uuid().safeParse(id).success) return null;
+  const id = await sessionProfileId();
+  if (!id) return null;
   regions ??= z.array(regionSchema).parse(read("neighborhoods-h3.json"));
   shapes ??= z.array(shapeLineSchema).parse(read("shapes.json"));
   const db = getDb();

@@ -1,18 +1,16 @@
 "use server";
 
 import { and, asc, eq } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { leaveByFor } from "@/lib/lasttrain/leave-by";
 import { data } from "@/server/data";
 import { getDb } from "@/server/db/client";
-import { ageBands, planParticipants, planStops, plans, profiles } from "@/server/db/schema";
+import { planParticipants, planStops, plans, profiles } from "@/server/db/schema";
+import { sessionProfileId } from "@/server/session";
 
-// Profiles and saved plans for the prototype's core loop (D-067): an anonymous profile kept in a
-// cookie (no auth provider), a plan with placeholder friends and one stop, an invite link, and
-// joining it (F1, F4.7, F4.8).
+// Saved plans for the prototype's core loop (D-067): a plan with placeholder friends and one stop,
+// an invite link, and joining it (F4.7, F4.8). The profile comes from the signed session (F1).
 
-const profileCookie = "fogline_profile";
 const codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function randomCode(length: number): string {
@@ -22,41 +20,6 @@ function randomCode(length: number): string {
 
 function knownStation(id: string): boolean {
   return data.stations().some((s) => s.id === id);
-}
-
-const profileInput = z.object({
-  displayName: z.string().trim().min(1).max(40),
-  school: z.string().trim().min(1).max(60),
-  homeStationId: z.string().refine(knownStation, "Unknown station"),
-  ageBand: z.enum(ageBands),
-});
-
-export async function createProfile(input: unknown) {
-  const profile = profileInput.parse(input);
-  const [row] = await getDb()
-    .insert(profiles)
-    .values({ ...profile, profileCode: randomCode(8) })
-    .returning({ id: profiles.id, profileCode: profiles.profileCode });
-  const store = await cookies();
-  store.set(profileCookie, row.id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    maxAge: 60 * 60 * 24 * 365,
-  });
-  return row;
-}
-
-async function currentProfileId(): Promise<string | null> {
-  const id = (await cookies()).get(profileCookie)?.value;
-  return id && z.uuid().safeParse(id).success ? id : null;
-}
-
-export async function myProfile() {
-  const id = await currentProfileId();
-  if (!id) return null;
-  const [row] = await getDb().select().from(profiles).where(eq(profiles.id, id));
-  return row ?? null;
 }
 
 const planInput = z.object({
@@ -75,7 +38,7 @@ const planInput = z.object({
 
 export async function createPlan(input: unknown) {
   const plan = planInput.parse(input);
-  const creator = await currentProfileId();
+  const creator = await sessionProfileId();
   if (!creator) return { kind: "no-profile" as const };
   if (!data.places().some((p) => p.id === plan.stop.placeId))
     return { kind: "unknown-spot" as const };
@@ -165,7 +128,7 @@ export async function planByInvite(token: string) {
 }
 
 export async function joinPlan(token: string) {
-  const profileId = await currentProfileId();
+  const profileId = await sessionProfileId();
   if (!profileId) return { kind: "no-profile" as const };
   const db = getDb();
   const [plan] = await db.select({ id: plans.id }).from(plans).where(eq(plans.inviteToken, token));
