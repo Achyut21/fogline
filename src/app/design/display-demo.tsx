@@ -2,7 +2,7 @@
 
 import { MotionConfig } from "motion/react";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { AvatarStack } from "@/components/display/avatar-stack";
 import { BadgeChip } from "@/components/display/badge-chip";
 import { Countdown } from "@/components/display/countdown";
@@ -17,6 +17,11 @@ import { design, display } from "@/copy";
 
 const d = design.display;
 const minute = 60_000;
+
+// /design is prerendered, so the sample times start when the page opens in the browser.
+let opened: number | null = null;
+const openedAt = () => (opened ??= Date.now());
+const noop = () => () => {};
 
 const motionOptions = [
   { value: "on", label: d.motion.on },
@@ -35,9 +40,9 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 export function DisplayDemo() {
   const [motion, setMotion] = useState<"on" | "reduced">("on");
   const [replay, setReplay] = useState(0);
-  const [start] = useState(() => Date.now());
+  const start = useSyncExternalStore(noop, openedAt, () => null);
   const [skipped, setSkipped] = useState(0);
-  const at = (minutes: number) => new Date(start + (minutes - skipped) * minute);
+  const at = (minutes: number) => new Date((start ?? 0) + (minutes - skipped) * minute);
 
   return (
     <MotionConfig reducedMotion={motion === "reduced" ? "always" : "user"}>
@@ -83,12 +88,13 @@ export function DisplayDemo() {
 
         <Group title={d.countdowns}>
           <div className="flex flex-col gap-3 rounded-lg bg-surface p-4">
-            {[24, 9, 3].map((minutes) => (
-              <div key={minutes} className="flex items-center justify-between gap-3">
-                <Countdown to={at(minutes)} className="text-3xl font-extrabold tracking-tight" />
-                <LeaveByChip at={at(minutes)} />
-              </div>
-            ))}
+            {start !== null &&
+              [24, 9, 3].map((minutes) => (
+                <div key={minutes} className="flex items-center justify-between gap-3">
+                  <Countdown to={at(minutes)} className="text-3xl font-extrabold tracking-tight" />
+                  <LeaveByChip at={at(minutes)} />
+                </div>
+              ))}
           </div>
           <Button
             variant="secondary"

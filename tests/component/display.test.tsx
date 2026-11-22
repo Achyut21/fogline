@@ -73,7 +73,7 @@ describe("display components", () => {
     vi.useFakeTimers({ now: new Date("2026-11-21T23:00:00-05:00") });
     render(<Countdown to={new Date("2026-11-21T23:06:00-05:00")} />);
     act(() => vi.advanceTimersByTime(minute));
-    expect(screen.getByRole("timer")).toHaveTextContent(/^5min$/);
+    expect(screen.getByRole("timer")).toHaveTextContent(/^5 min$/);
   });
 
   it("[F2.3] LineBadge names its line for screen readers", () => {
@@ -107,7 +107,10 @@ describe("display components", () => {
   });
 
   it("LeaveByChip shows the time in Boston with a no-break space before AM or PM", () => {
+    const zone = process.env.TZ;
+    process.env.TZ = "UTC";
     const { container } = render(<LeaveByChip at={new Date("2026-11-22T05:14:00Z")} />);
+    process.env.TZ = zone;
     expect(container.textContent).toBe("Leave by 12:14 AM");
   });
 
