@@ -78,12 +78,35 @@ export async function howItWorks(db: Db): Promise<HowItWorks> {
 const cacheMs = 60_000;
 let cached: { at: number; value: HowItWorks } | null = null;
 
-/** `howItWorks`, cached for at most 60 s per server instance (F15.2). */
-export async function cachedHowItWorks(db: Db, now = Date.now()): Promise<HowItWorks> {
-  if (cached && now - cached.at < cacheMs) return cached.value;
-  const value = await howItWorks(db);
-  cached = { at: now, value };
-  return value;
+/**
+ * `howItWorks`, cached for at most 60 s per server instance (F15.2), with when the numbers were
+ * read. When the live queries fail, the last numbers come back with their age; with none yet,
+ * null, so the page shows an error while its static parts still render.
+ */
+export async function cachedHowItWorks(
+  db: Db,
+  now = Date.now(),
+): Promise<{ numbers: HowItWorks; readAt: Date; minutesOld: number } | null> {
+  if (cached && now - cached.at < cacheMs)
+    return {
+      numbers: cached.value,
+      readAt: new Date(cached.at),
+      minutesOld: (now - cached.at) / 60_000,
+    };
+  try {
+    const value = await howItWorks(db);
+    cached = { at: now, value };
+    return { numbers: value, readAt: new Date(now), minutesOld: 0 };
+  } catch (error) {
+    log.error("how-it-works: live numbers failed", error);
+    return cached
+      ? {
+          numbers: cached.value,
+          readAt: new Date(cached.at),
+          minutesOld: (now - cached.at) / 60_000,
+        }
+      : null;
+  }
 }
 
 /**

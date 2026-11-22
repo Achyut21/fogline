@@ -589,6 +589,16 @@ Decision:
 Why: F3.5 needs a ride to work at any hour, and one-a-minute positions can't time each stop directly.
 Consequences: live trains (F3.1, F3.2) and train-lost (F3.6) come after the gate. Replaying the same trip twice writes its ride events again; they stay out of totals.
 
+**D-070 · 2026-11-22 · Recap share image (Phase 6, F9.3).**
+Decision:
+- `/api/og/recap/[planId]` renders with next/og, which can't read CSS variables or Tailwind classes. Its colors live in `src/styles/share-colors.ts`, literal copies of the day tokens kept equal by a unit test, like `theme-color.ts` (D-043). Its sizes are literal.
+- The token check exempts `src/styles/share-colors.ts` and that one route file, nothing wider (this extends D-054's exempt list).
+- The image is for members only, through `recapForPlan`. Invite-token viewers see the recap page but get no image.
+- Ghost is left off the image, because DATA 3.10 keeps it inside the plan's recap. Badges cap at 6 chips with "+N more"; titles, names and the spot line clamp, so nothing clips.
+- Hanken Grotesk 400/700/800 static TTFs (OFL) are vendored in `assets/fonts/`, because next/og takes only ttf, otf or woff. The build traces them into the function.
+Why: F9.3 wants a 1080×1350 image with the recap's numbers; the three critics' first pass (all FAIL) asked for the Ghost, 21+ and overflow fixes.
+Consequences: a new og image reuses `share-colors.ts` and adds its own file to the exempt list.
+
 **D-071 · 2026-11-22 · Squad, crawls and Dinner before (Phase 7, F10.1–F10.3, F10.6, F12.2, F12.3).**
 Decision:
 - A squad is defined per person: you and your mates (DATA 3.12). The streak counts Monday-to-Sunday weeks with an ended plan you shared with a mate, and an empty current week doesn't break it until the week ends. This settles D-063's open question.

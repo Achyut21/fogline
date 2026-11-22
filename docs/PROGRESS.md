@@ -365,6 +365,37 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Tests: `tests/component/plan-builder.test.tsx` (`[F4.6]` `[F4.9]` `[F4.1]` `[F5.3]` `[F5.7]`), e2e `tests/e2e/plans.spec.ts` (Phase 4 gate run: build, create, join in a second context, check in with mocked location, end) 3/3 on desktop-chrome, iphone, pixel.
   - Not built: F4.7 agent text, F5.4 20/5-minute alerts, F5.6 alerts text, F5.8 .ics, Open Graph images, F6.1 directions to the station.
 
+- 2026-11-22 03:35 ET · Builder B · Recap share image (F9.3) on `b/recap`:
+  - `GET /api/og/recap/[planId]` draws a 1080×1350 PNG from `recapForPlan`, so only members get it (F9.4) and the image's facts match the recap page. The facts come from `src/server/recap-card.ts`, which is unit-tested.
+  - The image follows COPY formats ("12.1 mi", "about 0.8 mi") and uses singular words for single counts. It carries a Demo label on demo nights and says "21+ spot" only for adults-only spots.
+  - Ghost stays off the image (DATA 3.10). Titles clamp to 2 lines, and names and the spot line to 1. Badges cap at 6 with "+N more". Rendered worst cases (80-character title, 40-character names, 16 badges) fit the canvas.
+  - Colors mirror the day tokens with an equality test. Hanken Grotesk 400/700/800 is vendored in `assets/fonts/` (OFL), and the build traces it into the function. D-070 logs the token-test exemption.
+  - code-critic, design-critic and copy-critic all returned FAIL; every blocking item is fixed. The re-reviews all PASS.
+  - **For A:** show Share/Download on the recap page to members only. Someone who opened the recap through an invite token gets a 404 from the image. The page can fetch the image with `/api/og/recap/${planId}` and hand the blob to `navigator.share`.
+  - Known: the demo seed records no rides, so the demo recap shows 0.0 mi on the T and 0 stops.
+
+- 2026-11-22 03:20 ET · Builder B · Phase 6, B's parts started early under D-067, on `b/recap` (stacked on #33):
+  - **Recap data (F9.1, F9.4):** `src/server/recap.ts` and `src/server/actions/recap.ts` (`recapForPlan`, `recapByInvite`). The recap holds:
+    - the arrival order, badges (Ghost included) and the night's numbers;
+    - the routes and the fog cleared, for people who checked in only.
+    - Access: members see everything; a token holder sees no routes, since routes start at home stations (F4.8); a bar is hidden from anyone not known to be 21+ (F4.9); demo and real never mix (F16.2).
+    - code-critic: FAIL, then all 3 blocking items fixed.
+  - **Badge copy (F8.5):** `src/copy/badges.ts`, words as COPY.md has them.
+    - First Light is shortened to fit 60 characters for "South Boston Waterfront".
+    - Closest Call under a minute reads "under 1 min to spare".
+    - copy-critic: PASS. The demo person is now Maya, the PRD persona.
+  - **How it works (F15.1, F15.2):** `src/app/how-it-works/`, checked at 390×844 in both themes.
+    - Live counts, compression, the last train recorded, the solver time and every data source with COPY.md's exact legal lines.
+    - Loading skeleton, a stale age chip, and the last numbers or an error when the database fails (the sources still show). Online-only: it reads live data.
+    - design-critic FAIL and copy-critic FAIL; the blocking items are fixed (states, legal lines).
+  - Ghost no longer shows on Me (DATA 3.10).
+  - Tests: recap, badge copy and How it works, 346 passing. The one failure is A's Windows-only token test.
+  - **For A:**
+    - Link How it works from Me (WALKTHROUGH F15 says "linked from Me and the footer").
+    - BottomNav scrolls away on long pages and has no current tab here; your shell's call.
+    - Build the recap page from `recapForPlan` or `recapByInvite`.
+    - `tests/unit/design-tokens.test.ts` exempt paths fail on Windows (backslashes).
+  - Next: the recap share image `/api/og/recap/[planId]` (F9.3).
 - 2026-11-22 03:10 ET · Builder A · Phase 3 item 4, F3 ride replay ([#35](https://github.com/Achyut21/fogline/pull/35), `a/ride-replay`):
   - Rebased onto `main` (`7ef3feb`); replay reads shapes through `data.shapes()`. Component test `tests/component/ride-replay.test.tsx` (`[F3.3]` `[F3.4]` `[F3.5]` `[F3.8]`) and the Phase 3 gate e2e `tests/e2e/ride.spec.ts` (seeded Green-D trip, onboarding, sheet → Ride from here → 20× past three stops → summary → stations uncovered; plus End with reduced motion). e2e 15/15 with onboarding and the sheet on desktop-chrome, iphone, pixel; 350 unit/component/integration passed; lint and typecheck clean.
   - Seen at 390×844 in night theme on a local build against the test DB; fixed "1 lines" in the summary.
