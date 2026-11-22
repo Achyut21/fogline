@@ -1,6 +1,6 @@
 import sharp from "sharp";
 
-// Renders the app icon (D-053) to the PNG sizes the manifest and iOS need. The shapes sit inside
+// Renders the app icon (D-054) to the PNG sizes the manifest and iOS need. The shapes sit inside
 // the central 80%, so the same file works as a maskable icon.
 const source = "public/icons/icon.svg";
 const outputs = [

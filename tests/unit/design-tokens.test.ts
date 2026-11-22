@@ -15,7 +15,7 @@ const themes = parseTokens(css);
 const { day } = themes;
 
 // Raw values are allowed only in the token files and, until item 6 restyles them, in the stock
-// shadcn primitives (D-037, extended by D-053).
+// shadcn primitives (D-037, extended by D-054).
 const exempt = ["src/styles/tokens.css", "src/styles/theme-color.ts", "src/components/ui/"];
 
 function sourceFiles(dir: string): string[] {

@@ -1,4 +1,4 @@
-// The design-token check (PHASES standing checks, D-053): raw colors, pixel values, arbitrary
+// The design-token check (PHASES standing checks, D-054): raw colors, pixel values, arbitrary
 // Tailwind values, Tailwind's default palette, off-scale spacing and raw durations are findings.
 
 export type Finding = { line: number; rule: string; match: string };

@@ -314,3 +314,24 @@ Consequences:
 - Stacked PRs: retarget the child to `main` before deleting the parent's branch. Deleting it closed #13, which had to be reopened.
 - Merge conflicts still block an admin merge. B rebases B's own branches. A resolved #12 and #13 with merge commits on B's branches (no force-push).
 - B applies B's own migrations to `fogline-db` after they merge, from B's terminal.
+
+**D-054 · 2026-11-21 · Final design tokens, font, token check and app icon (Phase 1 item 5, flag 4).**
+Decision:
+- The tokens in DESIGN section 4 are final. They live in `src/styles/tokens.css`, and `src/app/globals.css` maps them into Tailwind and resets Tailwind's default palette, type sizes, radii, shadows and easings, so a stock class like `bg-red-500` or `rounded-2xl` doesn't exist.
+- Where the tokens differ from the canvas:
+  - Day `--warning` is `#A35600` instead of the canvas's `#B25E00`, which reaches 4.28:1 on `--bg` and 4.12:1 on `--surface-sunken`. The new value reaches 4.95 and 4.76.
+  - Day `--success` is `#1B7348` instead of `#1E7F4F`, which reaches 4.41:1 on `--surface-sunken`. The new value reaches 5.16.
+  - Chips are pills (`rounded-full`), as drawn. DESIGN section 4's 6 px chip radius is gone. A new 8 px `--radius-small` serves segmented-control thumbs, inset in a 12 px track with 4 px padding.
+  - Night elevations add a hairline light ring (6, 8 and 10% ink). DESIGN section 4 asked for light borders at night, a black shadow barely shows on near-black, and night `--surface` (`#1E2227`) is almost night `--map-land` (`#1D2126`), so a card over cleared fog would lose its edge.
+- One font family: Hanken Grotesk (OFL), variable, through `next/font`, replacing Geist. impeccable `typeset` confirmed it: one grotesque fits the Direction's "one family", the detector scan was clean, and its figures are tabular by default. Numbers still carry `tabular-nums`, which matters if a fallback font renders: with `system-ui`, "1111" and "0000" differ by 26 px without it.
+- The token check (flag 4) is a Vitest test, `tests/unit/design-tokens.test.ts` with the rules in `tests/support/token-scan.ts`. It scans every `.ts`, `.tsx` and `.css` file under `src/` for hex colors, color functions, pixel values, arbitrary Tailwind values containing a digit or `#`, Tailwind palette colors, off-scale spacing and raw durations. Exempt: `src/styles/tokens.css`, `src/styles/theme-color.ts` (the manifest and meta tags need literal colors, D-043) and `src/components/ui/` (the D-037 exemption, kept until item 6 restyles those primitives). The same file tests AA for every text pair in both themes, 3:1 line visibility on both basemaps, `theme-color` against `--bg`, and Motion values against the CSS tokens.
+- Theme switching: next-themes, class strategy, default `system` (D-051). A small client component rewrites the `theme-color` meta tags only when the user picks Day or Night. The toggle marks the stored theme only after hydration: the server can't know it, and React doesn't patch a mismatched attribute, so before this fix a reload left every option unpressed.
+- App icon: seven H3 cells on the night background, three cleared along a teal line, two in thin fog, two in full fog. Night token colors only, every shape within 195 px of the center (the maskable safe zone is 205 px). The wordmark is "Fogline" set in Hanken Grotesk ExtraBold, not a separate file.
+Why: the approved Phase 1 plan (item 5 and flag 4). The PHASES grep skipped `.ts` and `.css` files and missed arbitrary values, palette classes, off-scale spacing and raw durations, while flagging any `#` followed by hex-looking text. The canvas values were drawn before AA was checked against every background.
+Consequences:
+- PHASES standing checks now name the Vitest check instead of the grep.
+- The plan named the test file `tests/unit/tokens.test.ts`. It is `design-tokens.test.ts`, because it covers more than the scan.
+- Item 6 restyles `src/components/ui/`, then removes that exemption. The custom line and station glyphs arrive with LineBadge and StationDot in item 6, since they are those components.
+- The canvas still shows `#B25E00` and `#1E7F4F`. New artboards use the token values.
+- `--layer-*` tokens are used as `z-(--layer-sheet)`. The stock shadcn Drawer still uses `z-50` until item 6.
+- Numbering: B's open PR #16 already uses D-053 for the hypertables, so this entry is D-054.
