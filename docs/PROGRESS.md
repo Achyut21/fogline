@@ -225,6 +225,8 @@ Run 2026-11-21 by Builder A on `main` at `4b7aa05`. Second pass, after the D-043
 
 Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests · next`.
 
+- 2026-11-22 00:45 ET · Builder A · A cut Phase 1 for the deadline (D-060): no more canvas pages or storyboards, microcopy goes with each feature, visual baselines move to Phase 9, and no parallel subagents. Item 6a got code-critic and design-critic fixes (safe areas, sheet focus and tap-to-snap, token motion for vaul, chip selection, copy). 6b (display components, `/design` demos, root MotionConfig) got copy-critic fixes; it skips its own design-critic run to save credits (I checked it at 390×844 in both themes), and the gate's design-critic pass covers it.
+
 - 2026-11-21 23:55 ET · Builder A · Item 4 merged ([#24](https://github.com/Achyut21/fogline/pull/24), `7dcc9c0`). code-critic's narrow re-check passed all three blocking fixes. Its one new note goes to Phase 3 with the rest: full fog's opacity drifts between 0.72 and 0.97 inside the mask but is a flat 0.92 outside, so a seam may show at the mask edge. Item 6 split in two (D-059): 6a on `a/design-base` (restyled primitives, controls, state components, BottomNav), 6b built in parallel by a subagent in its own worktree.
 
 - 2026-11-21 23:05 ET · Builder A · Phase 1 item 4, the 3D fog spike (`a/fog-spike`, `ad6c0bf`, `ec63c59`):
