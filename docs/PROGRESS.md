@@ -290,12 +290,11 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - **F6.4 plan end:** `/api/cron/end-plans` every 15 minutes (`endDuePlans`), with `ended_at` at the rule's time; badges awarded. DATA 3.19.
   - **F5.8 Remind me:** `GET /api/plans/[planId]/remind` returns a `.ics` for the signed-in participant, with alarms 20 and 5 minutes before their leave-by. DATA 3.19.
   - **F5.6 route alerts:** `planByInvite` gives each member's person an `alerts` field: `disrupted` (with MBTA's text), `check` (show `alerts.check`, "Check MBTA alerts") or `clear`. It's null for non-members or when the feed is down. DATA 3.18.
-  - D-073. Tests: `[F6.4]`, `[F5.8]` and `[F5.6]` unit and integration.
+  - D-074. Tests: `[F6.4]`, `[F5.8]` and `[F5.6]` unit and integration.
   - Still open: F4.8 plan Open Graph image (needs #36's share colors and fonts); F4.7 planner agent and F16.4 cached AI outputs (Gemini quota).
   - **For A:**
     - A "Remind me" link to `/api/plans/${id}/remind`, shown only when your leave-by is a train and the plan hasn't ended. Other answers are JSON errors (401, 404, 409), not pages.
     - Show `alerts` under the leave-by time.
-    - #43 and #44 both use D-072.
 
 - 2026-11-22 05:15 ET · Builder B · Phase 7 server side on `b/crawls` (from `main`; PR to follow):
   - **Crawls (F10.1–F10.3):** `src/lib/crawl.ts` (`buildCrawls`), OSM opening hours in `src/lib/places/hours.ts` (967 of 1,000 parse), `planCrawl` + `findCrawl` Server Action. DATA 3.15.
@@ -305,7 +304,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - campus-fair drafts (`src/lib/weekly.ts`), the Monday cron `/api/cron/weekly-plans`;
     - Server Actions `thisWeeksPlans` and `inviteToWeeklyPlan`;
     - migration `0004_phase7_weekly_plans` (`weekly_plans`, `plan_stops.walked_from_previous`);
-    - DATA 3.17 and D-072 (B's human chose campus stations).
+    - DATA 3.17 and D-073 (B's human chose campus stations).
   - **Plain-English violations (F11.2):** the `pnpm data:violations` pipeline and `violationWords`. Gemini returned 429 (quota exceeded), so `data/violations.json` is empty and the city's words show until it reruns.
   - Reviews: code-critic PASS on crawls, Dinner before and squad, with every SHOULD FIX done (OSM `,` vs `;`, T legs need a boarding train, full stay before the last train, T-leg, blocker and privacy tests).
   - Weekly plans and violations: code-critic FAIL and copy-critic FAIL on the first pass. All fixed:
@@ -327,6 +326,14 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - `planByInvite` now also returns `stops` (every stop in order, events as their venue), and leave-by runs from the last stop. A crawl's plan page can list them; `spot` and `station` are still the first stop.
     - Weekly plan titles are short headings. A meal-before title names the venue (or "the event"); the event's own title isn't sent, so it can't give away a puzzle word.
     - Screens: crawl builder (`findCrawl`), Dinner before on Plan it (`findDinnerBefore`), weekly plans (`thisWeeksPlans`, `inviteToWeeklyPlan`).
+- 2026-11-22 04:15 ET · Builder A · Phase 8 (F13 calm mode, F14 Find it and taste of home) on `a/calm`, and #41 merged:
+  - #41 (B's `b/crawls` with A's squad and crawl screens, folded into one PR because B had no PR open) squash `7a68d39` after code-critic FAIL (a crawl's title named its first venue, leaking 21+ venues) → fixes (station-named titles, hidden 21+ titles, stop times checked, leave-by from the last stop) → PASS.
+  - Calm: `/calm` with a microphone primer (F1.4), measuring a named stretch on the phone (`src/lib/noise.ts`), `recordNoise` (adjacent stations only, one a minute), the "Measured by riders" list, and the sensory preview in the station sheet. D-072.
+  - Find food (`/find`, linked from Plans): a photo to a dish (Gemini), Maps-grounded places with review quotes matched to our spots, age, grade and budget rules, pins on the SVG map, `ai_cache`. **The Gemini key answered 429 quota exceeded on every model tonight**; A is updating `GEMINI_MODEL` to `gemini-3.7-flash` (B's change) and checking the quota.
+  - Tests: noise unit and integration, find unit and integration (Gemini mocked), `[F13.5]` sheet tests, e2e calm (privacy check) and find. 406 pass; e2e 14 passed, 1 skipped (fake microphone is Chromium-only).
+  - Not built: F13.3 as a map layer (it's a list), F13.4 calm routing (B's solver), crowd and waiting-spot data for F13.5.
+  - code-critic: FAIL (the microphone could stay on after leaving `/calm` or a double tap during the permission prompt; unlimited Gemini calls) → fixed: start is guarded and a late stream is stopped; 10 searches an hour per profile and 300 overall, counted in `ai_cache`; only places in the Maps grounding data are kept; noise readings are checked under a per-profile lock (concurrency test); Server Action bodies up to 6 MB for photos; duplicate pins removed.
+  - **Gemini, 04:30 ET with the new key:** plain calls work on `gemini-3.1-flash-lite`; `gemini-3.7-flash` answered 503 (high demand); Maps grounding answers 429 quota exceeded on every model, so this project has no grounding quota. Find it and taste of home show "Search isn't available right now" until grounding is enabled for the project.
 
 - 2026-11-22 04:01 ET · Builder A · Phase 7 items 2 and 3, crawls and squad (stacked on B's `b/crawls`: [#41](https://github.com/Achyut21/fogline/pull/41) `a/squad`, [#42] `a/crawls`) and #40 merged:
   - #40 (grades) squash `8fc44b1` after code-critic PASS (two notes fixed: a retry button for a failed inspection load, and the F11.2 test renamed because the plain-English rewrite isn't built).

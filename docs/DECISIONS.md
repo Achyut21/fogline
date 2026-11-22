@@ -599,7 +599,16 @@ Decision:
 Why: F10 and F12 left these rules open. Fairness for the first stop and last trains from the last are what F10.3 asks for.
 Consequences: the crawl result already says whether each leg is walked. It goes into `plan_stops` with the Phase 7 migration (DATA 3.11).
 
-**D-072 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5).**
+**D-072 · 2026-11-22 · Calm mode measures a named stretch; Find it shows only spots we know (Phase 8, F13, F14).**
+Decision:
+- Calm mode (F13.1) measures one stretch the rider names (line, from, to) between Start at the doors closing and Stop at the next station. Rides in the app are replays, played anywhere, so sampling during a replay would label room noise as a train's. Each 250 ms frame becomes one dBFS level on the phone; only the stretch's energy average and peak are sent, through `recordNoise`, which checks the stations are adjacent on that line and allows one reading a minute per profile. Levels are uncalibrated, so they are only shown on a relative scale (quieter, typical, louder by thirds).
+- The calm layer (F13.3) is the "Measured by riders" list on `/calm`, not a map layer yet. The sensory preview (F13.5) shows measured sound and the quietest hour, and says "no data" for crowds and the quietest place to wait, which have no source. The calm preference in plans (F13.4) waits for solver work (B).
+- Find it and taste of home (F14) ask Gemini for places with a quoted Google Maps review through Maps grounding, then show only names that match a spot in `data/places.json` near a station, so the age, grade and budget rules run on our data (F14.3). A photo is sent to Gemini for that one call and isn't stored. Answers are cached in `ai_cache` by model and prompt. Pins use the SVG map.
+Why: honest data (CLAUDE.md: no fake data) and F14.3's filters need fields Gemini doesn't return.
+Grounded search uses `GEMINI_GROUNDING_MODEL` (default `gemini-3.5-flash`): on 2026-11-22 Maps grounding returned place data on `gemini-3.5-flash` and `gemini-3.6-flash` (about 40 s), while `gemini-3.1-flash-lite` answered from memory with no grounding data. Only names in the grounding data ("Name - Google Maps") and only text in quotation marks are kept.
+Consequences: needs `GEMINI_MODEL` (B moved to `gemini-3.7-flash`), optionally `GEMINI_GROUNDING_MODEL`, and a Gemini key with quota; on 2026-11-22 the key answered 429 quota exceeded for every model, so F14 shows "Search isn't available right now" until that's fixed.
+
+**D-073 · 2026-11-22 · Weekly plans (Phase 7, F10.4, F10.5).**
 Decision:
 - Weekly plans are fair for a group from five campuses (Kendall/MIT, Harvard, BU Central, Northeastern, Medford/Tufts), because the Monday cron runs before anyone joins. Inviting friends copies the plan, and leave-by times then follow the real group.
 - "Crawl templates" (F10.4) are a fixed list of stop categories with a start time: dinner, then dessert on Friday at 7 PM; coffee, then museum or show on Saturday at 2 PM; brunch, then a park walk on Sunday at 11 AM. A meal before the week's first puzzle event comes first, named by its hour: breakfast before 11 AM, lunch before 4 PM, dinner after. Titles are headings under six words: the venue when it's short ("Dinner, then Symphony Hall"), "the event" otherwise. The event's title isn't sent, because it can give away a coming day's puzzle word. All are all-ages, and a plan whose stop leaves the data or turns 21+ is hidden.
@@ -607,7 +616,7 @@ Decision:
 Why: F10.4 asks for plans "from events and crawl templates" that pass every check, and nothing defined the templates or whose stations to use. B's human chose campus stations over no fairness or cutting the feature.
 Consequences: B's human applies migration 0004 to fogline-db. A's plan page has to handle an event ID as a stop's place (ARCHITECTURE section 6 already allows it).
 
-**D-073 · 2026-11-22 · Plan end cron, Remind me and route alerts (Phase 4 leftovers: F6.4, F5.8, F5.6).**
+**D-074 · 2026-11-22 · Plan end cron, Remind me and route alerts (Phase 4 leftovers: F6.4, F5.8, F5.6).**
 Decision:
 - `end-plans` runs every 15 minutes and sets `ended_at` to the rule's time (DATA 3.19), then awards badges.
 - "Remind me" is a route handler, `/api/plans/[planId]/remind`, that answers only the signed-in participant, because the file names their last train home.
@@ -615,4 +624,4 @@ Decision:
 - Known limit: Google Calendar's import drops an .ics file's alarms and uses the person's default notifications, and its Android app doesn't open .ics files. Apple Calendar keeps both alarms. The in-app 20 and 5 minute alerts (F5.4) still cover people with the app open.
 - The reminder's description names the first train home, its line, station and time ("Last Green Line E from Kenmore is 12:22 AM"), since a trip home can start with a walk to another station.
 Why: F6.4, F5.8 and F5.6 were the open Phase 4 server items.
-Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. Note: A's #43 also uses D-072; whichever of #43 and #44 merges second renumbers.
+Consequences: A adds the Remind me button and shows `people[].alerts` on the plan page. 

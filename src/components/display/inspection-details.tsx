@@ -37,6 +37,7 @@ export function InspectionDetails({ spotId }: { spotId: string }) {
           <button
             type="button"
             onClick={() => load(true)}
+            disabled={pending}
             className="min-h-11 font-semibold text-accent underline"
           >
             {grades.retry}

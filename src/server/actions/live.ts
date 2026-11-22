@@ -55,7 +55,7 @@ export async function checkIn(
     ts: now,
     profileId: me,
     planId: attempt.planId,
-    placeId: place.id,
+    placeId: row.placeId,
     lat: attempt.lat,
     lon: attempt.lon,
     accuracyM: attempt.accuracyM,

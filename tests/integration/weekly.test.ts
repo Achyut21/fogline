@@ -8,6 +8,7 @@ import { storedStopSchema } from "@/lib/weekly";
 import { checkIn } from "@/server/actions/live";
 import { planByInvite } from "@/server/actions/plans";
 import { data } from "@/server/data";
+import { stopSpot } from "@/server/stop-spot";
 import { createDb, type Db } from "@/server/db/client";
 import { planParticipants, planStops, plans, profiles, weeklyPlans } from "@/server/db/schema";
 import { copyWeeklyPlan, makeWeeklyPlans, weeklyPlansFor } from "@/server/weekly";
@@ -65,6 +66,10 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     expect(shown).toHaveLength(3);
     expect(shown[0].title).toMatch(/^(Breakfast|Lunch|Dinner), then /);
     expect(shown[0].stops.at(-1)?.category).toBe("event");
+    // An event stop's ID would spell out a puzzle answer's date and title, so it's a hash.
+    const eventIds = new Set(data.events().map((e) => e.id));
+    expect(shown.flatMap((p) => p.stops).some((stop) => eventIds.has(stop.id))).toBe(false);
+    expect(shown[0].stops.at(-1)?.id).toMatch(/^event-[0-9a-f]{12}$/);
     expect(shown.slice(1).map((p) => p.title)).toEqual([
       "Dinner, then dessert",
       "Coffee, then museum or show",
@@ -104,7 +109,9 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
       .where(eq(planParticipants.planId, first.id));
     expect(seats.map((s) => [s.profileId, s.rsvp])).toEqual([[maya.id, "yes"]]);
     const stops = await db.select().from(planStops).where(eq(planStops.planId, first.id));
-    expect(stops.map((s) => s.placeId)).toEqual(weekly.stops.map((s) => s.id));
+    expect(stops.map((s) => stopSpot(s.placeId, s.stationId)?.id)).toEqual(
+      weekly.stops.map((s) => s.id),
+    );
     expect(stops.map((s) => s.walkedFromPrevious)).toEqual(
       weekly.stops.map((s) => s.leg?.mode === "walk"),
     );
@@ -140,7 +147,7 @@ describe.skipIf(testUrl === "")("weekly plans", { timeout: 30_000 }, () => {
     const page = await planByInvite(copy.inviteToken);
     if (!page) throw new Error("expected the plan");
     expect(page.stops.map((s) => s.id)).toEqual(weekly.stops.map((s) => s.id));
-    const event = data.events().find((e) => e.id === weekly.stops.at(-1)?.id);
+    const event = data.events().find((e) => e.venue === weekly.stops.at(-1)?.name);
     if (!event) throw new Error("expected the event stop");
     expect(page.stops.at(-1)?.name).toBe(event.venue);
 

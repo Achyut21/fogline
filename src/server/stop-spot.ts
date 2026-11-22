@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { data } from "@/server/data";
 
 export type StopSpot = {
@@ -30,7 +31,8 @@ export function stopSpot(placeId: string, stationId: string): StopSpot | null {
   const event = data.events().find((e) => e.id === placeId);
   if (!event) return null;
   return {
-    id: event.id,
+    // Event IDs spell out the date and title of a puzzle answer, so the client gets a hash.
+    id: `event-${createHash("sha256").update(event.id).digest("hex").slice(0, 12)}`,
     name: event.venue,
     lat: event.lat,
     lon: event.lon,
