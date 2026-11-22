@@ -11,7 +11,7 @@ type Plan = {
 };
 
 /**
- * What an invite link's preview shows (F4.8): title, time, spot and how many are going. It's the
+ * What an invite link's preview shows (F4.8): title, time, spot and how many are in. It's the
  * same for everyone who holds the link, so a cache can't hand one viewer's version to another, and
  * a 21+ plan always hides its title and venue (F4.9).
  */
@@ -24,6 +24,6 @@ export function planPreview(plan: Plan) {
     when: planCopy.plan.when(new Date(plan.startsAt)),
     spot: hidden ? copy.hiddenSpot : (first?.name ?? plan.spot?.name ?? copy.hiddenSpot),
     more: !hidden && rest.length > 0 ? copy.moreStops(rest.length) : null,
-    going: copy.people(plan.people.filter((p) => p.rsvp !== "no").length),
+    people: copy.people(plan.people.filter((p) => p.rsvp !== "no").length),
   };
 }

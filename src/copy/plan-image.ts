@@ -5,5 +5,8 @@ export const planImage = {
   hiddenTitle: "A 21+ night out",
   hiddenSpot: "21+ spot",
   moreStops: (n: number) => (n === 1 ? "+1 more stop" : `+${n} more stops`),
-  people: (n: number) => (n === 1 ? "1 person going" : `${n} people going`),
+  /** Every seat that hasn't said no, answered or not, so it doesn't claim they're all going. */
+  people: (n: number) => (n === 1 ? "1 person" : `${n} people`),
+  /** The link's text preview, for apps that show a small thumbnail or none. */
+  description: (when: string, spot: string, people: string) => `${when} · ${spot} · ${people}`,
 } as const;

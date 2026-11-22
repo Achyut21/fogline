@@ -228,10 +228,10 @@ From `vehicle_positions` (`src/lib/replay.ts`, `src/server/replay.ts`):
 
 ### 3.20 Invite link preview (F4.8)
 
-- `/api/og/plan/[planId]?t=[token]` draws a 1200×630 image for the plan's invite link: title, day and time, the first stop (with "+N more stops" for a crawl), and how many people are going (every seat that hasn't said no).
+- `/api/og/plan/[planId]?t=[token]` draws a 1200×630 image for the plan's invite link: title, day and time, the first stop (with "+N more stops" for a crawl), and the number of people (every seat that hasn't said no, so it says "4 people", not "going").
 - Link previews are fetched without cookies, so the token in the URL grants access. The plan ID must match it.
 - The image is the same for everyone who holds the link, so caches can share it for 5 minutes. A 21+ plan therefore always shows "A 21+ night out" and "21+ spot" (F4.9). A demo plan carries the Demo label.
-- The plan page's metadata points `og:image` and the large Twitter card at it, when the link carries a well-formed token.
+- The plan page's metadata points `og:image` and the large Twitter card at it, and gives the same facts as `og:title` and `og:description` for apps that show a small cropped thumbnail or none, when the link carries a valid token.
 
 ## 4. Edge cases every algorithm test covers
 

@@ -66,6 +66,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ planId: st
           style={{
             display: "block",
             lineClamp: 2,
+            overflow: "hidden",
+            wordBreak: "break-word",
             fontSize: 64,
             fontWeight: 800,
             lineHeight: 1.1,

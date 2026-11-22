@@ -12,18 +12,18 @@ const plan = {
 };
 
 describe("invite link preview", () => {
-  it("[F4.8] shows the title, time, spot and how many are going", () => {
+  it("[F4.8] shows the title, time, spot and how many people are in", () => {
     expect(planPreview(plan)).toEqual({
       demo: false,
       title: "Friday dinner",
       when: expect.stringMatching(/Fri.*7:00 PM/) as string,
       spot: "Cocobeet",
       more: "+2 more stops",
-      going: "2 people going",
+      people: "2 people",
     });
     expect(
       planPreview({ ...plan, stops: [{ name: "Cocobeet" }], people: [{ rsvp: "yes" }] }),
-    ).toMatchObject({ more: null, going: "1 person going" });
+    ).toMatchObject({ more: null, people: "1 person" });
   });
 
   it("[F4.9] hides a 21+ plan's title and venue from every preview", () => {

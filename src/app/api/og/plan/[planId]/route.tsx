@@ -48,9 +48,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ plan
               display: "flex",
               padding: "4px 16px",
               borderRadius: 999,
-              background: c.sunken,
-              color: c.inkMuted,
-              fontSize: 24,
+              background: c.ink,
+              color: c.surface,
+              fontSize: 28,
               fontWeight: 700,
             }}
           >
@@ -63,6 +63,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ plan
           style={{
             display: "block",
             lineClamp: 2,
+            overflow: "hidden",
+            wordBreak: "break-word",
             fontSize: 72,
             fontWeight: 800,
             lineHeight: 1.1,
@@ -71,7 +73,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ plan
         >
           {card.title}
         </div>
-        <div style={{ ...oneLine, fontSize: 40, color: c.inkMuted }}>{card.when}</div>
+        <div style={{ ...oneLine, fontSize: 48, fontWeight: 700 }}>{card.when}</div>
       </div>
       <div style={{ display: "flex", gap: 24 }}>
         <div
@@ -102,7 +104,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ plan
             fontWeight: 800,
           }}
         >
-          {card.going}
+          {card.people}
         </div>
       </div>
     </div>,
