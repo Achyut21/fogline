@@ -16,7 +16,7 @@ This is the shared status board for both builders. Update it after every finishe
 | 7 Crawls, weekly plans, grades, squad | Built (#40, #41, #44); weekly plans screen now Phase 9; gate not run | B (+A UI) |
 | 8 Extras | Built (#43, #46); F13.3 map layer and F13.4 calm routing open; gate not run | A + B |
 | 9 PWA polish and UI/UX | Plan below, waiting for A's yes (D-075) | A |
-| 10 Hardening and release | Not started; B can start now, gate runs last (D-075) | B |
+| 10 Hardening and release | In progress (B, 2026-11-22); gate runs last (D-075) | B |
 
 ## Board
 
@@ -135,6 +135,17 @@ This is the shared status board for both builders. Update it after every finishe
 - **Blocked:** none. Waiting on A: sign-off on D-065 (restore without a rate limit, now live on production).
 
 ### Builder B
+- **Now (2026-11-22 07:30):** Phase 10, hardening and release (D-075), on `b/phase10`. B's human said to start. Plan, in order of risk:
+  1. **Security:**
+     - a whole-app security review (subagent);
+     - timing-safe `CRON_SECRET` checks in one shared helper;
+     - a `rate_limits` token bucket (migration 0005, applied by B's human) on profile-code restore (D-065), demo seeding and the AI routes;
+     - fix the review's findings.
+  2. **Copy:** copy-critic over all of `src/copy/`, then a no-ai-slop pass; fix the findings.
+  3. **Ship kit:** README (what it is, how to run it, architecture, data credits), Devpost text, a 1-minute video script.
+  4. **Accessibility:** axe in e2e on every route, then keyboard and screen-reader notes. A owns the UI fixes in Phase 9, so B logs them for A.
+  5. **Performance:** a Lighthouse budget and bundle analysis. The real mid-range Android check is for the humans.
+  6. **WALKTHROUGH** for every feature plus the 10-minute tour, and visual baselines for `/design`. Last, on the final app.
 - **Now (2026-11-22 04:05):** Phase 7 server side on `b/crawls`, from `main` (independent of #36). B's human said to start the parts with no dependency and keep merging as A lands work. Plan:
   1. **Crawl builder (F10.1–F10.3):** `src/lib/crawl.ts` (2–4 stops; first stop by fairness; each next stop within 10 min by walk or T; open at its time where OSM hours parse, unknown hours flagged; last train from the last stop) and `src/lib/places/hours.ts`. DATA 3.15 defines it. Tests `[F10.1]` `[F10.2]` `[F10.3]`.
   2. **Dinner before (F10.6):** a 2-stop crawl ending at a puzzle event's venue. Test `[F10.6]`.
