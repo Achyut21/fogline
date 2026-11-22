@@ -14,6 +14,8 @@ describe("plain-English violations", () => {
     expect(checkRewrite("x".repeat(91) + ".", source)).toMatch(/over 90/);
     expect(checkRewrite("Towels missing; sink dirty.", source)).toMatch(/semicolon/);
     expect(checkRewrite("Staff did not utilize hand dryers.", source)).toMatch(/utilize/);
+    expect(checkRewrite("Say goodbye to dirty hand towels.", source)).toMatch(/goodbye/);
+    expect(checkRewrite("It’s not just the towels at the sink.", source)).toMatch(/not just/);
     expect(checkRewrite("Problem With Hand Drying Provision.", source)).toMatch(/sentence case/);
     expect(checkRewrite("Found 1 sink without towels.", "Item 41 failed")).toMatch(/number 1/);
     expect(checkRewrite("Item 41 failed at the sink.", "Item 41 failed")).toBeNull();

@@ -295,8 +295,8 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - the cron hour gate read "06" as not 6 AM; it's now tested at both UTC runs in EST and EDT, on one `0 10,11 * * 1` schedule;
     - plan pages list every stop, with leave-by from the last; check-ins work at event stops (`stopSpot`);
     - weekly plans are hidden and not copyable once a stop leaves the data or turns 21+, and only this week's can be copied;
-    - titles are short and name the meal by its hour ("Dinner, then Symphony Hall");
-    - violation checks share COPY's banned-word list and reject semicolons, Title Case and invented numbers.
+    - titles are headings under six words and name the meal by its hour ("Dinner, then Symphony Hall", or "the event" for a long venue);
+    - violation checks share COPY's banned words and patterns and reject semicolons, Title Case and invented numbers.
   - **Deploy order:** migration 0004 must reach fogline-db before this branch deploys. `plan_stops` now selects `walked_from_previous`, so plan pages and `endPlan` fail until the column exists.
   - Data note: one city violation reads "uspension of Permit / Emergency Closure without a Prior Hearing", with its first letter missing in `places.json`. Check `data:grades` against the source next time it runs.
   - Tests: 393 pass. The only failure is A's Windows-only token test.
@@ -304,7 +304,7 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - **For A:**
     - #40: in `spotInspection`, map each violation's `text` through `violationWords(text, data.violations())` from `src/lib/violations.ts`. F11.2 also wants a link to the city record, for example https://data.boston.gov/dataset/food-establishment-inspections.
     - `planByInvite` now also returns `stops` (every stop in order, events as their venue), and leave-by runs from the last stop. A crawl's plan page can list them; `spot` and `station` are still the first stop.
-    - Weekly plan titles are short; show the event's name on its own line under a Dinner-before title.
+    - Weekly plan titles are short headings. A meal-before title names the venue (or "the event"); the event's own title isn't sent, so it can't give away a puzzle word.
     - Screens: crawl builder (`findCrawl`), Dinner before on Plan it (`findDinnerBefore`), weekly plans (`thisWeeksPlans`, `inviteToWeeklyPlan`).
 
 - 2026-11-22 04:20 ET · Builder A · Phase 5 daily puzzle (`a/daily`) and #37 merged:

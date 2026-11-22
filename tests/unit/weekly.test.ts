@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { weekly } from "@/copy";
 import { openAt } from "@/lib/places/hours";
 import {
   campusStations,
@@ -72,5 +73,20 @@ describe("weekly plans", () => {
     expect(mealAt(new Date("2026-11-28T08:20:00-05:00"))).toBe("breakfast");
     expect(mealAt(new Date("2026-11-22T13:50:00-05:00"))).toBe("lunch");
     expect(mealAt(new Date("2026-11-27T18:20:00-05:00"))).toBe("dinner");
+  });
+
+  it("[F10.4] keeps every weekly title a heading under six words", () => {
+    const titles = [
+      ...Object.values(weekly.titles),
+      ...data.events().map((e) => weekly.beforeEvent(weekly.meals.dinner, e.venue)),
+    ];
+    for (const title of titles) expect(title.split(/\s+/).length, title).toBeLessThan(6);
+    expect(weekly.beforeEvent("Dinner", "Symphony Hall")).toBe("Dinner, then Symphony Hall");
+    expect(weekly.beforeEvent("Lunch", "Harvard Science Center, Hall B")).toBe(
+      "Lunch, then the event",
+    );
+    expect(weekly.beforeEvent("Lunch", "The Huntington Theatre")).toBe(
+      "Lunch, then the Huntington Theatre",
+    );
   });
 });

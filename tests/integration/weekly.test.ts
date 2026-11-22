@@ -57,7 +57,7 @@ describe.skipIf(testUrl === "")("weekly plans", () => {
     expect(shown[0].stops.at(-1)?.category).toBe("event");
     expect(shown.slice(1).map((p) => p.title)).toEqual([
       "Dinner, then dessert",
-      "Coffee, then a museum or show",
+      "Coffee, then museum or show",
     ]);
     expect(await weeklyPlansFor(db, new Date("2026-12-01T12:00:00-05:00"))).toEqual([]);
   });
