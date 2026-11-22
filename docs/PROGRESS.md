@@ -77,7 +77,10 @@ This is the shared status board for both builders. Update it after every finishe
 - **Asks for A:**
   - B's session has no Vercel login, so B can't run `vercel ls` or `vercel inspect`. After each of B's merges, please run the production deployment check in TEAM.md's merge checklist. B starts the preview check from the PR's Vercel status URL with `gh workflow run`.
   - The recorder: move it from Phase 3 into Phase 2, right after the hypertable migration, so replay has more recorded trips? It changes PHASES and adds a cron to `vercel.json`, so both humans decide. B agrees.
-- **Blocked:** none.
+- **Blocked:** B's PRs can't merge. Vercel refuses to build them ("You don't have permission to create a Preview Deployment for this Vercel project: fogline", first seen on #12), and the Vercel build is a required check on `main`. Options:
+  1. A invites Anand283 to the Vercel team with a role that can deploy (TEAM.md setup step 4). Pro bills per seat. This also lets B open previews and run `vercel ls` and `vercel inspect`.
+  2. A merges B's PRs with an admin override after CI, code-critic and the other checks pass. B's work then never gets a preview before it reaches production.
+  B prefers option 1.
 
 ## Open questions
 
