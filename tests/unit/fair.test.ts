@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { rideMiles } from "@/lib/geo/miles";
-import { bucketKeys, type Graph, type Leg, type ShapeLine } from "@/lib/gtfs/types";
-import type { Place } from "@/lib/places/types";
+import { bucketKeys, type Graph, type Leg, type ShapeLine, type Timetable } from "@/lib/gtfs/types";
+import { placeSchema, type Place } from "@/lib/places/types";
 import { fairOptions, rankStations, spotsNear, type SpotFilters } from "@/lib/solver/fair";
 import { travelTimesFrom } from "@/lib/solver/travel";
 import { serviceTimeToDate } from "@/lib/time";
@@ -45,6 +45,28 @@ const graph: Graph = {
   },
 };
 
+// One train an evening, so trains run around 6 PM on Tuesday 2026-11-17 and not at 3:30 AM.
+const timetable: Timetable = {
+  feedVersion: "test",
+  stations,
+  transferSeconds: stations.map(() => 180),
+  walks: [],
+  services: ["WKD"],
+  dates: { "2026-11-17": [0] },
+  patterns: [[at("H"), at("P")]],
+  trips: [
+    {
+      id: "hp",
+      route: "Red",
+      direction: 0,
+      service: 0,
+      pattern: 0,
+      start: 18 * 3600 + 600,
+      offsets: [0, 600],
+    },
+  ],
+};
+
 const friends = [
   { id: "priya", station: "H" },
   { id: "sam", station: "T" },
@@ -66,7 +88,7 @@ function place(
     lat: 42.35,
     lon: -71.06,
     stations: [{ id: station, walkM }],
-    ageRule: "all",
+    ageRule: category === "bar" || category === "club" ? "21plus" : "all",
     price: 2,
     hours: null,
     grade: null,
@@ -74,17 +96,20 @@ function place(
   };
 }
 
+const gradeA = { letter: "A" as const, date: "2026-10-01" };
+const gradeB = { letter: "B" as const, date: "2026-09-01" };
+const gradeC = { letter: "C" as const, date: "2026-08-01" };
+
 const places: Place[] = [
-  place("p1-food", "food", "P", 200, { grade: { letter: "A", date: "2026-10-01" } }),
-  place("p2-bar", "bar", "P", 100, { ageRule: "21plus" }),
-  place("p3-coffee", "coffee", "X", 300, { price: 1, grade: { letter: "B", date: "2026-09-01" } }),
-  place("p4-far-food", "food", "K", 650, { grade: { letter: "A", date: "2026-10-01" } }),
-  place("p5-food", "food", "K", 500, { price: 3, grade: { letter: "C", date: "2026-08-01" } }),
+  place("p1-food", "food", "P", 200, { grade: gradeA }),
+  place("p2-bar", "bar", "P", 100),
+  place("p3-coffee", "coffee", "X", 300, { price: 1, grade: gradeB }),
+  place("p4-far-food", "food", "K", 601, { grade: gradeA }),
+  place("p5-food", "food", "K", 500, { price: 3, grade: gradeC }),
   place("p6-park", "park", "H", 100, { price: null }),
-  place("p7-dessert", "dessert", "B", 590, {
-    price: null,
-    grade: { letter: "A", date: "2026-10-01" },
-  }),
+  place("p7-dessert", "dessert", "B", 600, { price: null, grade: gradeA }),
+  place("p8-ungraded-food", "food", "P", 400),
+  place("p9-near-food", "food", "P", 50, { grade: gradeB }),
 ];
 
 const eat: SpotFilters = {
@@ -95,7 +120,7 @@ const eat: SpotFilters = {
 };
 
 describe("rankStations", () => {
-  it("[F4.2] uses each friend's T time from the travel graph for the plan's day and hour", () => {
+  it("[F4.2] uses each friend's T time from the travel graph", () => {
     const park = rankStations(graph, friends, tuesday6pm).find((r) => r.station === "P");
     expect(park?.times.map((t) => [t.participant, t.travel.seconds])).toEqual([
       ["priya", 720],
@@ -105,7 +130,7 @@ describe("rankStations", () => {
     expect(park?.times[2].travel).toEqual(travelTimesFrom(graph, "B", "weekday", 18).get("P"));
   });
 
-  it("[F4.3] ranks by max plus half the spread, breaks ties by the total, and drops trips over 75 minutes", () => {
+  it("[F4.3] ranks by max plus half the spread and drops trips over 75 minutes", () => {
     const ranked = rankStations(graph, friends, tuesday6pm);
     expect(ranked.map((r) => [r.station, r.score, r.total])).toEqual([
       ["P", 1890, 3540],
@@ -117,7 +142,73 @@ describe("rankStations", () => {
     ]);
   });
 
-  it("[F4.3] ranks a lone participant's nearest stations first", () => {
+  // Two friends at E and W. S(Z1) = 600 + 100 = 700 with a total of 1000; S(A1) = 700 with a
+  // total of 1400; Z2 is Z1 again. W to N is exactly 75 minutes and W to O one second more.
+  const tie: Graph = {
+    ...graph,
+    stations: ["A1", "E", "N", "O", "W", "Z1", "Z2"],
+    transferSeconds: [180, 180, 180, 180, 180, 180, 180],
+    legs: {
+      weekday: [
+        { from: 1, to: 5, ride: everyBucket(300), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 5, ride: everyBucket(500), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 1, to: 6, ride: everyBucket(300), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 6, ride: everyBucket(500), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 1, to: 0, ride: everyBucket(600), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 0, ride: everyBucket(600), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 1, to: 2, ride: everyBucket(60), wait: everyBucket(0), routes: everyBucket(0) },
+        { from: 4, to: 2, ride: everyBucket(4500), wait: everyBucket(0), routes: everyBucket(0) },
+        { from: 1, to: 3, ride: everyBucket(60), wait: everyBucket(0), routes: everyBucket(0) },
+        { from: 4, to: 3, ride: everyBucket(4501), wait: everyBucket(0), routes: everyBucket(0) },
+      ],
+      saturday: [
+        { from: 1, to: 5, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
+        { from: 4, to: 5, ride: everyBucket(900), wait: everyBucket(100), routes: everyBucket(0) },
+      ],
+      sunday: [],
+    },
+  };
+  const pair = [
+    { id: "east", station: "E" },
+    { id: "west", station: "W" },
+  ];
+
+  it("[F4.3] breaks ties by the total, then by station ID, and keeps exactly 75 minutes", () => {
+    expect(rankStations(tie, pair, tuesday6pm).map((r) => [r.station, r.score, r.total])).toEqual([
+      ["Z1", 700, 1000],
+      ["Z2", 700, 1000],
+      ["A1", 700, 1400],
+      ["N", 6720, 4560],
+    ]);
+  });
+
+  it("[F4.2] uses the plan's day type, and the previous service date after midnight", () => {
+    const saturday = serviceTimeToDate("2026-11-28", 18 * 3600);
+    expect(rankStations(tie, pair, saturday).map((r) => [r.station, r.total])).toEqual([
+      ["Z1", 2000],
+    ]);
+    const sundayAt1am = new Date("2026-11-29T06:00:00Z");
+    expect(rankStations(tie, pair, sundayAt1am).map((r) => r.station)).toEqual(["Z1"]);
+  });
+
+  it("[F4.2] uses the plan's hour bucket", () => {
+    const hourly: Graph = {
+      ...graph,
+      legs: {
+        ...graph.legs,
+        weekday: graph.legs.weekday.map((leg) => ({
+          ...leg,
+          wait: bucketKeys.map((bucket) => (bucket === 19 ? 900 : 60)),
+        })),
+      },
+    };
+    const at6 = rankStations(hourly, [friends[0]], tuesday6pm).find((r) => r.station === "P");
+    const at7 = rankStations(hourly, [friends[0]], serviceTimeToDate("2026-11-17", 19 * 3600));
+    expect(at6?.total).toBe(660);
+    expect(at7.find((r) => r.station === "P")?.total).toBe(1500);
+  });
+
+  it("[F4.3] ranks a lone participant's nearest stations first, and refuses empty or unknown participants", () => {
     expect(rankStations(graph, [friends[0]], tuesday6pm)[0]).toMatchObject({
       station: "H",
       score: 0,
@@ -125,69 +216,117 @@ describe("rankStations", () => {
     expect(() => rankStations(graph, [], tuesday6pm)).toThrow(
       "A plan needs at least one participant",
     );
+    expect(() => rankStations(graph, [{ id: "leo", station: "" }], tuesday6pm)).toThrow(
+      'Unknown station for leo: ""',
+    );
   });
 });
 
 describe("spotsNear", () => {
-  it("[F4.5] keeps spots within 600 m walking that match category, budget and grade", () => {
+  it("[F4.5] keeps spots within 600 m walking, nearest first, that match category and budget", () => {
+    expect(spotsNear(places, "P", eat).map((s) => [s.place.id, s.walkM])).toEqual([
+      ["p9-near-food", 50],
+      ["p1-food", 200],
+      ["p8-ungraded-food", 400],
+    ]);
     expect(spotsNear(places, "K", eat).map((s) => s.place.id)).toEqual(["p5-food"]);
     expect(spotsNear(places, "K", { ...eat, budget: 2 })).toEqual([]);
-    expect(spotsNear(places, "X", { ...eat, minGrade: "B" }).map((s) => s.place.id)).toEqual([
-      "p3-coffee",
-    ]);
-    expect(spotsNear(places, "X", { ...eat, minGrade: "A" })).toEqual([]);
     expect(spotsNear(places, "B", { ...eat, budget: 1 }).map((s) => [s.place.id, s.walkM])).toEqual(
-      [["p7-dessert", 590]],
+      [["p7-dessert", 600]],
     );
   });
 
-  it("[F4.5] applies the food grade only where people eat", () => {
-    const outdoors = { ...eat, categories: ["park" as const], minGrade: "A" as const };
+  it("[F11.5] keeps only graded spots that meet the minimum, and unmatched ones only where nobody eats", () => {
+    expect(spotsNear(places, "P", { ...eat, minGrade: "B" }).map((s) => s.place.id)).toEqual([
+      "p9-near-food",
+      "p1-food",
+    ]);
+    expect(spotsNear(places, "P", { ...eat, minGrade: "A" }).map((s) => s.place.id)).toEqual([
+      "p1-food",
+    ]);
+    const outdoors: SpotFilters = { ...eat, categories: ["park"], minGrade: "A" };
     expect(spotsNear(places, "H", outdoors).map((s) => s.place.id)).toEqual(["p6-park"]);
+    const gradedBar = [place("bar-c", "bar", "P", 100, { grade: gradeC })];
+    expect(spotsNear(gradedBar, "P", { ...eat, categories: ["bar"], minGrade: "A" })).toEqual([]);
   });
 
-  it("[F1.5] [F4.9] never offers 21+ spots once anyone joined is under 21", () => {
+  it("[F1.5] [F4.9] never offers bars, clubs or 21+ spots once anyone joined is under 21", () => {
     const drinks: SpotFilters = { ...eat, categories: ["bar"] };
     expect(spotsNear(places, "P", drinks).map((s) => s.place.id)).toEqual(["p2-bar"]);
     expect(spotsNear(places, "P", { ...drinks, under21: true })).toEqual([]);
+    const mislabeled = place("bar-all", "bar", "P", 100, { ageRule: "all" });
+    expect(spotsNear([mislabeled], "P", { ...drinks, under21: true })).toEqual([]);
+    expect(placeSchema.safeParse(mislabeled).success).toBe(false);
   });
 });
 
 describe("fairOptions", () => {
+  const options = (filters: SpotFilters, who = friends, list = places, startsAt = tuesday6pm) =>
+    fairOptions(graph, timetable, list, who, startsAt, filters);
+
   it("[F4.4] offers up to 3 stations, each with everyone's minutes, lines, transfers and spots", () => {
-    const result = fairOptions(graph, places, friends, tuesday6pm, eat);
+    const result = options(eat);
     if (result.kind !== "options") throw new Error(`expected options, got ${result.blockedBy}`);
     expect(result.options.map((o) => o.station)).toEqual(["P", "X", "K"]);
-    const park = result.options[0];
-    expect(park.spots.map((s) => [s.place.id, s.walkM])).toEqual([["p1-food", 200]]);
-    const maya = park.times.find((t) => t.participant === "maya")?.travel;
+    const maya = result.options[0].times.find((t) => t.participant === "maya")?.travel;
     expect(maya?.transfers).toEqual(["K"]);
     expect(maya?.steps.map((s) => (s.kind === "ride" ? s.routes : []))).toEqual([["Red"], ["Red"]]);
   });
 
-  it("[F4.6] names the filter to relax when nothing fits", () => {
-    const none = (filters: SpotFilters, who = friends) =>
-      fairOptions(graph, places, who, tuesday6pm, filters);
-    expect(none({ ...eat, categories: ["food"], budget: 1 })).toEqual({
+  it("[F4.4] skips well-ranked stations that have no matching spot", () => {
+    const result = options({ ...eat, categories: ["dessert"] });
+    expect(result.kind === "options" && result.options.map((o) => o.station)).toEqual(["B"]);
+  });
+
+  it("[F4.6] names the one filter to relax, budget first, then grade, then category", () => {
+    expect(options({ ...eat, categories: ["food"], budget: 1 })).toEqual({
       kind: "none",
-      blockedBy: "budget",
+      blockedBy: ["budget"],
     });
-    expect(none({ ...eat, categories: ["coffee"], minGrade: "A" })).toEqual({
+    expect(options({ ...eat, categories: ["coffee"], minGrade: "A" })).toEqual({
       kind: "none",
-      blockedBy: "minGrade",
+      blockedBy: ["minGrade"],
     });
-    expect(none({ ...eat, categories: ["club"] })).toEqual({
+    expect(
+      options({ ...eat, categories: ["food"], budget: 1, minGrade: "A" }, friends, [
+        place("cheap-b", "food", "P", 100, { price: 1, grade: gradeB }),
+        place("pricey-a", "food", "X", 100, { price: 3, grade: gradeA }),
+      ]),
+    ).toEqual({ kind: "none", blockedBy: ["budget"] });
+    expect(options({ ...eat, categories: ["club"] })).toEqual({
       kind: "none",
-      blockedBy: "categories",
+      blockedBy: ["categories"],
     });
-    expect(none(eat, [...friends, { id: "leo", station: "U" }])).toEqual({
+  });
+
+  it("[F4.6] names filters that only work relaxed together", () => {
+    const pricey = [place("pricey-b", "food", "P", 100, { price: 3, grade: gradeB })];
+    expect(
+      options({ ...eat, categories: ["food"], budget: 1, minGrade: "A" }, friends, pricey),
+    ).toEqual({ kind: "none", blockedBy: ["budget", "minGrade"] });
+  });
+
+  it("[F4.6] reports time, no trains or no spots, and never relaxes the age rule", () => {
+    expect(options(eat, [...friends, { id: "leo", station: "U" }])).toEqual({
       kind: "none",
-      blockedBy: "time",
+      blockedBy: ["time"],
     });
-    expect(fairOptions(graph, [], friends, tuesday6pm, eat)).toEqual({
+    const lateNight = serviceTimeToDate("2026-11-17", 3.5 * 3600);
+    expect(options(eat, friends, places, lateNight)).toEqual({
       kind: "none",
-      blockedBy: "spots",
+      blockedBy: ["no-trains"],
     });
+    expect(options(eat, friends, [])).toEqual({ kind: "none", blockedBy: ["spots"] });
+    const barsOnly = [place("p2-bar", "bar", "P", 100)];
+    expect(options({ ...eat, categories: ["bar"], under21: true }, friends, barsOnly)).toEqual({
+      kind: "none",
+      blockedBy: ["spots"],
+    });
+  });
+
+  it("[F4.4] still offers options on a date the timetable doesn't cover", () => {
+    const nextMonth = serviceTimeToDate("2027-01-05", 18 * 3600);
+    expect(options(eat, friends, places, nextMonth).kind).toBe("options");
   });
 });
 

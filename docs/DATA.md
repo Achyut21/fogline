@@ -65,8 +65,9 @@ Every script is idempotent, writes to `data/`, logs counts, and has a unit test 
 - `S(d) = max(t_i) + 0.5 × (max(t_i) − min(t_i))`. Lower is better. Break ties by `sum(t_i)`, then by station ID. `t_i` uses the plan's day type and hour bucket (section 3.1).
 - Exclude `d` when any participant can't reach it or any `t_i` is over 75 minutes.
 - Walk down the ranking and keep the first 3 stations that have at least one spot within 600 m walking (section 3.5) matching the filters (D-056). Spots are listed nearest first.
-- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B), applied only to food, coffee and dessert spots, where a spot with no inspection match fails it; and the age rule (no 21+ spot once any joined participant is under 21, F1.5, F4.9).
-- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. When no station is within 75 minutes for everyone, the blocker is time; when even all categories give no spots, it's spots. The age rule is never relaxed.
+- **Filters (F4.5):** category; budget (a spot's price band at most the budget; an unknown price passes and is shown as unknown); minimum grade (A, or A and B): a spot with a grade must meet it, and a spot with no inspection match fails it only in food, coffee and dessert; and the age rule (no bars, clubs or other 21+ spots once any joined participant is under 21, F1.5, F4.9).
+- **No trains:** before ranking matters, check that a subway train leaves within an hour of the plan's start on its service date (D-048). When none does, the answer is "no trains". A date the timetable doesn't cover skips the check.
+- **Nothing fits (F4.6):** relax one filter at a time, in the order budget, minimum grade, category, and name the first whose relaxing gives options. If none does alone, relax them together in that order and name the ones it took. When no station is within 75 minutes for everyone, the blocker is time; when everything relaxed still gives no spots, it's spots. The age rule is never relaxed. An unknown station is an error.
 
 ### 3.3 Last train (F5)
 

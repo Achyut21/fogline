@@ -22,16 +22,20 @@ export type Grade = (typeof grades)[number];
  * first (D-046). `price` is 1 to 3, or null when OpenStreetMap doesn't say. `grade` is null when
  * no inspection record matches (F11.4).
  */
-export const placeSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  category: z.enum(placeCategories),
-  lat: z.number(),
-  lon: z.number(),
-  stations: z.array(z.object({ id: z.string(), walkM: z.number().int().nonnegative() })),
-  ageRule: z.enum(["all", "21plus"]),
-  price: z.number().int().min(1).max(3).nullable(),
-  hours: z.string().nullable(),
-  grade: z.object({ letter: z.enum(grades), date: z.iso.date() }).nullable(),
-});
+export const placeSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    category: z.enum(placeCategories),
+    lat: z.number(),
+    lon: z.number(),
+    stations: z.array(z.object({ id: z.string(), walkM: z.number().int().nonnegative() })),
+    ageRule: z.enum(["all", "21plus"]),
+    price: z.number().int().min(1).max(3).nullable(),
+    hours: z.string().nullable(),
+    grade: z.object({ letter: z.enum(grades), date: z.iso.date() }).nullable(),
+  })
+  .refine((place) => !["bar", "club"].includes(place.category) || place.ageRule === "21plus", {
+    message: "Bars and clubs are 21+",
+  });
 export type Place = z.infer<typeof placeSchema>;

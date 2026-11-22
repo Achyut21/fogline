@@ -75,10 +75,11 @@ src/
   copy/        # every user-facing string, grouped by feature
   lib/
     time.ts        # America/New_York helpers, GTFS service dates
-    gtfs/          # loading the compact timetable and graph
-    solver/        # fair meetup scoring, crawl building
+    gtfs/          # data file schemas (types.ts), whether trains run (service.ts)
+    solver/        # travel times, fair meetup scoring, crawl building
+    places/        # place schema for data/places.json
     lasttrain/     # backward timetable search
-    geo/           # haversine, shape distance, walking estimate, H3 helpers
+    geo/           # haversine, ride miles, walking estimate, H3 helpers
     grades.ts  badges.ts  stats.ts  puzzle.ts  flags.ts  motion.ts  log.ts
   server/
     db/            # drizzle schema, client, queries
