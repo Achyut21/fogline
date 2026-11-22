@@ -35,6 +35,17 @@ const tick = (onChange: () => void) => {
 };
 const now = () => Math.floor(Date.now() / 15_000) * 15_000;
 
+/** The location permission's state, or "prompt" where the browser can't say (some WebViews). */
+async function locationPermission(): Promise<PermissionState> {
+  if (!navigator.permissions) return "prompt";
+  try {
+    return (await navigator.permissions.query({ name: "geolocation" })).state;
+  } catch (e) {
+    if (e instanceof TypeError || e instanceof DOMException) return "prompt";
+    throw e;
+  }
+}
+
 function position(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -127,9 +138,7 @@ export function PlanView({
 
   // The primer explains the location request before the browser asks (F1.4), until it's granted.
   async function startCheckIn() {
-    const state = navigator.permissions
-      ? (await navigator.permissions.query({ name: "geolocation" })).state
-      : "prompt";
+    const state = await locationPermission();
     if (state === "granted") void checkInHere();
     else setPrimer(true);
   }

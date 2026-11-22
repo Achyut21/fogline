@@ -5,7 +5,13 @@ import { createPlan, joinPlan, planByInvite } from "@/server/actions/plans";
 import { deleteMyData, updateAgeBand } from "@/server/actions/profile";
 import { data } from "@/server/data";
 import { createDb, type Db } from "@/server/db/client";
-import { profiles, revealedCells } from "@/server/db/schema";
+import {
+  noiseReadings,
+  profiles,
+  puzzleResults,
+  revealedCells,
+  rideEvents,
+} from "@/server/db/schema";
 import { insertProfile } from "@/server/profile";
 import { stationById } from "@/server/stations";
 import { createScratchDatabase } from "./scratch-database";
@@ -98,7 +104,33 @@ describe.skipIf(testUrl === "")("settings", () => {
     session.viewer = leaving;
     expect(await joinPlan(made.inviteToken)).toMatchObject({ kind: "joined" });
 
+    const now = new Date();
+    await db.insert(rideEvents).values({
+      ts: now,
+      profileId: leaving.id,
+      tripId: "t1",
+      routeId: "Green-D",
+      stopId: "place-kencl",
+      event: "board",
+      isReplay: true,
+    });
+    await db.insert(noiseReadings).values({
+      ts: now,
+      profileId: leaving.id,
+      routeId: "Green-D",
+      fromStopId: "place-kencl",
+      toStopId: "place-fenwy",
+      dbAvg: -40,
+      dbPeak: -30,
+    });
+    await db
+      .insert(puzzleResults)
+      .values({ profileId: leaving.id, date: "2026-11-22", guesses: ["crane"] });
+
     await expect(deleteMyData()).rejects.toThrow("redirect /welcome");
+    for (const table of [rideEvents, noiseReadings, puzzleResults]) {
+      expect(await db.select().from(table).where(eq(table.profileId, leaving.id))).toEqual([]);
+    }
     expect(session.ended).toBe(1);
     expect(await db.select().from(profiles).where(eq(profiles.id, leaving.id))).toEqual([]);
     expect(
