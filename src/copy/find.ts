@@ -3,13 +3,13 @@
 export const find = {
   pageTitle: "Find food",
   title: "Find food",
-  open: "Find a dish",
+  open: "Find food",
   photo: {
     title: "Find it",
     body: "Upload a photo of a dish. Fogline finds up to 3 spots in reach by T that serve it.",
     label: "Food photo",
     note: "The photo is used for this search only and isn't saved.",
-    submit: "Find this dish",
+    submit: "Find dish",
   },
   home: {
     title: "Taste of home",
@@ -31,7 +31,8 @@ export const find = {
     "not-food": "That photo doesn't show food. Try another one.",
     "bad-image": "Use a JPEG, PNG, WebP or HEIC photo under 5 MB.",
     "no-profile": "Make a profile first.",
-    unavailable: "Search isn't available right now. Try again later.",
+    unavailable:
+      "Search isn't answering. Plans and the map still work. Try again in a few minutes.",
     busy: "Too many searches this hour. Try again later.",
   },
 } as const;

@@ -12,9 +12,12 @@ export const squad = {
   you: (name: string) => `${name} (you)`,
   colorBy: "Show cells",
   everyone: "Everyone",
-  mapLabel: (cells: number) => `Map of Boston with ${cells} cells your squad uncovered.`,
+  mapLabel: (cells: number) =>
+    `Map of Boston with ${cells.toLocaleString("en-US")} ${cells === 1 ? "cell" : "cells"} your squad uncovered.`,
   memberCells: (name: string, n: number) =>
-    n === 1 ? `${name} uncovered 1 cell first` : `${name} uncovered ${n} cells first`,
+    n === 1
+      ? `${name} uncovered 1 cell first`
+      : `${name} uncovered ${n.toLocaleString("en-US")} cells first`,
   empty: {
     title: "No squad yet",
     body: "Check in at a plan's spot with friends. Once the plan ends, you're a squad.",

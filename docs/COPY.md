@@ -32,7 +32,7 @@ unlock, unleash, elevate, seamless, seamlessly, effortless, effortlessly, journe
 | Minutes | whole number, "min" | 14 min |
 | Clock time | 12-hour, no leading zero, AM/PM after a no-break space (U+00A0), so the two never split across lines | 12:14 AM |
 | Date | short weekday, month, day | Fri, Nov 27 |
-| Percent | whole number | 38% |
+| Percent | whole number; one decimal under 10%, so a new map isn't stuck at 0% | 38%, 0.3% |
 | Ratio | one decimal, "×" and what it measures | 7.6× smaller |
 | Milliseconds | whole number with a thousands separator, "ms" | 21 ms |
 | Counts | thousands separator | 1,204 |

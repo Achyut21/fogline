@@ -29,10 +29,10 @@ export const onboarding = {
     label: "Age",
     under21: "Under 21",
     over21: "21 or older",
-    help: "You can change this later in Settings. Nobody checks an ID.",
-    submit: "Show my map",
+    help: "Nobody checks an ID.",
+    submit: "Show map",
   },
-  invalid: "Something in your answers didn't save. Check each step and try again.",
+  invalid: "Your profile didn't save. Check your school and home station, then try again.",
   restore: {
     title: "Restore profile",
     body: "Enter the 8-character code from Me on your other device. Your map, plans and badges come with it.",
