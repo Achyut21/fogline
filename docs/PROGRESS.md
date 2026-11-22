@@ -7,7 +7,7 @@ This is the shared status board for both builders. Update it after every finishe
 | Phase | Status | Owner(s) |
 |---|---|---|
 | 0 Foundations | Passed 2026-11-21 (gate table below) | A |
-| 1 Design | Next | A (both approve) |
+| 1 Design | In progress (plan approved 2026-11-21) | A (both approve) |
 | 2 Data and domain logic | In progress (plan approved 2026-11-21) | B |
 | 3 Profile, map, fog, ride | Not started | A (+B recorder) |
 | 4 Plans, last train, live night | Not started | B (+A UI) |
@@ -20,11 +20,67 @@ This is the shared status board for both builders. Update it after every finishe
 ## Board
 
 ### Builder A
-- **Now:** nothing in progress. Phase 0 passed its gate on `main` at `4b7aa05`.
+- **Now:** Phase 1 Design. A approved the plan below, flags included, on 2026-11-21. Each item gets its own branch and PR and follows the CLAUDE.md loop. I stop for the humans three times: the impeccable `shape` questions, the mood pick, and the final approval of the canvas and `/design`.
+  1. **Direction** (`a/design-direction`). No PRD criteria.
+     - Run impeccable `shape` (one round of questions to A), then design-taste-frontend and frontend-design. impeccable reads `docs/PRD.md` and `docs/DESIGN.md` as its context. No separate `PRODUCT.md`.
+     - Write a "Direction" section at the top of DESIGN.md: the visual world, color and type intent, fog and map character, motion personality, anti-references.
+     - Settle the theme default (flag 2) in DESIGN section 3 and DECISIONS.
+     - Check: A approves the Direction text.
+  2. **Claude Design canvas** (docs on `a/design-canvas`).
+     - Artifact `quickstart` with intent `design`, then publish "Fogline design" from the Design type. The link goes into DESIGN.md and DECISIONS.md.
+     - Round 1: three mood directions, each showing map home, a ride stop card and the recap, in day and night. Both humans pick one.
+     - Round 2: every DESIGN section 6 screen at 390×844 in day and night (about 55 screens), with empty, error and offline examples. This includes the visual specs for F2.2 cell states, F3.6 train lost, F4.9 the 21+ join page, F5.4 countdown colors, F6.2 check-in states, F7.2 the puzzle's second cue, F1.6 the install sheet and F16.3 the demo chip.
+     - Maps use real geography: subway shapes and stations from `MBTA_GTFS.zip` (19.8 MB, `https://cdn.mbta.com/MBTA_GTFS.zip`), downloaded once into the session scratchpad and not committed.
+     - Check: every artboard screenshotted at 390×844 in the browser pane.
+  3. **Motion storyboards** (on the canvas).
+     - One storyboard per DESIGN section 8 row (11 rows): start frame, end frame, timing token, behavior when interrupted, and the reduced-motion version.
+     - Each names where it gets built: `/design` in item 6 (count-up, countdown, sheet, tab switch, fog reveal) or its feature phase (puzzle, recap, ride, badge award, card to detail).
+     - Check: reviewed with the canvas.
+  4. **3D fog spike** (`a/fog-spike`). F2.2 and F2.6 at component level (the map wiring is Phase 3), plus PRD section 7's 45 fps.
+     - Approach A: a MapLibre custom layer drawing three.js into the map's WebGL context, under the T-line layers. Approach B: an R3F canvas over the map, synced to the map camera every frame. One shader for both: 2–3 octave FBM, drift, a density mask rasterized from H3 cell states, the burn-off reveal with a bright edge, parting under the finger.
+     - Files: `src/three/` (scenes, shaders, materials, hooks), `src/components/map/fog-layer.tsx`, `src/components/map/fog-fallback.tsx`. Loaded with `next/dynamic` (`ssr: false`), rendered on demand, stopped when hidden or off-screen, disposed on unmount. GPU tier from `detect-gpu` with its benchmark files served from `public/` (flag 6): tier 0–1 gets 2D, tier 2 gets DPR ≤ 1.5 and two octaves, tier 3 gets everything.
+     - Measure A and B with a Playwright script: headed Chromium on the Mac GPU, Pixel 7 emulation, CDP 4× CPU throttle, 20 s of scripted pan, zoom and reveal. Report mean fps, p95 frame time and frames over 22 ms at tier 2 and tier 3. Also compare layering (T lines above the fog), WebGL context count and camera lag. Pick one, log the numbers in DECISIONS, delete the other.
+     - Tests: unit `[F2.2] rasterizes fog, seen and visited cells into three densities`, `[F2.2] visited wins over seen`, `[F2.6] tier 0–1 and no WebGL choose the 2D fog`. e2e `[F2.6] shows the 2D fog when WebGL is unavailable` (Chromium with WebGL off), and the reveal becomes a 200 ms crossfade with reduced motion. Component: rendering stops while `document.hidden`.
+     - Check: the fog preview at 390×844 in both themes, with reduced motion, and with WebGL off.
+  5. **Tokens, fonts, icons** (`a/design-tokens`).
+     - Final values in DESIGN section 4 and `src/styles/tokens.css`: color roles per theme, a rem type scale, spacing, radius, elevation, layers, motion. Mapped into the Tailwind theme and shadcn's variables in `src/app/globals.css`. `src/lib/motion.ts` exports the motion values for Motion and R3F (A's file per ARCHITECTURE, not domain logic).
+     - Two OFL families with tabular figures, picked with impeccable `typeset` and loaded with `next/font`, replacing Geist. The service worker's font precache and its PWA test follow. Lucide plus custom line and station glyphs. Final app icon and wordmark in `public/icons/icon.svg`, PNGs from `pnpm icons`.
+     - Theme switching with next-themes (already installed) on the class strategy. `theme-color` updates at runtime only when the user overrides the OS. A test checks `src/styles/theme-color.ts` against `--bg` (D-043).
+     - The token check becomes `tests/unit/tokens.test.ts`, so every `pnpm test` and CI run enforces it (flag 4). The D-037 exemption for `src/components/ui` ends.
+     - Tests: unit `every text color pair meets WCAG AA in day and night`, `[F2.3] line colors are MBTA's and line casings reach 3:1 on both basemaps`, `theme-color matches --bg`. e2e: the theme override survives a reload and updates `theme-color`.
+     - First slice of `/design`: tokens with contrast ratios and a theme toggle. Check at 390×844 in both themes.
+  6. **Base components and `/design`** (`a/design-components`, two PRs if the diff gets big).
+     - Restyle Button (primary, secondary, ghost, danger), Drawer as Sheet (peek, half, full), Sonner as Toast, Input (16 px text) and Tabs.
+     - Add IconButton, SegmentedControl, Stepper, FilterChips, Skeleton, EmptyState, ErrorState, OfflineBanner, StaleChip, DemoChip, LineBadge, StationDot, StatCounter, StatTile, Countdown, LeaveByChip, BadgeChip, AvatarStack, ParticipantChip and BottomNav, plus FogLayer and FogFallback from item 4. Feature components come with their features (flag 3).
+     - `/design` shows every component in every state, a play button per motion pattern, the fog preview with a tier toggle, and theme and reduced-motion toggles. It is `noindex`, and its sample data is labeled "Sample data" (flag 7). Motion uses `motion/react`, transform and opacity only, token values, interruptible, with a reduced-motion branch.
+     - Tests: component `[F8.4] StatCounter counts up to its value`, `[F8.4] StatCounter shows the final value at once with reduced motion`, `[F5.4] Countdown turns warning at 20 min and danger at 5 min`, `[F2.3] LineBadge names its line for screen readers`, plus states and accessible names for every component. e2e on `/design`: axe in both themes, the final state of every motion demo with reduced motion, 44 px targets, no horizontal scroll at 390 px.
+     - Check: `/design` at 390×844, 768×1024 and 1440×900, both themes, reduced motion.
+  7. **Microcopy** (`a/design-copy`).
+     - Strings for every DESIGN section 6 screen in `src/copy/`, grouped by feature: titles, buttons, empty, error and offline lines, aria labels. `src/copy/badges.ts` from the COPY.md table.
+     - Drafted while drawing the canvas, so the artboards and the code use the same words.
+     - Tests: unit `[F8.5] every badge has a name and a description of 60 characters or fewer`, and a COPY.md check: no banned words, no exclamation marks outside the recap headline, no emoji.
+     - copy-critic, then a no-ai-slop pass.
+  8. **Visual baselines** (`a/design-baselines`).
+     - `tests/e2e/design-visual.spec.ts`: `/design` at 390×844 (iphone, pixel) and 1440×900 (desktop-chrome), day and night, motion settled, the WebGL canvas masked.
+     - Generated in Playwright's Docker image to match CI (D-035). Docker 29.2 is on A's Mac.
+     - Check: `pnpm test:e2e` passes locally and in CI.
+  - **Gate:** design-critic (with impeccable `critique` and `audit`), copy-critic, code-critic and test-auditor, with every BLOCKING item fixed. Both humans approve the canvas and `/design`, recorded in DESIGN.md and DECISIONS.md. Then `/phase-gate 1`.
+  - **Depends on B:** nothing blocks.
+    - Station coordinates, shapes and neighborhood cells come from B's Phase 2 files. Until then the spike and `/design` use a small, labeled sample of real GTFS coordinates. Phase 3 switches to `data/`.
+    - I'm adding `h3-js`, `maplibre-gl`, `three`, `@react-three/fiber`, `@react-three/drei`, `detect-gpu` and `motion` to `package.json`. B's `src/lib/geo` should reuse that `h3-js`.
+    - B's human approves the canvas and `/design` at the gate.
+    - D-016, D-018 and D-029, which B hasn't confirmed yet, shape the screens I draw.
+  - **Flags** (my recommendation; A's yes accepts it, and each lands in DECISIONS):
+    1. **No-WebGL fallback.** DESIGN section 9's 2D fog is a MapLibre fill layer, but MapLibre needs WebGL, so with WebGL off nothing renders. The gate and F2.6 both require that case. Recommendation: a low GPU tier gets the MapLibre fill layer. No WebGL gets an SVG map of lines, stations and cells, next to the F2.7 list view.
+    2. **Theme default.** DESIGN section 3 follows Boston's sunset through `suncalc`. Recommendation: follow the OS setting (an iPhone on Automatic already switches at sunset), with a Settings override of System, Day or Night. People who need dark mode all day get it, the `theme-color` media tags stay right without runtime work, and screenshots stay deterministic.
+    3. **Component scope.** DESIGN section 7 reads as if all ~50 components land in Phase 1, while CLAUDE.md bans feature UI before the gate. Recommendation: Phase 1 builds the base set in item 6. StationSheet, PuzzleGrid, FairnessBars, RideScene and the other feature components arrive with their features and join `/design` then.
+    4. **Token check.** The PHASES grep skips `.ts` and `.css` files, misses Tailwind arbitrary values (`p-[3px]`, `duration-[300ms]`), palette classes (`bg-red-500`), off-scale spacing and raw durations, and flags any `#` followed by hex-looking text, such as a `#faced` anchor. Recommendation: the Vitest check in item 5, with PHASES reworded to match.
+    5. **Fog frame rate.** Chrome's CPU throttle doesn't slow the GPU, and the fog is GPU work, so a MacBook run flatters a mid-range phone. I'll run the gate check as written and also report runs at the phone's full pixel count. A real mid-range Android would settle it (Open questions). Phase 9 item 2 re-checks on one.
+    6. **detect-gpu** loads its benchmark data from unpkg at runtime by default. Recommendation: serve those files from `public/`, so tier detection works offline and calls no CDN.
+    7. **`/design` on production** ships with every deployment. Recommendation: keep it reachable with `noindex` and label its sample data, since CLAUDE.md bans unlabeled fake data.
 - **Waiting on A (human):**
   - Check the Vercel GitHub app at github.com/settings/installations → Vercel. If it shows a request for updated permissions, accept it, so Vercel's `repository_dispatch` events can start the deployment check on their own (D-043).
-  - Optional: delete the local branch `gate/phase-0`; its work reached `main` through #1–#9.
-- **Next:** Phase 1 Design. Start it in a fresh session with `/phase-start 1`.
+- **Next:** item 1, Direction.
 - **Blocked:** none.
 
 ### Builder B
@@ -158,6 +214,8 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
   - Tests: 26 unit tests, including both 2026 DST nights, the second 1:30 AM on 2026-11-01 (26:30:00) and dates that don't exist. `src/lib` line coverage 98.8%. No UI, so no 390×844 check.
   - code-critic: PASS. All 4 SHOULD FIX and 4 NITs fixed: tests on the fall-back night, an east-west distance test, D-048 and DATA 3.1 for buckets and holidays, rounding down, and date validation.
   - Next: item 2, schema and migrations.
+- 2026-11-21 19:15 ET · Builder A · Phase 1 started. A approved the plan under Builder A, including the seven flags (no-WebGL fallback, OS theme default, base component scope, token check as a Vitest test, fog frame-rate caveat, self-hosted detect-gpu benchmarks, `/design` on production). Each flag gets its DECISIONS entry when its item lands. Docs only, no tests. Next: item 1, Direction.
+
 - 2026-11-21 18:30 ET · Builder A · Phase 0 gate passed. Handoff:
   - **Finished:**
     - Phase 0 PRs on `main`: [#1](https://github.com/Achyut21/fogline/pull/1) `f3351ea`, [#2](https://github.com/Achyut21/fogline/pull/2) `fe8c9ea`, [#3](https://github.com/Achyut21/fogline/pull/3) `d2363ce`, [#4](https://github.com/Achyut21/fogline/pull/4) `f9cba34`, [#5](https://github.com/Achyut21/fogline/pull/5) `17a1f05`, [#6](https://github.com/Achyut21/fogline/pull/6) `859b85d`, [#7](https://github.com/Achyut21/fogline/pull/7) `71825a8`, [#8](https://github.com/Achyut21/fogline/pull/8) `07f3191`, [#9](https://github.com/Achyut21/fogline/pull/9) `4b7aa05` (the gate fixes).
