@@ -9,7 +9,7 @@ import { createScratchDatabase } from "./scratch-database";
 const testUrl = process.env.DATABASE_URL_TEST ?? "";
 
 describe("demo seed", () => {
-  it("[F16.1] sets the demo night on the last Friday at 7 PM, at least a day back", () => {
+  it("[F16.1] sets the demo night on the last Friday at 7 PM, counted from a day back", () => {
     expect(lastFridayEvening(new Date("2026-11-22T05:00:00Z")).toISOString()).toBe(
       "2026-11-21T00:00:00.000Z",
     );
@@ -45,13 +45,18 @@ describe.skipIf(testUrl === "")("demo copies", () => {
     expect(plan).toMatchObject({ status: "ended", isDemo: true });
     const rows = await db.select().from(checkins).where(eq(checkins.planId, plan.id));
     expect(rows.every((c) => c.isDemo && c.valid)).toBe(true);
+    const names = new Map(demoProfiles.map((p) => [p.id, p.displayName]));
     const badges = await db
-      .select({ badge: badgesAwarded.badgeId })
+      .select({ profileId: badgesAwarded.profileId, badge: badgesAwarded.badgeId })
       .from(badgesAwarded)
       .where(eq(badgesAwarded.planId, plan.id));
-    expect(badges.map((b) => b.badge)).toEqual(
-      expect.arrayContaining(["first-in", "fashionably-late", "on-the-dot", "planner"]),
-    );
+    expect(badges.map((b) => `${names.get(b.profileId)} ${b.badge}`).sort()).toEqual([
+      "Priya on-the-dot",
+      "Sam fashionably-late",
+      "You first-in",
+      "You long-haul",
+      "You planner",
+    ]);
   });
 
   it("[F16.2] deletes demo copies after 24 hours and leaves real profiles alone", async () => {
@@ -65,6 +70,26 @@ describe.skipIf(testUrl === "")("demo copies", () => {
         profileCode: "REAL2345",
       })
       .returning({ id: profiles.id });
+    const [realPlan] = await db
+      .insert(plans)
+      .values({
+        createdBy: real.id,
+        kind: "meetup",
+        title: "Real night",
+        startsAt: new Date("2026-11-01T23:00:00Z"),
+        inviteToken: "real-night",
+      })
+      .returning({ id: plans.id });
+    await db.insert(checkins).values({
+      ts: new Date("2026-11-01T23:05:00Z"),
+      profileId: real.id,
+      planId: realPlan.id,
+      placeId: "osm:node/1",
+      lat: 42.36,
+      lon: -71.06,
+      accuracyM: 10,
+      valid: true,
+    });
     expect(await cleanupDemo(db, new Date())).toBe(0);
     const later = new Date(Date.now() + 25 * 3600 * 1000);
     expect(await cleanupDemo(db, later)).toBe(6);
@@ -74,5 +99,9 @@ describe.skipIf(testUrl === "")("demo copies", () => {
       .from(profiles)
       .where(inArray(profiles.id, [real.id]));
     expect(left).toHaveLength(1);
+    expect(await db.select().from(plans).where(eq(plans.id, realPlan.id))).toHaveLength(1);
+    expect(await db.select().from(checkins).where(eq(checkins.planId, realPlan.id))).toHaveLength(
+      1,
+    );
   });
 });

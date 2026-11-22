@@ -29,7 +29,12 @@ export async function checkIn(
   if (!me) return { valid: false, reason: "no-profile" };
   const db = getDb();
   const [row] = await db
-    .select({ startsAt: plans.startsAt, endedAt: plans.endedAt, placeId: planStops.placeId })
+    .select({
+      startsAt: plans.startsAt,
+      endedAt: plans.endedAt,
+      placeId: planStops.placeId,
+      isDemo: plans.isDemo,
+    })
     .from(plans)
     .innerJoin(planStops, and(eq(planStops.planId, plans.id), eq(planStops.seq, attempt.seq)))
     .innerJoin(
@@ -45,6 +50,7 @@ export async function checkIn(
     { spot: place, startsAt: row.startsAt, endedAt: row.endedAt },
   );
   await db.insert(checkins).values({
+    isDemo: row.isDemo,
     ts: now,
     profileId: me,
     planId: attempt.planId,
@@ -71,11 +77,18 @@ export async function endPlan(input: unknown) {
   const { planId } = z.object({ planId: z.uuid() }).parse(input);
   const me = await sessionProfileId();
   if (!me) return { kind: "no-profile" as const };
-  const ended = await getDb()
-    .update(plans)
-    .set({ status: "ended", endedAt: new Date() })
-    .where(and(eq(plans.id, planId), eq(plans.createdBy, me), sql`${plans.status} <> 'ended'`))
-    .returning({ id: plans.id });
-  if (ended.length === 0) return { kind: "not-allowed" as const };
-  return { kind: "ended" as const, badges: await awardNightBadges(planId) };
+  const db = getDb();
+  const [plan] = await db
+    .select({ status: plans.status })
+    .from(plans)
+    .where(and(eq(plans.id, planId), eq(plans.createdBy, me)));
+  if (!plan) return { kind: "not-allowed" as const };
+  if (plan.status !== "ended") {
+    await db
+      .update(plans)
+      .set({ status: "ended", endedAt: new Date() })
+      .where(eq(plans.id, planId));
+  }
+  // Awarding again is safe (F8.6), so a retry after a failed award fills the badges in.
+  return { kind: "ended" as const, badges: await awardNightBadges(planId, db) };
 }

@@ -1,5 +1,8 @@
+import { TZDate } from "@date-fns/tz";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
+import { log } from "@/lib/log";
+import { zone } from "@/lib/time";
 import type { Db } from "@/server/db/client";
 import { data } from "@/server/data";
 import { planMeetup } from "@/server/meetup";
@@ -24,7 +27,8 @@ export type HowItWorks = {
   /** Bytes before over bytes after compression, or null before any chunk is compressed. */
   compressionRatio: number | null;
   lastRecorderRun: Date | null;
-  solverMs: number;
+  /** Null when the timed plan found no options. */
+  solverMs: number | null;
 };
 
 // Demo rows are left out where the table has them; vehicle_positions has none.
@@ -40,10 +44,10 @@ export async function howItWorks(db: Db): Promise<HowItWorks> {
     db.execute(sql`
       select hypertable_name as table,
         sum(before_compression_total_bytes) as before, sum(after_compression_total_bytes) as after
-      from (select 'vehicle_positions' as hypertable_name, * from hypertable_compression_stats('vehicle_positions')
-        union all select 'checkins', * from hypertable_compression_stats('checkins')
-        union all select 'ride_events', * from hypertable_compression_stats('ride_events')
-        union all select 'noise_readings', * from hypertable_compression_stats('noise_readings')) s
+      from (select 'vehicle_positions' as hypertable_name, * from hypertable_columnstore_stats('vehicle_positions')
+        union all select 'checkins', * from hypertable_columnstore_stats('checkins')
+        union all select 'ride_events', * from hypertable_columnstore_stats('ride_events')
+        union all select 'noise_readings', * from hypertable_columnstore_stats('noise_readings')) s
       group by hypertable_name`),
     db.execute(sql`select max(ts) as last from vehicle_positions`),
   ]);
@@ -66,8 +70,8 @@ export async function howItWorks(db: Db): Promise<HowItWorks> {
       noise_readings: byTable.get("noise_readings") ?? 0,
     },
     compressionRatio: after > 0 ? Math.round((before / after) * 10) / 10 : null,
-    lastRecorderRun: lastRunRow.parse(z.array(lastRunRow).parse(lastRun)[0] ?? { last: null }).last,
-    solverMs: timeSolver(),
+    lastRecorderRun: z.array(lastRunRow).parse(lastRun)[0]?.last ?? null,
+    solverMs: timeSolver(new Date()),
   };
 }
 
@@ -82,28 +86,49 @@ export async function cachedHowItWorks(db: Db, now = Date.now()): Promise<HowItW
   return value;
 }
 
-/** Milliseconds for the fair solver on BU, Harvard and Tufts meeting on a Friday at 7 PM. */
-export function timeSolver(): number {
-  const started = performance.now();
-  planMeetup(
-    {
-      people: [
-        { name: "BU", station: "place-bucen" },
-        { name: "Harvard", station: "place-harsq" },
-        { name: "Tufts", station: "place-mdftf" },
-      ],
-      startsAt: "2026-11-27T19:00:00-05:00",
-      categories: ["food"],
-      budget: null,
-      minGrade: null,
-      under21: true,
-    },
-    {
-      stations: data.stations(),
-      graph: data.graph(),
-      timetable: data.timetable(),
-      places: data.places(),
-    },
-  );
-  return Math.round(performance.now() - started);
+/** 7:00 PM New York time on the next Friday after `now`, so the timed plan is inside the timetable. */
+export function nextFridayEvening(now: Date): Date {
+  const local = new TZDate(now.getTime(), zone);
+  local.setDate(local.getDate() + ((5 - local.getDay() + 7) % 7 || 7));
+  local.setHours(19, 0, 0, 0);
+  return new Date(local.getTime());
+}
+
+const runs = 3;
+
+/**
+ * Milliseconds for the fair solver on BU, Harvard and Tufts meeting next Friday at 7 PM: the
+ * median of 3 runs after one untimed warm-up, with the data files already loaded. Null when the
+ * solver found no options, so the page never shows the time of a run that did nothing.
+ */
+function timeSolver(now: Date): number | null {
+  const files = {
+    stations: data.stations(),
+    graph: data.graph(),
+    timetable: data.timetable(),
+    places: data.places(),
+  };
+  const input = {
+    people: [
+      { name: "BU", station: "place-bucen" },
+      { name: "Harvard", station: "place-harsq" },
+      { name: "Tufts", station: "place-mdftf" },
+    ],
+    startsAt: nextFridayEvening(now).toISOString(),
+    categories: ["food" as const],
+    budget: null,
+    minGrade: null,
+    under21: true,
+  };
+  if (planMeetup(input, files).kind !== "options") {
+    log.error("how-it-works: the timed plan found no options", new Error(input.startsAt));
+    return null;
+  }
+  const times: number[] = [];
+  for (let i = 0; i < runs; i++) {
+    const started = performance.now();
+    planMeetup(input, files);
+    times.push(performance.now() - started);
+  }
+  return Math.round(times.sort((a, b) => a - b)[Math.floor(runs / 2)]);
 }

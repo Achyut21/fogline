@@ -65,6 +65,7 @@ export async function createPlan(input: unknown) {
         startsAt,
         status: "planned",
         inviteToken,
+        isDemo: creator.isDemo,
       })
       .returning({ id: plans.id });
     await tx.insert(planParticipants).values([

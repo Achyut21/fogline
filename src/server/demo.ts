@@ -1,4 +1,5 @@
 import { TZDate } from "@date-fns/tz";
+import { demo } from "@/copy";
 import { lt, and, eq } from "drizzle-orm";
 import { revealAround } from "@/lib/geo/cells";
 import { zone } from "@/lib/time";
@@ -23,15 +24,15 @@ import { newProfileCode } from "@/server/profile-code";
 const keepHours = 24;
 
 const people = [
-  { name: "You", school: "Boston University", station: "place-bucen" },
-  { name: "Priya", school: "Harvard", station: "place-harsq" },
-  { name: "Sam", school: "Tufts", station: "place-mdftf" },
+  { name: demo.you, school: "Boston University", station: "place-bucen" },
+  { name: demo.friends.harvard, school: "Harvard", station: "place-harsq" },
+  { name: demo.friends.tufts, school: "Tufts", station: "place-mdftf" },
 ] as const;
 
 /** Check-in times relative to the start, in minutes: early, on time, fashionably late. */
 const arrivals = [-3, 1, 12];
 
-/** Last Friday at 7:00 PM New York time, at least a day before `now`. */
+/** 7:00 PM New York time on the latest Friday on or before the date a day before `now`. */
 export function lastFridayEvening(now: Date): Date {
   const local = new TZDate(now.getTime() - 24 * 3600 * 1000, zone);
   local.setDate(local.getDate() - ((local.getDay() + 2) % 7));
@@ -91,6 +92,7 @@ export async function seedDemo(db: Db, now = new Date()): Promise<{ profileId: s
           h3,
           state: visited.state,
           source: "checkin" as const,
+          firstAt: new Date(startsAt.getTime() + arrivals[ids.length - 1] * 60_000),
         })),
       ]);
     }
@@ -99,7 +101,7 @@ export async function seedDemo(db: Db, now = new Date()): Promise<{ profileId: s
       .values({
         createdBy: ids[0],
         kind: "meetup",
-        title: "Friday dinner",
+        title: demo.nightTitle,
         startsAt,
         endedAt: new Date(startsAt.getTime() + 3 * 3600 * 1000),
         status: "ended",
@@ -132,11 +134,16 @@ export async function seedDemo(db: Db, now = new Date()): Promise<{ profileId: s
     );
     return { plan: plan.id, you: ids[0] };
   });
+  // After the commit, because badges read the committed check-ins. A failure leaves a copy
+  // without badges, which the cleanup still removes.
   await awardNightBadges(planId.plan, db);
   return { profileId: planId.you };
 }
 
-/** Deletes demo copies older than 24 hours; their rows cascade from the profiles (F16.2). */
+/**
+ * Deletes demo copies older than 24 hours (F16.2). Plans go first, since deleting a profile only
+ * clears `plans.created_by`; seats, stops, check-ins, badges and cells cascade from the rest.
+ */
 export async function cleanupDemo(db: Db, now = new Date()): Promise<number> {
   const cutoff = new Date(now.getTime() - keepHours * 3600 * 1000);
   await db.delete(plans).where(and(eq(plans.isDemo, true), lt(plans.createdAt, cutoff)));

@@ -271,7 +271,20 @@ Format: `YYYY-MM-DD HH:MM ET · Builder A|B · what changed (commits) · tests �
     - The compression ratio, the last recorder run, and the fair solver's time.
   - `awardNightBadges` takes a database handle.
   - Tests: 5 integration tests against the test database (two copies isolated, badges present, cleanup only of expired demo rows, counts without demo rows, the 60 s cache).
-  - Reviews: code-critic is running on both commits and on #31's server code; blocking findings get fixed before the PR.
+  - Reviews (one pass each, D-067):
+    - #31's server code: PASS.
+    - Demo seed: PASS.
+    - How it works: FAIL. The solver timer counted data loading, so the first load showed ~256 ms for a ~20 ms solve.
+  - Fixed:
+    - A demo visitor's plans and check-ins carry `is_demo`, so they stay out of real stats (F16.2).
+    - `endPlan` awards badges again on retry.
+    - `myStats` reads only the profile's own plans, and every data file goes through `src/server/data.ts`.
+    - The recorder skips a bad train instead of losing the minute.
+    - The solver is timed warm, as the median of 3 runs on next Friday's plan, and reports null if the run finds no options.
+    - Demo names live in `src/copy/demo.ts`.
+    - Tests now check who gets each badge (the visitor also earns Long Haul from BU), that real plans and check-ins survive cleanup, demo rows in every hypertable, and a real columnstore ratio.
+  - Deferred (prototype): the puzzle is stateless until `puzzle_results` is stored (the six-guess limit is client-side for now), and there are no tests for `endPlan` or `checkIn`.
+  - **For A:** `tests/unit/design-tokens.test.ts` fails on Windows only. `path.relative` returns backslashes, so the `exempt` prefixes never match. Using `path.posix` or normalizing separators would fix it.
   - **For A:** `/demo` calls `seedDemo(getDb())` and then `startSession(profileId)`. Also needed from A: the Demo chip, the How it works page reading `cachedHowItWorks(getDb())`, and the data-source credits in `src/copy`.
 - 2026-11-22 00:57 ET · Builder A · Merged Phase 3 item 1 and B's prototype server work:
   - **#29 onboarding:** squash `28babbf`. Preview check (run 44989873205) and production check (run 44990097301) passed. Merging it ships D-065 (restore without a rate limit); A's sign-off is still open.
